@@ -1,0 +1,9 @@
+{
+  "name": "@ayana/modules",
+  "version": "1.0.0",
+  "description": "Modular runtime framework designed to solve complex tasks",
+  "main": "lib/index.js",
+  "repository": "https://gitlab.com/ayana/modules",
+  "author": "Ayana Developers <devs@ayana.io>",
+  "private": false
+}

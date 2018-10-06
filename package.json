@@ -4,21 +4,21 @@
 	"description": "Modular runtime framework designed to solve complex tasks",
 	"main": "build/index.js",
 	"scripts": {
-			"start": "node build/index.js"
+		"start": "node build/index.js"
 	},
 	"author": "Ayana Developers <devs@ayana.io>",
 	"contributors": [
-			"HcgRandon <me@randon.moe>",
-			"TheAkio <me@theak.io>"
+		"HcgRandon <me@randon.moe>",
+		"TheAkio <me@theak.io>"
 	],
 	"dependencies": {
-
+		"reflect-metadata": "^0.1.12"
 	},
 	"devDependencies": {
-			"@types/node": "^10.5.2",
-			"tslint": "^5.11.0",
-			"tslint-config-xo": "^1.4.0",
-			"typescript": "^2.9.2"
+		"@types/node": "^10.5.2",
+		"tslint": "^5.11.0",
+		"tslint-config-xo": "^1.4.0",
+		"typescript": "^2.9.2"
 	},
 	"private": false
 }

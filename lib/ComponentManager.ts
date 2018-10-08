@@ -1,17 +1,18 @@
 'use strict';
 
+import * as crypto from 'crypto';
 import { EventEmitter } from 'events';
 
 import {
+	Component,
 	PrimaryComponent,
-	SecondaryComponent
 } from './abstractions';
 
 export interface ComponentManagerOptions {}
 
 export class ComponentManager extends EventEmitter {
 	private readonly primary: Map<string, PrimaryComponent>;
-	private readonly secondary: Map<string, SecondaryComponent>;
+	private readonly components: Map<string, Component>;
 
 	private readonly pending: Map<string, PrimaryComponent>;
 
@@ -21,11 +22,137 @@ export class ComponentManager extends EventEmitter {
 		super();
 
 		this.primary = new Map();
-		this.secondary = new Map();
+		this.components = new Map();
 
 		this.pending = new Map();
 
 		this.opts = opts;
+	}
+
+	private createID(len: number = 16) {
+		return crypto.randomBytes(len)
+		.toString('base64')
+		.replace(/[^a-z0-9]/gi, '')
+		.slice(0, len);
+	}
+
+	public async addComponent(component: Component) {
+
+	}
+
+	public async removeComponent(id: string) {
+		const component = this.components.get(id);
+		if (!component) throw new Error(`Component '${id}' is not currently loaded.`);
+
+		// call unMount
+		if (component.onUnmount) {
+			try {
+				await component.onUnmount();
+			} catch (e) {
+				// force unload
+			}
+		}
+	}
+
+	private async loadComponent(component: Component) {
+		// generate uniqueID
+		const id = this.createID();
+
+		// apply it to component
+		Object.defineProperty(component, 'id', {
+			configurable: true,
+			writable: false,
+			enumerable: true,
+			value: id,
+		});
+
+		// call onMount
+		if (component.onMount) {
+			try {
+				await component.onMount();
+			} catch (e) {
+				return false;
+			}
+		}
+
+		this.components.set(id, component);
+		return true;
+	}
+
+	public async addPrimaryComponent(component: PrimaryComponent): Promise<string> {
+		component = new component();
+		if (!component.name) throw new Error(`Primary Components must specify a name!`);
+		if (this.primary.has(component.name)) throw new Error(`Primary Component names must be unique!`);
+
+		if (!component.dependencies || component.dependencies.length === 0) {
+			// zero dependency primary component, insta-load
+			const success = await this.loadPrimaryComponent(component);
+			
+			// if any pending components attempt to handle them now
+			if (success && this.pending.size > 0) await this.handlePendingComponents();
+		} else {
+			// determine dependencies
+			const missing = this.getMissingDependencies(component);	
+			if (missing.length === 0) {
+				// All dependencies are already loaded
+				const success = await this.loadPrimaryComponent(component);
+
+				// if any pending components attempt to handle them now
+				if (success && this.pending.size > 0) await this.handlePendingComponents();
+			} else {
+				// not able to load this component yet :c
+				this.pending.set(component.name, component);
+			}
+		}
+
+		return component.name;
+	}
+
+	public async removePrimaryComponent(name: string) {
+		const component = this.primary.get(name);
+		if (!component) throw new Error(`Primary Component '${name}' is not currently loaded.`);
+
+		// TODO: check if required, required components can't be unloaded
+
+		// call unMount
+		if (component.onUnmount) {
+			try {
+				await component.onUnmount();
+			} catch (e) {
+				// force unload
+			}
+		}
+	}
+
+	private async loadPrimaryComponent(component: PrimaryComponent) {
+		// primary component name & id are equal
+		Object.defineProperty(component, 'id', {
+			configurable: true,
+			writable: false,
+			enumerable: true,
+			value: component.name,
+		});
+
+		// define __primary
+		Object.defineProperty(component, '__primary', {
+			configurable: false,
+			writable: false,
+			enumerable: false,
+			value: true,
+		});
+
+		// call onMount
+		if (component.onMount) {
+			try {
+				await component.onMount();
+			} catch (e) {
+				if (component.required) throw new Error(`Primary Component '${component.name}'. Has stated it is required. Exiting...`);
+				return false;
+			}
+		}
+
+		this.primary.set(component.name, component);
+		return true;
 	}
 
 	private getMissingDependencies(component: PrimaryComponent): string[] {
@@ -45,61 +172,19 @@ export class ComponentManager extends EventEmitter {
 		Array.from(this.pending.entries()).forEach(async ([name, component]) => {
 			const missing = await this.getMissingDependencies(component);
 			if (missing.length === 0) {
-				// TODO: load component
+				// whatever happens remove from pending...
+				if (this.pending.has(component.name)) this.pending.delete(component.name);
+
+				const success = await this.loadPrimaryComponent(component);
+				if (success) loaded++;
 			}
 		});
 
 		// TODO: uncomment
 		// if (loaded > 0) await this.handlePendingComponents();
 	}
-
-	public async addPrimaryComponent(component: PrimaryComponent): Promise<string> {
-		if (!component.name) throw new Error(`Primary Components must specify a name!`);
-		if (this.primary.has(component.name)) throw new Error(`Primary Component names must be unique!`);
-
-		let loaded = 0;
-
-		const loadComponent = async (component: PrimaryComponent) => {
-			if (component.onMount) {
-				try {
-					await component.onMount();
-					loaded++;
-				} catch (e) {
-					if (component.required) throw new Error(`Primary Component '${component.name}'. Has stated it is required. Exiting...`);
-				}
-			}
-
-			if (this.pending.has(component.name)) this.pending.delete(component.name);
-			this.primary.set(component.name, component);
-		};
-
-		if (!component.dependencies || component.dependencies.length === 0) {
-			// zero dependency primary component, insta-load
-			await loadComponent(component);
-		} else {
-			// determine dependencies
-			const missing = this.getMissingDependencies(component);	
-			if (missing.length === 0) {
-				// All dependencies are already loaded
-				await loadComponent(component);
-			} else {
-				// not able to load this component yet :c
-				this.pending.set(component.name, component);
-			}
-		}
-
-		if (this.pending.size > 0 && loaded > 0) await this.handlePendingComponents();
-
-		return component.name;
-	}
-
-	public async removePrimaryComponent(name: string) {
-		if (!this.primary.has(name)) throw new Error(`Primary Component '${name}' is not currently loaded.`);
-	}
 }
 
 export interface ComponentManager {
 	on(event: 'error', listener: (error: Error) => void): this;
-
-	emit(event: 'error', error: Error);
 }

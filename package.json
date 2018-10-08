@@ -1,10 +1,11 @@
 {
-	"name": "@ayana/modules",
+	"name": "@ayana/components",
 	"version": "1.0.0",
 	"description": "Modular runtime framework designed to solve complex tasks",
 	"main": "build/index.js",
 	"scripts": {
-		"start": "node build/index.js"
+		"start": "node build/index.js",
+		"build": "rm -rf build/ && tsc"
 	},
 	"author": "Ayana Developers <devs@ayana.io>",
 	"contributors": [

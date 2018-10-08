@@ -3,16 +3,20 @@
 import * as crypto from 'crypto';
 import { EventEmitter } from 'events';
 
+import { ComponentAPI } from './ComponentAPI';
+
 import {
 	PrimaryComponent,
 	SecondaryComponent,
-} from './abstractions';
+} from '../abstractions';
 
 export interface ComponentManagerOptions {}
 
 export class ComponentManager extends EventEmitter {
-	private readonly primary: Map<string, PrimaryComponent>;
-	private readonly secondary: Map<string, SecondaryComponent>;
+	private readonly api: ComponentAPI;
+
+	public readonly primary: Map<string, PrimaryComponent>;
+	public readonly secondary: Map<string, SecondaryComponent>;
 
 	private readonly pending: Map<string, PrimaryComponent>;
 
@@ -20,6 +24,8 @@ export class ComponentManager extends EventEmitter {
 
 	constructor(opts: ComponentManagerOptions) {
 		super();
+
+		this.api = new ComponentAPI(this);
 
 		this.primary = new Map();
 		this.secondary = new Map();
@@ -132,6 +138,14 @@ export class ComponentManager extends EventEmitter {
 			value: true,
 		});
 
+		// define api
+		Object.defineProperty(component, 'api', {
+			configurable: false,
+			writable: false,
+			enumerable: true,
+			value: this.api,
+		})
+
 		// call onMount
 		if (component.onMount) {
 			try {
@@ -204,6 +218,14 @@ export class ComponentManager extends EventEmitter {
 			enumerable: true,
 			value: id,
 		});
+
+		// define api
+		Object.defineProperty(component, 'api', {
+			configurable: false,
+			writable: false,
+			enumerable: true,
+			value: this.api,
+		})
 
 		// call onMount
 		if (component.onMount) {

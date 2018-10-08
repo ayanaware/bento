@@ -4,15 +4,15 @@ import * as crypto from 'crypto';
 import { EventEmitter } from 'events';
 
 import {
-	Component,
 	PrimaryComponent,
+	SecondaryComponent,
 } from './abstractions';
 
 export interface ComponentManagerOptions {}
 
 export class ComponentManager extends EventEmitter {
 	private readonly primary: Map<string, PrimaryComponent>;
-	private readonly components: Map<string, Component>;
+	private readonly secondary: Map<string, SecondaryComponent>;
 
 	private readonly pending: Map<string, PrimaryComponent>;
 
@@ -22,7 +22,7 @@ export class ComponentManager extends EventEmitter {
 		super();
 
 		this.primary = new Map();
-		this.components = new Map();
+		this.secondary = new Map();
 
 		this.pending = new Map();
 
@@ -34,49 +34,6 @@ export class ComponentManager extends EventEmitter {
 		.toString('base64')
 		.replace(/[^a-z0-9]/gi, '')
 		.slice(0, len);
-	}
-
-	public async addComponent(component: Component) {
-
-	}
-
-	public async removeComponent(id: string) {
-		const component = this.components.get(id);
-		if (!component) throw new Error(`Component '${id}' is not currently loaded.`);
-
-		// call unMount
-		if (component.onUnmount) {
-			try {
-				await component.onUnmount();
-			} catch (e) {
-				// force unload
-			}
-		}
-	}
-
-	private async loadComponent(component: Component) {
-		// generate uniqueID
-		const id = this.createID();
-
-		// apply it to component
-		Object.defineProperty(component, 'id', {
-			configurable: true,
-			writable: false,
-			enumerable: true,
-			value: id,
-		});
-
-		// call onMount
-		if (component.onMount) {
-			try {
-				await component.onMount();
-			} catch (e) {
-				return false;
-			}
-		}
-
-		this.components.set(id, component);
-		return true;
 	}
 
 	private getComponentClass(nodeModule: any): typeof PrimaryComponent | typeof SecondaryComponent {
@@ -115,7 +72,6 @@ export class ComponentManager extends EventEmitter {
 	}
 
 	public async addPrimaryComponent(component: PrimaryComponent): Promise<string> {
-		component = new component();
 		if (!component.name) throw new Error(`Primary Components must specify a name!`);
 		if (this.primary.has(component.name)) throw new Error(`Primary Component names must be unique!`);
 
@@ -217,6 +173,49 @@ export class ComponentManager extends EventEmitter {
 
 		// TODO: uncomment
 		// if (loaded > 0) await this.handlePendingComponents();
+	}
+
+	public async addSecondaryComponent(component: SecondaryComponent) {
+
+	}
+
+	public async removeSecondaryComponent(id: string) {
+		const component = this.secondary.get(id);
+		if (!component) throw new Error(`Component '${id}' is not currently loaded.`);
+
+		// call unMount
+		if (component.onUnmount) {
+			try {
+				await component.onUnmount();
+			} catch (e) {
+				// force unload
+			}
+		}
+	}
+
+	private async loadSecondaryComponent(component: SecondaryComponent) {
+		// generate uniqueID
+		const id = this.createID();
+
+		// apply it to component
+		Object.defineProperty(component, 'id', {
+			configurable: true,
+			writable: false,
+			enumerable: true,
+			value: id,
+		});
+
+		// call onMount
+		if (component.onMount) {
+			try {
+				await component.onMount();
+			} catch (e) {
+				return false;
+			}
+		}
+
+		this.secondary.set(id, component);
+		return true;
 	}
 }
 

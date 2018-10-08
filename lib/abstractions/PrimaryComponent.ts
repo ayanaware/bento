@@ -1,13 +1,13 @@
 'use strict';
 
-import { Component } from './Component';
+import { SecondaryComponent } from './SecondaryComponent';
 
 interface PrimaryOptions {
 	required?: boolean;
 	dependencies?: string[];
 }
 
-export class PrimaryComponent extends Component {
+export class PrimaryComponent extends SecondaryComponent {
 	public readonly name: string;
 	public readonly required: boolean;
 	public readonly dependencies: string[];

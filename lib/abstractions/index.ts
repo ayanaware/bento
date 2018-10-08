@@ -1,4 +1,4 @@
 'use strict';
 
 export * from './PrimaryComponent';
-export * from './Component';
+export * from './SecondaryComponent';

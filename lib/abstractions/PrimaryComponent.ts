@@ -7,14 +7,12 @@ interface PrimaryOptions {
 	dependencies?: string[];
 }
 
-export class PrimaryComponent extends SecondaryComponent {
+export class PrimaryComponent implements SecondaryComponent {
 	public readonly name: string;
 	public readonly required: boolean;
 	public readonly dependencies: string[];
 
 	constructor(name: string, options?: PrimaryOptions) {
-		super();
-
 		if (typeof name !== 'string' || name.trim().length === 0) throw new Error(`Invalid primary component name "${name}"`);
 
 		if (options.required != null && typeof options.required !== 'boolean') throw new Error(`Invalid primary component required state "${options.required}"`);

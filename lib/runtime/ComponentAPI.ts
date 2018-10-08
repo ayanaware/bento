@@ -15,7 +15,7 @@ export class ComponentAPI {
 	 */
 	getPrimary(name: string) {
 		const component = this.manager.primary.get(name);
-		if (!component) return false;
+		if (!component) return null;
 
 		return component;
 	}

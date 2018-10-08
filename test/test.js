@@ -15,6 +15,7 @@ class Example extends PrimaryComponent {
 		console.log('Hello world!');
 	}
 }
+
 const example = new Example();
 manager.addPrimaryComponent(example).then(() => {
 	console.log(manager);

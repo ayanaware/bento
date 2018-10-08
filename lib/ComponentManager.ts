@@ -79,6 +79,41 @@ export class ComponentManager extends EventEmitter {
 		return true;
 	}
 
+	private getComponentClass(nodeModule: any): typeof PrimaryComponent | typeof SecondaryComponent {
+		// Check the regular "module.exports" to be a component
+		if (nodeModule.prototype instanceof SecondaryComponent) {
+			return nodeModule;
+		}
+
+		// Check the default export in esmodules
+		if (nodeModule.default != null) {
+			if (nodeModule.default.prototype instanceof SecondaryComponent) {
+				return nodeModule.default;
+			} else {
+				throw new Error('Component defines default export as non-component');
+			}
+		}
+
+		// Check all keys that exist on the module
+		const keys = Object.keys(nodeModule);
+		let componentClass = null;
+
+		for (const key of keys) {
+			const cls = nodeModule[key];
+			if (cls.prototype instanceof SecondaryComponent) {
+				if (componentClass != null) {
+					throw new Error('Component defines multiple exported components');
+				}
+
+				componentClass = cls;
+			}
+		}
+
+		if (componentClass != null) return componentClass;
+
+		throw new Error('Component defines no exported component');
+	}
+
 	public async addPrimaryComponent(component: PrimaryComponent): Promise<string> {
 		component = new component();
 		if (!component.name) throw new Error(`Primary Components must specify a name!`);

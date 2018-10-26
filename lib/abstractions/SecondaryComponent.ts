@@ -1,8 +1,8 @@
 'use strict';
 
 export interface SecondaryComponent {
-	id: string;
+	name: string;
 
-	onMount(): Promise<void>;
-	onUnmount(): Promise<void>;
+	onLoad(): Promise<void>;
+	onUnload(): Promise<void>;
 }

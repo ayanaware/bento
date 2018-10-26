@@ -13,29 +13,29 @@ import {
 export interface ComponentManagerOptions {}
 
 export class ComponentManager extends EventEmitter {
-	private readonly api: ComponentAPI;
-
 	public readonly primary: Map<string, PrimaryComponent>;
 	public readonly secondary: Map<string, SecondaryComponent>;
 
 	private readonly pending: Map<string, PrimaryComponent>;
+
+	public readonly events: Map<string, EventEmitter>;
 
 	public readonly opts: ComponentManagerOptions;
 
 	constructor(opts: ComponentManagerOptions) {
 		super();
 
-		this.api = new ComponentAPI(this);
-
 		this.primary = new Map();
 		this.secondary = new Map();
 
 		this.pending = new Map();
 
+		this.events = new Map();
+
 		this.opts = opts;
 	}
 
-	private createID(len: number = 16) {
+	public createID(len: number = 16) {
 		return crypto.randomBytes(len)
 		.toString('base64')
 		.replace(/[^a-z0-9]/gi, '')
@@ -77,9 +77,9 @@ export class ComponentManager extends EventEmitter {
 		// TODO: check if required, required components can't be unloaded
 
 		// call unMount
-		if (component.onUnmount) {
+		if (component.onUnload) {
 			try {
-				await component.onUnmount();
+				await component.onUnload();
 			} catch (e) {
 				// force unload
 			}
@@ -87,12 +87,27 @@ export class ComponentManager extends EventEmitter {
 	}
 
 	private async loadPrimaryComponent(component: PrimaryComponent) {
-		// primary component name & id are equal
-		Object.defineProperty(component, 'id', {
+		// primary component name
+		Object.defineProperty(component, 'name', {
 			configurable: true,
 			writable: false,
 			enumerable: true,
 			value: component.name,
+		});
+
+		// define releveant primary properties
+		Object.defineProperty(component, 'dependencies', {
+			configurable: true,
+			writable: false,
+			enumerable: true,
+			value: component.dependencies,
+		});
+
+		Object.defineProperty(component, 'required', {
+			configurable: true,
+			writable: false,
+			enumerable: true,
+			value: component.required,
 		});
 
 		// define __primary
@@ -103,18 +118,21 @@ export class ComponentManager extends EventEmitter {
 			value: true,
 		});
 
+		// create components' api
+		const api = new ComponentAPI(component.name, this);
+
 		// define api
 		Object.defineProperty(component, 'api', {
 			configurable: false,
 			writable: false,
 			enumerable: true,
-			value: this.api,
+			value: api,
 		})
 
-		// call onMount
-		if (component.onMount) {
+		// call onLoad
+		if (component.onLoad) {
 			try {
-				await component.onMount();
+				await component.onLoad();
 			} catch (e) {
 				if (component.required) throw new Error(`Primary Component '${component.name}'. Has stated it is required. Exiting...`);
 				return false;
@@ -122,6 +140,14 @@ export class ComponentManager extends EventEmitter {
 		}
 
 		this.primary.set(component.name, component);
+
+		// create primary componet event emitter if it doesn't already exist
+		if (!this.events.has(component.name)) {
+			// create new eventEmitter
+			const emitter = new EventEmitter();
+			this.events.set(component.name, emitter);
+		}
+
 		return true;
 	}
 
@@ -163,9 +189,9 @@ export class ComponentManager extends EventEmitter {
 		if (!component) throw new Error(`Component '${id}' is not currently loaded.`);
 
 		// call unMount
-		if (component.onUnmount) {
+		if (component.onUnload) {
 			try {
-				await component.onUnmount();
+				await component.onUnload();
 			} catch (e) {
 				// force unload
 			}
@@ -173,35 +199,37 @@ export class ComponentManager extends EventEmitter {
 	}
 
 	private async loadSecondaryComponent(component: SecondaryComponent) {
-		// generate uniqueID
-		const id = this.createID();
+		// generate uniqueID (name)
+		const name = this.createID();
 
 		// apply it to component
-		Object.defineProperty(component, 'id', {
+		Object.defineProperty(component, 'name', {
 			configurable: true,
 			writable: false,
 			enumerable: true,
-			value: id,
+			value: name,
 		});
+
+		const api = new ComponentAPI(name, this);
 
 		// define api
 		Object.defineProperty(component, 'api', {
 			configurable: false,
 			writable: false,
 			enumerable: true,
-			value: this.api,
+			value: api,
 		})
 
 		// call onMount
-		if (component.onMount) {
+		if (component.onLoad) {
 			try {
-				await component.onMount();
+				await component.onLoad();
 			} catch (e) {
 				return false;
 			}
 		}
 
-		this.secondary.set(id, component);
+		this.secondary.set(name, component);
 		return true;
 	}
 }

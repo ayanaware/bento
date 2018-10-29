@@ -12,7 +12,9 @@
 		"HcgRandon <me@randon.moe>",
 		"TheAkio <me@theak.io>"
 	],
-	"dependencies": {},
+	"dependencies": {
+		"eventemitter3": "^3.1.0"
+	},
 	"devDependencies": {
 		"@types/node": "^10.5.2",
 		"tslint": "^5.11.0",

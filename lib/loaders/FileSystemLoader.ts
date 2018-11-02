@@ -15,7 +15,68 @@ interface DirectoryContent {
 	stats: fs.Stats;
 }
 
+/**
+ * Options for the file system loader
+ */
+export interface FileSystemLoaderOptions {
+	/**
+	 * Path to the folder containing primary components
+	 */
+	primary: string;
+	/**
+	 * Path to the folder containing secondary components
+	 */
+	secondary: string;
+}
+
+/**
+ * Loads components from the file system
+ */
 export class FileSystemLoader extends Loader {
+
+	private readonly primary: string;
+	private readonly secondary: string;
+
+	public constructor(options: FileSystemLoaderOptions = { primary: null, secondary: null }) {
+		super();
+
+		this.primary = options.primary;
+		this.secondary = options.secondary;
+	}
+
+	public async load() {
+		const primaries = await this.getComponentFiles(this.primary);
+		const secondaries = await this.getComponentFiles(this.secondary);
+
+		this.createComponents(primaries, true);
+		this.createComponents(secondaries, true);
+	}
+
+	private createComponents(componentFiles: string[], primary: boolean) {
+		for (const component of componentFiles) {
+			try {
+				let nodeModule: any;
+				try {
+					nodeModule = require(component);
+				} catch (e) {
+					// TODO Wrap Error and throw
+					throw e;
+				}
+
+				const compClass = this.getComponentClass(nodeModule);
+				const instance = this.instantiate<any>(compClass);
+
+				if (primary) {
+					this.manager.addPrimaryComponent(instance);
+				} else {
+					this.manager.addSecondaryComponent(instance);
+				}
+			} catch (e) {
+				// TODO Better logging
+				console.log(e);
+			}
+		}
+	}
 
 	private async getDirectoryContents(directoryPath: string): Promise<DirectoryContent[]> {
 		const results: DirectoryContent[] = [];

@@ -1,8 +1,27 @@
 'use strict';
 
+import { PrimaryComponent, SecondaryComponent } from '../abstractions';
+import { ComponentManager } from '../runtime';
+
+export interface ComponentClass {
+	classLike: boolean;
+	obj: any;
+	esModule: boolean;
+}
+
 export abstract class Loader {
 
-	// public abstract async load(): Promise<void>;
+	protected manager: ComponentManager = null;
+
+	public attach(manager: ComponentManager) {
+		this.manager = manager;
+	}
+
+	public detach() {
+		this.manager = null;
+	}
+
+	public abstract async load(): Promise<void>;
 
 	private componentLike(v: any): boolean {
 		return v != null && (typeof v === 'function' || typeof v === 'object');
@@ -12,7 +31,20 @@ export abstract class Loader {
 		return typeof v === 'function' && typeof v.prototype === 'object';
 	}
 
-	protected getComponentClass(nodeModule: any): { classLike: boolean, obj: any, esModule: boolean } {
+	protected instantiate<T = PrimaryComponent | SecondaryComponent>(compClass: ComponentClass): T {
+		if (compClass.classLike) {
+			try {
+				return new compClass.obj();
+			} catch (e) {
+				// TODO Wrap and throw
+				throw e;
+			}
+		} else {
+			return compClass.obj;
+		}
+	}
+
+	protected getComponentClass(nodeModule: any): ComponentClass {
 		// Check ESModule flag
 		if (nodeModule.__esModule) {
 			// Check default export

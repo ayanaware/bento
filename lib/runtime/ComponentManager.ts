@@ -10,9 +10,10 @@ import {
 	SecondaryComponent,
 } from '../abstractions';
 
-export interface ComponentManagerOptions {}
+export interface ComponentManagerOptions { }
 
 export class ComponentManager extends EventEmitter {
+
 	public readonly primary: Map<string, PrimaryComponent>;
 	public readonly secondary: Map<string, SecondaryComponent>;
 
@@ -37,9 +38,9 @@ export class ComponentManager extends EventEmitter {
 
 	public createID(len: number = 16) {
 		return crypto.randomBytes(len)
-		.toString('base64')
-		.replace(/[^a-z0-9]/gi, '')
-		.slice(0, len);
+			.toString('base64')
+			.replace(/[^a-z0-9]/gi, '')
+			.slice(0, len);
 	}
 
 	public async addPrimaryComponent(component: PrimaryComponent): Promise<string> {
@@ -49,12 +50,12 @@ export class ComponentManager extends EventEmitter {
 		if (!component.dependencies || component.dependencies.length === 0) {
 			// zero dependency primary component, insta-load
 			const success = await this.loadPrimaryComponent(component);
-			
+
 			// if any pending components attempt to handle them now
 			if (success && this.pending.size > 0) await this.handlePendingComponents();
 		} else {
 			// determine dependencies
-			const missing = this.getMissingDependencies(component);	
+			const missing = this.getMissingDependencies(component);
 			if (missing.length === 0) {
 				// All dependencies are already loaded
 				const success = await this.loadPrimaryComponent(component);
@@ -127,7 +128,7 @@ export class ComponentManager extends EventEmitter {
 			writable: false,
 			enumerable: true,
 			value: api,
-		})
+		});
 
 		// call onLoad
 		if (component.onLoad) {
@@ -181,7 +182,8 @@ export class ComponentManager extends EventEmitter {
 	}
 
 	public async addSecondaryComponent(component: SecondaryComponent) {
-
+		// TODO Add check if pending components are still there
+		// TODO Also add explicit depends to secondary components and check them
 	}
 
 	public async removeSecondaryComponent(id: string) {
@@ -218,7 +220,7 @@ export class ComponentManager extends EventEmitter {
 			writable: false,
 			enumerable: true,
 			value: api,
-		})
+		});
 
 		// call onMount
 		if (component.onLoad) {

@@ -1,6 +1,6 @@
 'use strict';
 
-import { ComponentManager } from "./ComponentManager";
+import { ComponentManager } from './ComponentManager';
 
 export class ComponentAPI {
 	private readonly name: string;

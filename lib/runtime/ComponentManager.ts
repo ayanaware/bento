@@ -9,6 +9,8 @@ import {
 	PrimaryComponent,
 	SecondaryComponent,
 } from '../abstractions';
+import { LoadError } from '../errors';
+import { ComponentEvents } from './ComponentEvents';
 
 export interface ComponentManagerOptions { }
 
@@ -19,7 +21,7 @@ export class ComponentManager extends EventEmitter {
 
 	private readonly pending: Map<string, PrimaryComponent>;
 
-	public readonly events: Map<string, EventEmitter>;
+	public readonly events: Map<string, ComponentEvents>;
 
 	public readonly opts: ComponentManagerOptions;
 
@@ -43,9 +45,9 @@ export class ComponentManager extends EventEmitter {
 			.slice(0, len);
 	}
 
-	public async addPrimaryComponent(component: PrimaryComponent): Promise<string> {
-		if (!component.name) throw new Error(`Primary Components must specify a name!`);
-		if (this.primary.has(component.name)) throw new Error(`Primary Component names must be unique!`);
+	public async addPrimaryComponent(component: PrimaryComponent, componentLocation?: string): Promise<string> {
+		if (!component.name) throw new LoadError(componentLocation, `Primary components must specify a name`);
+		if (this.primary.has(component.name)) throw new LoadError(componentLocation, `Primary component names must be unique`);
 
 		if (!component.dependencies || component.dependencies.length === 0) {
 			// zero dependency primary component, insta-load
@@ -145,8 +147,8 @@ export class ComponentManager extends EventEmitter {
 		// create primary componet event emitter if it doesn't already exist
 		if (!this.events.has(component.name)) {
 			// create new eventEmitter
-			const emitter = new EventEmitter();
-			this.events.set(component.name, emitter);
+			const events = new ComponentEvents(component.name);
+			this.events.set(component.name, events);
 		}
 
 		return true;
@@ -181,7 +183,7 @@ export class ComponentManager extends EventEmitter {
 		// if (loaded > 0) await this.handlePendingComponents();
 	}
 
-	public async addSecondaryComponent(component: SecondaryComponent) {
+	public async addSecondaryComponent(component: SecondaryComponent, componentLocation?: string) {
 		// TODO Add check if pending components are still there
 		// TODO Also add explicit depends to secondary components and check them
 	}

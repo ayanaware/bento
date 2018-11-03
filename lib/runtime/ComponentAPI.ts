@@ -1,19 +1,18 @@
 'use strict';
 
+import { IllegalArgumentError } from '@ayana/errors';
+import { Logger } from '@ayana/logger';
+
 import { ComponentManager } from './ComponentManager';
 
+const log = Logger.get('ComponentAPI');
+
 export class ComponentAPI {
-	private readonly name: string;
-	private readonly manager: ComponentManager;
 
-	private readonly subscribers: Map<string, () => void>;
+	//							   namespace, subIDs
+	private readonly subscriptions: Map<string, string[]> = new Map();
 
-	constructor(name: string, manager: ComponentManager) {
-		this.name = name;
-		this.manager = manager;
-
-		this.subscribers = new Map();
-	}
+	constructor(private readonly name: string, private readonly manager: ComponentManager) {}
 
 	/**
 	 * Fetch the provided primary component instance
@@ -33,34 +32,73 @@ export class ComponentAPI {
 		emitter.emit(eventName, ...args);
 	}
 
-	public async subscribe(namespace: string, eventName: string, handler: (...args: any[]) => void) {
-		// check if the namespace exists
-		const emitter = this.manager.events.get(namespace);
-		if (!emitter) throw new Error('Namespace does not exist!');
+	public subscribe(namespace: string, eventName: string, handler: (...args: any[]) => void) {
+		// Get the namespace
+		const events = this.manager.events.get(namespace);
+		if (!events) throw new Error('Namespace does not exist!');
 
-		// create a new subscriber
-		const subID = this.manager.createID();
-		const subscriber = (...args: any[]) => {
-			handler(...args);
-		};
+		// Subscribe to the event
+		const subID = events.subscribe(eventName, handler);
 
-
-		this.subscribers.set(subID, subscriber);
-		emitter.on(eventName, subscriber);
+		// Register subscription so if the current component unloads we can remove all events
+		// TODO If the namespace component unloads we need to remove that array
+		if (!this.subscriptions.has(namespace)) this.subscriptions.set(namespace, []);
+		this.subscriptions.get(namespace).push(subID);
 
 		return subID;
 	}
 
-	public async unsubscribe(namespace: string, eventName: string, subID: string) {
-		// check if the namespace exists
-		const emitter = this.manager.events.get(namespace);
-		if (!emitter) throw new Error('Namespace does not exist!');
+	public unsubscribe(namespace: string, subID: string) {
+		// Check if the namespace exists
+		const events = this.manager.events.get(namespace);
+		if (events == null) {
+			log.warn(`Could not find events for namespace "${namespace}" while trying to unsubscribe`, this.name);
+			return;
+		}
 
-		// check if this subscriber actually exists
-		const subscriber = this.subscribers.get(subID);
-		if (!subscriber) throw new Error('Subscriber does not exist');
+		// Check if this subscriber actually exists
+		const subscriber = this.subscriptions.get(subID);
+		if (subscriber == null || !subscriber.includes(subID)) throw new IllegalArgumentError(`Tried to unsubscribe from unknown subID "${subID}"`);
 
-		emitter.removeListener(eventName, subscriber);
-		this.subscribers.delete(subID);
+		// Unsubscribe
+		events.unsubscribe(subID);
+
+		// Remove subID TODO
+		// subscriber.splice(subID);
+	}
+
+	/**
+	 * Unsubscribes from all events in a namespace or all events alltogether.
+	 * This will automatically get called when your component gets unloaded
+	 *
+	 * @param namespace Optional. A namespace where all events should be unsubscribed
+	 */
+	public unsubscribeAll(namespace?: string) {
+		if (namespace != null) {
+			// Get the namespace events
+			const events = this.manager.events.get(namespace);
+			if (events == null) {
+				log.warn(`Could not find events for namespace "${namespace}" while trying to unsubscribe`, this.name);
+				return;
+			}
+
+			// Get subscriptions on that namespace
+			const subscriptions = this.subscriptions.get(namespace);
+			// No subscriptions on that namespace exist
+			if (subscriptions == null) return;
+
+			// Unsubscribe from all events
+			for (const subID of subscriptions) {
+				events.unsubscribe(subID);
+			}
+
+			// Remove array
+			this.subscriptions.delete(namespace);
+		} else {
+			// No namespace was given so we unsubscribe everything
+			for (const ns of this.subscriptions.keys()) {
+				this.unsubscribeAll(ns);
+			}
+		}
 	}
 }

@@ -4,6 +4,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
 
+import { IllegalArgumentError } from '@ayana/errors';
+
+import { LoadError } from '../errors';
+
 import { Loader } from './Loader';
 
 const readdir = util.promisify(fs.readdir);
@@ -37,39 +41,54 @@ export class FileSystemLoader extends Loader {
 	private readonly primary: string;
 	private readonly secondary: string;
 
-	public constructor(options: FileSystemLoaderOptions = { primary: null, secondary: null }) {
+	public constructor(options: FileSystemLoaderOptions) {
 		super();
+
+		options = options || { primary: null, secondary: null };
+
+		if (typeof options.primary !== 'string') throw new IllegalArgumentError('Path to primary components must be a string');
+		if (typeof options.secondary !== 'string') throw new IllegalArgumentError('Path to secondary components must be a string');
 
 		this.primary = options.primary;
 		this.secondary = options.secondary;
 	}
 
-	public async load() {
-		const primaries = await this.getComponentFiles(this.primary);
-		const secondaries = await this.getComponentFiles(this.secondary);
+	public async doLoad() {
+		let primaries;
+		try {
+			primaries = await this.getComponentFiles(this.primary);
+		} catch (e) {
+			throw new LoadError(this.primary, 'Failed to read primary component files').setCause(e);
+		}
 
-		this.createComponents(primaries, true);
-		this.createComponents(secondaries, true);
+		let secondaries;
+		try {
+			secondaries = await this.getComponentFiles(this.secondary);
+		} catch (e) {
+			throw new LoadError(this.secondary, 'Failed to read secondary component files').setCause(e);
+		}
+
+		await this.createComponents(primaries, true);
+		await this.createComponents(secondaries, true);
 	}
 
-	private createComponents(componentFiles: string[], primary: boolean) {
+	private async createComponents(componentFiles: string[], primary: boolean) {
 		for (const component of componentFiles) {
 			try {
 				let nodeModule: any;
 				try {
 					nodeModule = require(component);
 				} catch (e) {
-					// TODO Wrap Error and throw
-					throw e;
+					throw new LoadError(component, 'Failed to require module').setCause(e);
 				}
 
-				const compClass = this.getComponentClass(nodeModule);
-				const instance = this.instantiate<any>(compClass);
+				const comp = this.findComponent(nodeModule, component);
+				const instance = this.instantiate<any>(comp, component);
 
 				if (primary) {
-					this.manager.addPrimaryComponent(instance);
+					await this.manager.addPrimaryComponent(instance, component);
 				} else {
-					this.manager.addSecondaryComponent(instance);
+					await this.manager.addSecondaryComponent(instance, component);
 				}
 			} catch (e) {
 				// TODO Better logging

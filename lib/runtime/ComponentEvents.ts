@@ -4,11 +4,48 @@ import * as crypto from 'crypto';
 
 import * as EventEmitter from 'eventemitter3';
 
+import { IllegalArgumentError } from '@ayana/errors';
+import { Logger } from '@ayana/logger';
+
+class ObjectMap<T> {
+
+	private map: { [key: string]: T } = {};
+
+	public get(key: string): T {
+		return this.map[key];
+	}
+
+	public set(key: string, value: T) {
+		this.map[key] = value;
+	}
+
+	public has(key: string) {
+		return Object.prototype.hasOwnProperty.call(this.map, key);
+	}
+
+	public delete(key: string) {
+		delete this.map[key];
+	}
+
+}
+
+interface Subscriber {
+	fn: (...args: any[]) => void;
+	name: string;
+	isSubject: boolean;
+}
+
+const log = Logger.get('ComponentEvents');
+
 export class ComponentEvents {
 
-	private _emitter: EventEmitter = new EventEmitter();
-	private _subscribers: Map<string, (...args: any[]) => void> = new Map();
-	private _subjects: { [key: string]: any } = {};
+	private emitter: EventEmitter = new EventEmitter();
+	private subjectEmitter: EventEmitter = new EventEmitter();
+	private subjects: ObjectMap<any> = new ObjectMap();
+
+	private subscribers: ObjectMap<Subscriber> = new ObjectMap();
+
+	constructor(private readonly name: string) {}
 
 	private createID(len: number = 16): string {
 		return crypto.randomBytes(len)
@@ -17,69 +54,78 @@ export class ComponentEvents {
 		.slice(0, len);
 	}
 
-	public hasSubject(name: string) {
-		return Object.prototype.hasOwnProperty.call(this._subjects, name);
-	}
-
 	public getSubject(name: string): any {
-		if (!this.hasSubject(name)) {
-			throw new Error('Subject does not exist');
-		}
-
-		return this._subjects[name];
-	}
-
-	public createSubject(name: string, value: any) {
-		if (this.hasSubject(name)) {
-			throw new Error('Subject already exists');
-		}
-
-		this._subjects[name] = value;
-		this._emitter.emit(name, this._subjects[name]);
+		return this.subjects.get(name);
 	}
 
 	public updateSubject(name: string, value: any) {
-		if (!this.hasSubject(name)) {
-			throw new Error('Subject does not exist');
+		if (value === undefined) {
+			throw new IllegalArgumentError('Cannot set subject value to undefined. Use deleteSubject() to remove the subject');
 		}
 
-		this._subjects[name] = value;
-		this._emitter.emit(name, this._subjects[name]);
+		this.subjects.set(name, value);
+		this.subjectEmitter.emit(name, value);
 	}
 
 	public deleteSubject(name: string) {
-		if (!this.hasSubject(name)) {
-			throw new Error('Subject does not exist');
-		}
-
-		delete this._subjects[name];
-		this._emitter.emit(name, void 0);
+		this.subjects.delete(name);
+		this.subjectEmitter.emit(name, undefined);
 	}
 
-	public subscribe(eventName: string, handler: (...args: any[]) => void, context?: any): string {
-		// create a new subscriber
+	public emit(eventName: string, ...args: any[]) {
+		this.emitter.emit(eventName, ...args);
+	}
+
+	private createSubscriber(name: string, handler: (...args: any[]) => void, context: any, isSubject: boolean): string {
 		const subID = this.createID();
 		const subscriber = function (...args: any[]) {
 			handler(...args);
 		};
 
-		this._subscribers.set(subID, subscriber);
-		this._emitter.on(eventName, subscriber, context);
+		this.subscribers.set(subID, {
+			fn: subscriber,
+			name,
+			isSubject,
+		});
 
-		if (this.hasSubject(eventName)) {
-			subscriber.call(context, this.getSubject(eventName));
+		if (isSubject) {
+			this.subjectEmitter.on(name, subscriber, context);
+		} else {
+			this.emitter.on(name, subscriber, context);
 		}
 
 		return subID;
 	}
 
-	public unsubscribe(eventName: string, subID: string): void {
-		// check if this subscriber actually exists
-		const subscriber = this._subscribers.get(subID);
-		if (!subscriber) throw new Error('Subscriber does not exist');
+	public subscribe(eventName: string, handler: (...args: any[]) => void, context?: any): string {
+		return this.createSubscriber(eventName, handler, context, false);
+	}
 
-		this._emitter.removeListener(eventName, subscriber);
-		this._subscribers.delete(subID);
+	public subscribeSubject(subjectName: string, handler: (...args: any[]) => void, context?: any): string {
+		const subID = this.createSubscriber(subjectName, handler, context, true);
+
+		// Instantly call the subscriber with the current state if there is one
+		if (this.subjects.has(subjectName)) {
+			this.subscribers.get(subID).fn.call(context, this.getSubject(subjectName));
+		}
+
+		return subID;
+	}
+
+	public unsubscribe(subID: string): void {
+		// Check if this subscriber actually exists
+		const subscriber = this.subscribers.get(subID);
+		if (!subscriber) log.warn(`Something attempted to unsubscribe the subID "${subID}"`, this.name);
+
+		// Unsubscribe from the specified emitter
+		if (subscriber.isSubject) {
+			this.subjectEmitter.removeListener(subscriber.name, subscriber.fn);
+		} else {
+			this.emitter.removeListener(subscriber.name, subscriber.fn);
+		}
+
+		// Delete the subscription
+		this.subscribers.delete(subID);
 	}
 
 }

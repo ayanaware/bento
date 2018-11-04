@@ -30,7 +30,7 @@ export interface FileSystemLoaderOptions {
 	/**
 	 * Path to the folder containing secondary components
 	 */
-	secondary: string;
+	secondary?: string;
 }
 
 /**
@@ -47,13 +47,16 @@ export class FileSystemLoader extends Loader {
 		options = options || { primary: null, secondary: null };
 
 		if (typeof options.primary !== 'string') throw new IllegalArgumentError('Path to primary components must be a string');
+		// TODO: Secondary components are tech optional allow support for this
 		if (typeof options.secondary !== 'string') throw new IllegalArgumentError('Path to secondary components must be a string');
 
 		this.primary = options.primary;
 		this.secondary = options.secondary;
 	}
 
-	public async doLoad() {
+	public async load() {
+		super.load();
+
 		let primaries;
 		try {
 			primaries = await this.getComponentFiles(this.primary);
@@ -70,6 +73,8 @@ export class FileSystemLoader extends Loader {
 
 		await this.createComponents(primaries, true);
 		await this.createComponents(secondaries, true);
+
+		return true;
 	}
 
 	private async createComponents(componentFiles: string[], primary: boolean) {

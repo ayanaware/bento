@@ -56,14 +56,8 @@ export abstract class Loader {
 	 */
 	public async load() {
 		if (this.manager == null) throw new IllegalStateError('A manager must be attached before loading');
-
-		return this.doLoad();
+		return true;
 	}
-
-	/**
-	 * Abstract loading method that has to be implemented by the lower class
-	 */
-	protected abstract async doLoad(): Promise<void>;
 
 	/**
 	 * Detects if a value is component-like.

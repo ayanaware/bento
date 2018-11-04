@@ -25,7 +25,7 @@ export class ComponentManager extends EventEmitter {
 
 	public readonly opts: ComponentManagerOptions;
 
-	constructor(opts: ComponentManagerOptions) {
+	constructor(opts?: ComponentManagerOptions) {
 		super();
 
 		this.primary = new Map();

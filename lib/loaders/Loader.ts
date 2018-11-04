@@ -2,8 +2,8 @@
 
 import { IllegalStateError } from '@ayana/errors';
 
-import { PrimaryComponent, SecondaryComponent } from '../abstractions';
 import { ComponentLoadError } from '../errors';
+import { PrimaryComponent, SecondaryComponent } from '../interfaces';
 import { ComponentManager } from '../runtime';
 
 /**

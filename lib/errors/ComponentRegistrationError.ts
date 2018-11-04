@@ -2,7 +2,7 @@
 
 import { GlobalInstanceOf } from '@ayana/errors';
 
-import { PrimaryComponent, SecondaryComponent } from '../abstractions';
+import { PrimaryComponent, SecondaryComponent } from '../interfaces';
 
 import { ComponentError } from './ComponentError';
 

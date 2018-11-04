@@ -4,9 +4,9 @@ import * as crypto from 'crypto';
 
 import * as EventEmitter from 'eventemitter3';
 
-import { PrimaryComponent, SecondaryComponent } from '../abstractions';
-import { DecoratorSubscription } from '../decorators';
 import { ComponentRegistrationError } from '../errors';
+import { PrimaryComponent, SecondaryComponent } from '../interfaces';
+import { DecoratorSubscription } from '../interfaces/internal';
 
 import { ComponentAPI } from './ComponentAPI';
 import { ComponentEvents } from './ComponentEvents';
@@ -154,7 +154,7 @@ export class ComponentManager extends EventEmitter {
 		const subscriptions: DecoratorSubscription[] = (component.constructor as any)._subscriptions;
 		if (Array.isArray(subscriptions)) {
 			for (const subscription of subscriptions) {
-				api.subscribe(subscription.isSubject, subscription.namespace, subscription.name, subscription.handler, component);
+				api.subscribe(subscription.type, subscription.namespace, subscription.name, subscription.handler, component);
 			}
 		}
 

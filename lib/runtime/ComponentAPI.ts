@@ -3,6 +3,8 @@
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 import { Logger } from '@ayana/logger';
 
+import { SubscriptionType } from '../constants';
+
 import { ComponentManager } from './ComponentManager';
 
 const log = Logger.get('ComponentAPI');
@@ -32,12 +34,12 @@ export class ComponentAPI {
 		emitter.emit(eventName, ...args);
 	}
 
-	public subscribe(isSubject: boolean, namespace: string, name: string, handler: (...args: any[]) => void, context?: any) {
+	public subscribe(type: SubscriptionType, namespace: string, name: string, handler: (...args: any[]) => void, context?: any) {
 		// Get the namespace
 		const events = this.manager.events.get(namespace);
 		if (events == null) throw new IllegalArgumentError('Namespace does not exist');
 
-		const subID = events.subscribe(isSubject, name, handler, context);
+		const subID = events.subscribe(type, name, handler, context);
 
 		// Register subscription so if the current component unloads we can remove all events
 		// TODO If the namespace component unloads we need to remove that array
@@ -48,11 +50,11 @@ export class ComponentAPI {
 	}
 
 	public subscribeEvent(namespace: string, eventName: string, handler: (...args: any[]) => void, context?: any) {
-		return this.subscribe(false, namespace, eventName, handler, context);
+		return this.subscribe(SubscriptionType.EVENT, namespace, eventName, handler, context);
 	}
 
 	public subscribeSubject(namespace: string, subjectName: string, handler: (...args: any[]) => void, context?: any) {
-		return this.subscribe(true, namespace, subjectName, handler, context);
+		return this.subscribe(SubscriptionType.SUBJECT, namespace, subjectName, handler, context);
 	}
 
 	public unsubscribe(namespace: string, subID: string) {

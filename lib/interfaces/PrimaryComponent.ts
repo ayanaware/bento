@@ -3,7 +3,7 @@
 export interface PrimaryComponent {
 	name: string;
 	dependencies?: string[];
-	required?: boolean,
+	required?: boolean;
 
 	onLoad?(): Promise<void>;
 	onUnload?(): Promise<void>;

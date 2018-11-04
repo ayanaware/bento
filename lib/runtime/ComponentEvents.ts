@@ -7,11 +7,8 @@ import * as EventEmitter from 'eventemitter3';
 import { IllegalArgumentError } from '@ayana/errors';
 import { Logger } from '@ayana/logger';
 
-interface Subscriber {
-	fn: (...args: any[]) => void;
-	name: string;
-	isSubject: boolean;
-}
+import { SubscriptionType } from '../constants';
+import { Subscriber } from '../interfaces/internal';
 
 const log = Logger.get('ComponentEvents');
 
@@ -54,38 +51,40 @@ export class ComponentEvents {
 		this.emitter.emit(eventName, ...args);
 	}
 
-	public subscribe(isSubject: boolean, name: string, handler: (...args: any[]) => void, context: any): string {
+	public subscribe(type: SubscriptionType, name: string, handler: (...args: any[]) => void, context: any): string {
 		const subID = this.createID();
 		const subscriber = function (...args: any[]) {
 			handler(...args);
 		};
 
 		this.subscribers.set(subID, {
-			fn: subscriber,
+			handler: subscriber,
 			name,
-			isSubject,
+			type,
 		});
 
-		if (isSubject) {
+		if (type === SubscriptionType.SUBJECT) {
 			this.subjectEmitter.on(name, subscriber, context);
 
 			// Instantly call the subscriber with the current state if there is one
 			if (this.subjects.has(name)) {
 				subscriber.call(context, this.getSubject(name));
 			}
-		} else {
+		} else if (type === SubscriptionType.EVENT) {
 			this.emitter.on(name, subscriber, context);
+		} else {
+			throw new IllegalArgumentError(`Invalid subscription type "${type}"`);
 		}
 
 		return subID;
 	}
 
 	public subscribeEvent(eventName: string, handler: (...args: any[]) => void, context?: any): string {
-		return this.subscribe(true, eventName, handler, context);
+		return this.subscribe(SubscriptionType.EVENT, eventName, handler, context);
 	}
 
 	public subscribeSubject(subjectName: string, handler: (...args: any[]) => void, context?: any): string {
-		return this.subscribe(true, subjectName, handler, context);
+		return this.subscribe(SubscriptionType.SUBJECT, subjectName, handler, context);
 	}
 
 	public unsubscribe(subID: string): void {
@@ -94,10 +93,10 @@ export class ComponentEvents {
 		if (!subscriber) log.warn(`Something attempted to unsubscribe the subID "${subID}"`, this.name);
 
 		// Unsubscribe from the specified emitter
-		if (subscriber.isSubject) {
-			this.subjectEmitter.removeListener(subscriber.name, subscriber.fn);
-		} else {
-			this.emitter.removeListener(subscriber.name, subscriber.fn);
+		if (subscriber.type === SubscriptionType.EVENT) {
+			this.emitter.removeListener(subscriber.name, subscriber.handler);
+		} else if (subscriber.type === SubscriptionType.SUBJECT) {
+			this.subjectEmitter.removeListener(subscriber.name, subscriber.handler);
 		}
 
 		// Delete the subscription

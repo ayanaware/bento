@@ -41,7 +41,7 @@ class Example2 {
 			console.log('hi im example2 and', msg);
 
 			console.log(this.api.subscribers);
-			this.api.unsubscribe('example', 'ready', id);
+			this.api.unsubscribe('example', id);
 			console.log(this.api.subscribers);
 		});
 	}

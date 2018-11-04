@@ -3,7 +3,7 @@
 import { IllegalStateError } from '@ayana/errors';
 
 import { PrimaryComponent, SecondaryComponent } from '../abstractions';
-import { LoadError } from '../errors';
+import { ComponentLoadError } from '../errors';
 import { ComponentManager } from '../runtime';
 
 /**
@@ -108,7 +108,7 @@ export abstract class Loader {
 				if (this.componentLike(obj)) {
 					if (componentObject != null) {
 						// Throw error if multiple possible objects were found
-						throw new LoadError(componentLocation, 'ESModule defines multiple component-like exports but no default one');
+						throw new ComponentLoadError(componentLocation, 'ESModule defines multiple component-like exports but no default one');
 					}
 
 					componentObject = obj;
@@ -125,9 +125,9 @@ export abstract class Loader {
 			}
 
 			// Throw error if not
-			throw new LoadError(componentLocation, 'ESModule defines no component-like exports');
+			throw new ComponentLoadError(componentLocation, 'ESModule defines no component-like exports');
 		} else {
-			if (!this.componentLike(nodeModule)) throw new LoadError(componentLocation, 'CommonJS module export is not component-like');
+			if (!this.componentLike(nodeModule)) throw new ComponentLoadError(componentLocation, 'CommonJS module export is not component-like');
 
 			return { classLike: this.classLike(nodeModule), obj: nodeModule, esModule: false };
 		}
@@ -144,7 +144,7 @@ export abstract class Loader {
 			try {
 				return new component.obj();
 			} catch (e) {
-				throw new LoadError(componentLocation, 'Failed to instantiate component').setCause(e);
+				throw new ComponentLoadError(componentLocation, 'Failed to instantiate component').setCause(e);
 			}
 		} else {
 			return component.obj;

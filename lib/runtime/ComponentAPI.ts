@@ -1,6 +1,6 @@
 'use strict';
 
-import { IllegalArgumentError } from '@ayana/errors';
+import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 import { Logger } from '@ayana/logger';
 
 import { ComponentManager } from './ComponentManager';
@@ -27,7 +27,7 @@ export class ComponentAPI {
 
 	public async emit(eventName: string, ...args: any[]) {
 		const emitter = this.manager.events.get(this.name);
-		if (!emitter) throw new Error('PANIC! Something really bad has happened. Primary Component emitter does not exist?');
+		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Primary component emitter does not exist?');
 
 		emitter.emit(eventName, ...args);
 	}
@@ -35,10 +35,10 @@ export class ComponentAPI {
 	public subscribe(namespace: string, eventName: string, handler: (...args: any[]) => void) {
 		// Get the namespace
 		const events = this.manager.events.get(namespace);
-		if (!events) throw new Error('Namespace does not exist!');
+		if (events == null) throw new IllegalArgumentError('Namespace does not exist');
 
 		// Subscribe to the event
-		const subID = events.subscribe(eventName, handler);
+		const subID = events.subscribeEvent(eventName, handler);
 
 		// Register subscription so if the current component unloads we can remove all events
 		// TODO If the namespace component unloads we need to remove that array
@@ -63,8 +63,8 @@ export class ComponentAPI {
 		// Unsubscribe
 		events.unsubscribe(subID);
 
-		// Remove subID TODO
-		// subscriber.splice(subID);
+		// Remove subID
+		subscriber.splice(subscriber.indexOf(subID), 1);
 	}
 
 	/**

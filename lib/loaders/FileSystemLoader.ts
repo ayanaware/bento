@@ -6,7 +6,7 @@ import * as util from 'util';
 
 import { IllegalArgumentError } from '@ayana/errors';
 
-import { LoadError } from '../errors';
+import { ComponentLoadError } from '../errors';
 
 import { Loader } from './Loader';
 
@@ -61,14 +61,14 @@ export class FileSystemLoader extends Loader {
 		try {
 			primaries = await this.getComponentFiles(this.primary);
 		} catch (e) {
-			throw new LoadError(this.primary, 'Failed to read primary component files').setCause(e);
+			throw new ComponentLoadError(this.primary, 'Failed to read primary component files').setCause(e);
 		}
 
 		let secondaries;
 		try {
 			secondaries = await this.getComponentFiles(this.secondary);
 		} catch (e) {
-			throw new LoadError(this.secondary, 'Failed to read secondary component files').setCause(e);
+			throw new ComponentLoadError(this.secondary, 'Failed to read secondary component files').setCause(e);
 		}
 
 		await this.createComponents(primaries, true);
@@ -84,16 +84,20 @@ export class FileSystemLoader extends Loader {
 				try {
 					nodeModule = require(component);
 				} catch (e) {
-					throw new LoadError(component, 'Failed to require module').setCause(e);
+					throw new ComponentLoadError(component, 'Failed to require module').setCause(e);
 				}
 
 				const comp = this.findComponent(nodeModule, component);
 				const instance = this.instantiate<any>(comp, component);
 
-				if (primary) {
-					await this.manager.addPrimaryComponent(instance, component);
-				} else {
-					await this.manager.addSecondaryComponent(instance, component);
+				try {
+					if (primary) {
+						await this.manager.addPrimaryComponent(instance);
+					} else {
+						await this.manager.addSecondaryComponent(instance);
+					}
+				} catch (e) {
+					throw new ComponentLoadError(component, 'Failed to add component to attached manager').setCause(e);
 				}
 			} catch (e) {
 				// TODO Better logging

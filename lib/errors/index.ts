@@ -1,3 +1,4 @@
 'use strict';
 
-export * from './LoadError';
+export * from './ComponentRegistrationError';
+export * from './ComponentLoadError';

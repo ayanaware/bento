@@ -9,7 +9,7 @@ import {
 	PrimaryComponent,
 	SecondaryComponent,
 } from '../abstractions';
-import { LoadError } from '../errors';
+import { ComponentRegistrationError } from '../errors';
 import { ComponentEvents } from './ComponentEvents';
 
 export interface ComponentManagerOptions { }
@@ -45,9 +45,9 @@ export class ComponentManager extends EventEmitter {
 			.slice(0, len);
 	}
 
-	public async addPrimaryComponent(component: PrimaryComponent, componentLocation?: string): Promise<string> {
-		if (!component.name) throw new LoadError(componentLocation, `Primary components must specify a name`);
-		if (this.primary.has(component.name)) throw new LoadError(componentLocation, `Primary component names must be unique`);
+	public async addPrimaryComponent(component: PrimaryComponent): Promise<string> {
+		if (!component.name) throw new ComponentRegistrationError(component, `Primary components must specify a name`);
+		if (this.primary.has(component.name)) throw new ComponentRegistrationError(component, `Primary component names must be unique`);
 
 		if (!component.dependencies || component.dependencies.length === 0) {
 			// zero dependency primary component, insta-load
@@ -183,7 +183,7 @@ export class ComponentManager extends EventEmitter {
 		// if (loaded > 0) await this.handlePendingComponents();
 	}
 
-	public async addSecondaryComponent(component: SecondaryComponent, componentLocation?: string) {
+	public async addSecondaryComponent(component: SecondaryComponent) {
 		// TODO Add check if pending components are still there
 		// TODO Also add explicit depends to secondary components and check them
 	}

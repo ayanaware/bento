@@ -1,9 +1,11 @@
 'use strict';
 
-import { AyanaError, GlobalInstanceOf } from '@ayana/errors';
+import { GlobalInstanceOf } from '@ayana/errors';
+
+import { ComponentError } from './ComponentError';
 
 @GlobalInstanceOf('@ayana/components', '1')
-export class LoadError extends AyanaError {
+export class ComponentLoadError extends ComponentError {
 
 	public readonly componentLocation: string;
 

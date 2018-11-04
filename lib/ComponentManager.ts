@@ -4,14 +4,17 @@ import * as crypto from 'crypto';
 
 import * as EventEmitter from 'eventemitter3';
 
+import Logger from '@ayana/logger';
+
 import { ComponentRegistrationError } from './errors';
+import { ComponentAPI } from './helpers/ComponentAPI';
+import { ComponentEvents } from './helpers/ComponentEvents';
 import { PrimaryComponent, SecondaryComponent } from './interfaces';
 import { DecoratorSubscription } from './interfaces/internal';
 
-import { ComponentAPI } from './helpers/ComponentAPI';
-import { ComponentEvents } from './helpers/ComponentEvents';
-
 export interface ComponentManagerOptions { }
+
+const log = Logger.get('ComponentManager');
 
 export class ComponentManager extends EventEmitter {
 
@@ -49,17 +52,17 @@ export class ComponentManager extends EventEmitter {
 		if (this.primary.has(component.name)) throw new ComponentRegistrationError(component, `Primary component names must be unique`);
 
 		if (!component.dependencies || component.dependencies.length === 0) {
-			// zero dependency primary component, insta-load
-			const success = await this.loadPrimaryComponent(component);
+			// Zero dependency primary component, insta-load
+			const success = await this.registerPrimaryComponent(component);
 
-			// if any pending components attempt to handle them now
+			// If any pending components attempt to handle them now
 			if (success && this.pending.size > 0) await this.handlePendingComponents();
 		} else {
 			// determine dependencies
 			const missing = this.getMissingDependencies(component);
 			if (missing.length === 0) {
 				// All dependencies are already loaded
-				const success = await this.loadPrimaryComponent(component);
+				const success = await this.registerPrimaryComponent(component);
 
 				// if any pending components attempt to handle them now
 				if (success && this.pending.size > 0) await this.handlePendingComponents();
@@ -88,8 +91,8 @@ export class ComponentManager extends EventEmitter {
 		}
 	}
 
-	private async loadPrimaryComponent(component: PrimaryComponent) {
-		// primary component name
+	private async registerPrimaryComponent(component: PrimaryComponent): Promise<boolean> {
+		// Primary component name (existence was checked before)
 		Object.defineProperty(component, 'name', {
 			configurable: true,
 			writable: false,
@@ -97,22 +100,27 @@ export class ComponentManager extends EventEmitter {
 			value: component.name,
 		});
 
-		// define releveant primary properties
+		// Check and define dependencies
+		if (component.dependencies != null && !Array.isArray(component.dependencies)) {
+			throw new ComponentRegistrationError(component, 'Component dependencies are not an array');
+		}
+
 		Object.defineProperty(component, 'dependencies', {
 			configurable: true,
 			writable: false,
 			enumerable: true,
-			value: component.dependencies,
+			value: component.dependencies || [],
 		});
 
+		// Define required (TODO Do we still need this?)
 		Object.defineProperty(component, 'required', {
 			configurable: true,
 			writable: false,
 			enumerable: true,
-			value: component.required,
+			value: Boolean(component.required),
 		});
 
-		// define __primary
+		// Define __primary
 		Object.defineProperty(component, '__primary', {
 			configurable: false,
 			writable: false,
@@ -120,10 +128,10 @@ export class ComponentManager extends EventEmitter {
 			value: true,
 		});
 
-		// create components' api
+		// Create components' api
 		const api = new ComponentAPI(component.name, this);
 
-		// define api
+		// Define api
 		Object.defineProperty(component, 'api', {
 			configurable: false,
 			writable: false,
@@ -131,21 +139,20 @@ export class ComponentManager extends EventEmitter {
 			value: api,
 		});
 
-		// call onLoad
+		// Call onLoad if present
 		if (component.onLoad) {
 			try {
 				await component.onLoad();
 			} catch (e) {
-				if (component.required) throw new Error(`Primary Component '${component.name}'. Has stated it is required. Exiting...`);
+				if (component.required) throw new ComponentRegistrationError(component, `Primary component '${component.name}' failed loading`).setCause(e);
 				return false;
 			}
 		}
 
 		this.primary.set(component.name, component);
 
-		// create primary componet event emitter if it doesn't already exist
+		// Create primary componet event helper if it doesn't already exist
 		if (!this.events.has(component.name)) {
-			// create new eventEmitter
 			const events = new ComponentEvents(component.name);
 			this.events.set(component.name, events);
 		}
@@ -174,25 +181,25 @@ export class ComponentManager extends EventEmitter {
 	private async handlePendingComponents(): Promise<void> {
 		let loaded = 0;
 
-		// TODO: replace with asyncAwaitForEach
-		Array.from(this.pending.entries()).forEach(async ([name, component]) => {
+		for (const component of this.pending.values()) {
 			const missing = await this.getMissingDependencies(component);
 			if (missing.length === 0) {
-				// whatever happens remove from pending...
-				if (this.pending.has(component.name)) this.pending.delete(component.name);
+				this.pending.delete(component.name);
 
-				const success = await this.loadPrimaryComponent(component);
+				const success = await this.registerPrimaryComponent(component);
 				if (success) loaded++;
 			}
-		});
+		}
 
-		// TODO: uncomment
-		// if (loaded > 0) await this.handlePendingComponents();
+		if (loaded > 0) await this.handlePendingComponents();
 	}
 
 	public async addSecondaryComponent(component: SecondaryComponent) {
 		// TODO Add check if pending components are still there
 		// TODO Also add explicit depends to secondary components and check them
+		await this.registerSecondaryComponent(component);
+
+		return component.name;
 	}
 
 	public async removeSecondaryComponent(id: string) {
@@ -209,7 +216,7 @@ export class ComponentManager extends EventEmitter {
 		}
 	}
 
-	private async loadSecondaryComponent(component: SecondaryComponent) {
+	private async registerSecondaryComponent(component: SecondaryComponent) {
 		// generate uniqueID (name)
 		const name = this.createID();
 

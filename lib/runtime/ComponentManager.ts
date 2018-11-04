@@ -1,15 +1,14 @@
 'use strict';
 
 import * as crypto from 'crypto';
-import { EventEmitter } from 'events';
+
+import * as EventEmitter from 'eventemitter3';
+
+import { PrimaryComponent, SecondaryComponent } from '../abstractions';
+import { DecoratorSubscription } from '../decorators';
+import { ComponentRegistrationError } from '../errors';
 
 import { ComponentAPI } from './ComponentAPI';
-
-import {
-	PrimaryComponent,
-	SecondaryComponent,
-} from '../abstractions';
-import { ComponentRegistrationError } from '../errors';
 import { ComponentEvents } from './ComponentEvents';
 
 export interface ComponentManagerOptions { }
@@ -131,6 +130,14 @@ export class ComponentManager extends EventEmitter {
 			enumerable: true,
 			value: api,
 		});
+
+		// Subscribe to all the events from the decorator subscriptions
+		const subscriptions: DecoratorSubscription[] = (component.constructor as any)._subscriptions;
+		if (Array.isArray(subscriptions)) {
+			for (const subscription of subscriptions) {
+				api.subscribe(subscription.isSubject, subscription.namespace, subscription.name, subscription.handler, component);
+			}
+		}
 
 		// call onLoad
 		if (component.onLoad) {

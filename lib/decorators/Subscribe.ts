@@ -1,6 +1,13 @@
 'use strict';
 
-export function Subscribe(primaryComponent: string, eventName: string): MethodDecorator {
+export interface DecoratorSubscription {
+	namespace: string;
+	name: string;
+	isSubject: boolean;
+	handler: (...args: any[]) => void;
+}
+
+export function Subscribe(namespace: string, eventName: string): MethodDecorator {
 	return function (target: any, propertyKey: string, descriptor: TypedPropertyDescriptor<any>) {
 		if(target.prototype !== undefined) {
 			throw new Error(`The subscribe decorator can only be applied to non-static class methods ("${propertyKey}" in class "${target.name}")`);
@@ -16,9 +23,10 @@ export function Subscribe(primaryComponent: string, eventName: string): MethodDe
 		}
 
 		target.constructor._subscriptions.push({
-			primaryComponent,
-			eventName,
-			listener: descriptor.value,
-		});
+			namespace,
+			name: eventName,
+			isSubject: false,
+			handler: descriptor.value,
+		} as DecoratorSubscription);
 	};
 }

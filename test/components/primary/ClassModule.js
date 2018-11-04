@@ -3,7 +3,7 @@
 class ClassModule {
 
 	constructor() {
-		// this.name = 'ClassModule';
+		this.name = 'ClassModule';
 	}
 
 }

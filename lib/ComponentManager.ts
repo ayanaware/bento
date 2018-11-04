@@ -4,12 +4,12 @@ import * as crypto from 'crypto';
 
 import * as EventEmitter from 'eventemitter3';
 
-import { ComponentRegistrationError } from '../errors';
-import { PrimaryComponent, SecondaryComponent } from '../interfaces';
-import { DecoratorSubscription } from '../interfaces/internal';
+import { ComponentRegistrationError } from './errors';
+import { PrimaryComponent, SecondaryComponent } from './interfaces';
+import { DecoratorSubscription } from './interfaces/internal';
 
-import { ComponentAPI } from './ComponentAPI';
-import { ComponentEvents } from './ComponentEvents';
+import { ComponentAPI } from './helpers/ComponentAPI';
+import { ComponentEvents } from './helpers/ComponentEvents';
 
 export interface ComponentManagerOptions { }
 

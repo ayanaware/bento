@@ -2,10 +2,10 @@
 
 import { IllegalStateError } from '@ayana/errors';
 
+import { ComponentManager } from '../ComponentManager';
 import { ComponentLoadError } from '../errors';
 import { PrimaryComponent, SecondaryComponent } from '../interfaces';
 import { DetectedComponent } from '../interfaces/internal';
-import { ComponentManager } from '../runtime';
 
 /**
  * Abstract Loader class containing an interface to the outside and core functionality

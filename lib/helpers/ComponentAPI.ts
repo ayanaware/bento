@@ -5,7 +5,7 @@ import { Logger } from '@ayana/logger';
 
 import { SubscriptionType } from '../constants';
 
-import { ComponentManager } from './ComponentManager';
+import { ComponentManager } from '../ComponentManager';
 
 const log = Logger.get('ComponentAPI');
 

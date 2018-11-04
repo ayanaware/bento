@@ -5,6 +5,6 @@ export interface PrimaryComponent {
 	dependencies?: string[];
 	required?: boolean,
 
-	onLoad(): Promise<void>;
-	onUnload(): Promise<void>;
+	onLoad?(): Promise<void>;
+	onUnload?(): Promise<void>;
 }

@@ -32,13 +32,12 @@ export class ComponentAPI {
 		emitter.emit(eventName, ...args);
 	}
 
-	public subscribe(namespace: string, eventName: string, handler: (...args: any[]) => void) {
+	public subscribe(isSubject: boolean, namespace: string, name: string, handler: (...args: any[]) => void, context?: any) {
 		// Get the namespace
 		const events = this.manager.events.get(namespace);
 		if (events == null) throw new IllegalArgumentError('Namespace does not exist');
 
-		// Subscribe to the event
-		const subID = events.subscribeEvent(eventName, handler);
+		const subID = events.subscribe(isSubject, name, handler, context);
 
 		// Register subscription so if the current component unloads we can remove all events
 		// TODO If the namespace component unloads we need to remove that array
@@ -46,6 +45,14 @@ export class ComponentAPI {
 		this.subscriptions.get(namespace).push(subID);
 
 		return subID;
+	}
+
+	public subscribeEvent(namespace: string, eventName: string, handler: (...args: any[]) => void, context?: any) {
+		return this.subscribe(false, namespace, eventName, handler, context);
+	}
+
+	public subscribeSubject(namespace: string, subjectName: string, handler: (...args: any[]) => void, context?: any) {
+		return this.subscribe(true, namespace, subjectName, handler, context);
 	}
 
 	public unsubscribe(namespace: string, subID: string) {
@@ -57,7 +64,7 @@ export class ComponentAPI {
 		}
 
 		// Check if this subscriber actually exists
-		const subscriber = this.subscriptions.get(subID);
+		const subscriber = this.subscriptions.get(namespace);
 		if (subscriber == null || !subscriber.includes(subID)) throw new IllegalArgumentError(`Tried to unsubscribe from unknown subID "${subID}"`);
 
 		// Unsubscribe

@@ -1,5 +1,5 @@
 {
-	"name": "@ayana/components",
+	"name": "@ayana/bento",
 	"version": "1.0.0-alpha0",
 	"description": "Modular runtime framework designed to solve complex tasks",
 	"main": "build/index.js",

@@ -1,5 +1,7 @@
 'use strict';
 
+import { EventEmitter } from 'events';
+
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 import { Logger } from '@ayana/logger';
 
@@ -10,7 +12,6 @@ import { ComponentManager } from '../ComponentManager';
 const log = Logger.get('ComponentAPI');
 
 export class ComponentAPI {
-
 	// namespace, subIDs
 	private readonly subscriptions: Map<string, string[]> = new Map();
 
@@ -20,11 +21,37 @@ export class ComponentAPI {
 	 * Fetch the provided primary component instance
 	 * @param name - Primary component name
 	 */
-	getPrimary(name: string) {
+	public getPrimary(name: string) {
 		const component = this.manager.primary.get(name);
 		if (!component) return null;
 
 		return component;
+	}
+
+	// TODO: Add a error handler
+	// TODO: Consider name and maybe change it
+	/**
+	 * Re-emits events from a standard event emitter into component events.
+	 * @param fromEmitter - emitter to re-emit from
+	 * @param events - events to watch for
+	 */
+	public forwardEvents(fromEmitter: EventEmitter, events: string[]) {
+		const emitter = this.manager.events.get(this.name);
+		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Primary component emitter does not exist?');
+
+		if (events != null && !Array.isArray(events)) {
+			throw new IllegalArgumentError('events is not an array');
+		}
+
+		events.forEach(event => {
+			fromEmitter.on(event, (...args) => {
+				try {
+					emitter.emit(event, ...args);
+				} catch (e) {
+					// TODO call error handler
+				}
+			});
+		});
 	}
 
 	public async emit(eventName: string, ...args: any[]) {

@@ -137,6 +137,14 @@ export class ComponentManager extends EventEmitter {
 			this.events.set(component.name, events);
 		}
 
+		// Subscribe to all the events from the decorator subscriptions
+		const subscriptions: DecoratorSubscription[] = (component.constructor as any)._subscriptions;
+		if (Array.isArray(subscriptions)) {
+			for (const subscription of subscriptions) {
+				api.subscribe(subscription.type, subscription.namespace, subscription.name, subscription.handler, component);
+			}
+		}
+
 		// Call onLoad if present
 		if (component.onLoad) {
 			try {
@@ -148,14 +156,6 @@ export class ComponentManager extends EventEmitter {
 		}
 
 		this.primary.set(component.name, component);
-
-		// Subscribe to all the events from the decorator subscriptions
-		const subscriptions: DecoratorSubscription[] = (component.constructor as any)._subscriptions;
-		if (Array.isArray(subscriptions)) {
-			for (const subscription of subscriptions) {
-				api.subscribe(subscription.type, subscription.namespace, subscription.name, subscription.handler, component);
-			}
-		}
 
 		return true;
 	}

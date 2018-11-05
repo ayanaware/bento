@@ -47,11 +47,10 @@ export class FileSystemLoader extends Loader {
 		options = options || { primary: null, secondary: null };
 
 		if (typeof options.primary !== 'string') throw new IllegalArgumentError('Path to primary components must be a string');
-		// TODO: Secondary components are tech optional allow support for this
-		if (typeof options.secondary !== 'string') throw new IllegalArgumentError('Path to secondary components must be a string');
+		if (options.secondary && typeof options.secondary !== 'string') throw new IllegalArgumentError('Path to secondary components must be a string');
 
 		this.primary = options.primary;
-		this.secondary = options.secondary;
+		this.secondary = options.secondary || null;
 	}
 
 	public async load() {
@@ -63,16 +62,17 @@ export class FileSystemLoader extends Loader {
 		} catch (e) {
 			throw new ComponentLoadError(this.primary, 'Failed to read primary component files').setCause(e);
 		}
-
-		let secondaries;
-		try {
-			secondaries = await this.getComponentFiles(this.secondary);
-		} catch (e) {
-			throw new ComponentLoadError(this.secondary, 'Failed to read secondary component files').setCause(e);
-		}
-
 		await this.createComponents(primaries, true);
-		await this.createComponents(secondaries, true);
+
+		if (this.secondary != null) {
+			let secondaries;
+			try {
+				secondaries = await this.getComponentFiles(this.secondary);
+			} catch (e) {
+				throw new ComponentLoadError(this.secondary, 'Failed to read secondary component files').setCause(e);
+			}
+			await this.createComponents(secondaries, false);
+		}
 
 		return true;
 	}

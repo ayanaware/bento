@@ -11,7 +11,7 @@ const log = Logger.get('ComponentAPI');
 
 export class ComponentAPI {
 
-	//							   namespace, subIDs
+	// namespace, subIDs
 	private readonly subscriptions: Map<string, string[]> = new Map();
 
 	constructor(private readonly name: string, private readonly manager: ComponentManager) {}

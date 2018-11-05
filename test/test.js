@@ -28,7 +28,6 @@ class Example2 {
 		this.name = 'exampleButDepend';
 
 		this.dependencies = ['example'];
-		this.required = true;
 	}
 
 	async onLoad() {

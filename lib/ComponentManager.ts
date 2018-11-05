@@ -112,14 +112,6 @@ export class ComponentManager extends EventEmitter {
 			value: component.dependencies || [],
 		});
 
-		// Define required (TODO Do we still need this?)
-		Object.defineProperty(component, 'required', {
-			configurable: true,
-			writable: false,
-			enumerable: true,
-			value: Boolean(component.required),
-		});
-
 		// Define __primary
 		Object.defineProperty(component, '__primary', {
 			configurable: false,
@@ -139,23 +131,23 @@ export class ComponentManager extends EventEmitter {
 			value: api,
 		});
 
+		// Create primary component event helper if it doesn't already exist
+		if (!this.events.has(component.name)) {
+			const events = new ComponentEvents(component.name);
+			this.events.set(component.name, events);
+		}
+
 		// Call onLoad if present
 		if (component.onLoad) {
 			try {
 				await component.onLoad();
 			} catch (e) {
-				if (component.required) throw new ComponentRegistrationError(component, `Primary component '${component.name}' failed loading`).setCause(e);
+				throw new ComponentRegistrationError(component, `Primary component '${component.name}' failed loading`).setCause(e);
 				return false;
 			}
 		}
 
 		this.primary.set(component.name, component);
-
-		// Create primary componet event helper if it doesn't already exist
-		if (!this.events.has(component.name)) {
-			const events = new ComponentEvents(component.name);
-			this.events.set(component.name, events);
-		}
 
 		// Subscribe to all the events from the decorator subscriptions
 		const subscriptions: DecoratorSubscription[] = (component.constructor as any)._subscriptions;

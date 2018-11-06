@@ -1,5 +1,4 @@
 'use strict';
 
-export * from './ConfigLoader';
-
+export * from './ConfigLoaderPlugin';
 export * from './ComponentLoader';

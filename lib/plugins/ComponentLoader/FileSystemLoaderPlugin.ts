@@ -36,8 +36,8 @@ export interface FileSystemLoaderOptions {
 /**
  * Loads components from the file system
  */
-export class FileSystemLoader extends Loader {
-	private readonly name: string;
+export class FileSystemLoaderPlugin extends Loader {
+	public readonly name: string;
 
 	private readonly primary: string;
 	private readonly secondary: string;

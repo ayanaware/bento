@@ -1,16 +1,14 @@
 'use strict';
 
-import { IllegalStateError } from '@ayana/errors';
-
-import { Bento } from '../../Bento';
-import { ComponentLoadError } from '../../errors';
-import { PrimaryComponent, SecondaryComponent } from '../../interfaces';
-import { DetectedComponent } from '../../interfaces/internal';
+import { Bento } from '../Bento';
+import { ComponentLoadError } from '../errors';
+import { PrimaryComponent, SecondaryComponent } from '../interfaces';
+import { DetectedComponent } from '../interfaces/internal';
 
 /**
  * Abstract Loader class containing an interface to the outside and core functionality
  */
-export abstract class Loader {
+export abstract class ComponentLoaderPlugin {
 
 	/**
 	 * The currently attached Bento instance

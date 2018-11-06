@@ -28,7 +28,6 @@ export interface ConfigItem {
 	validator?: string | ConfigItemValidator;
 }
 
-
 export class ConfigLoaderPlugin {
 	public constructor(options: ConfigLoaderOptions) {
 	}

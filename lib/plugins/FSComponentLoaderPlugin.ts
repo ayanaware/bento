@@ -6,9 +6,9 @@ import * as util from 'util';
 
 import { IllegalArgumentError } from '@ayana/errors';
 
-import { ComponentLoadError } from '../../errors';
+import { ComponentLoadError } from '../errors';
 
-import { Loader } from './Loader';
+import { ComponentLoaderPlugin } from './ComponentLoaderPlugin';
 
 const readdir = util.promisify(fs.readdir);
 const stat = util.promisify(fs.stat);
@@ -36,7 +36,7 @@ export interface FileSystemLoaderOptions {
 /**
  * Loads components from the file system
  */
-export class FileSystemLoaderPlugin extends Loader {
+export class FSComponentLoaderPlugin extends ComponentLoaderPlugin {
 	public readonly name: string;
 
 	private readonly primary: string;
@@ -44,7 +44,7 @@ export class FileSystemLoaderPlugin extends Loader {
 
 	public constructor(options: FileSystemLoaderOptions) {
 		super();
-		this.name = 'FileSystemLoaderPlugin';
+		this.name = 'FSComponentLoaderPlugin';
 
 		options = options || { primary: null, secondary: null };
 

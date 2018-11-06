@@ -2,10 +2,10 @@
 
 const path = require('path');
 
-const { Bento, FSComponentLoaderPlugin } = require('../build');
+const { Bento, FSComponentLoader } = require('../build');
 
 const bento = new Bento();
-const fsloader = new FSComponentLoaderPlugin({
+const fsloader = new FSComponentLoader({
 	primary: path.resolve(__dirname, 'components', 'primary'),
 	secondary: path.resolve(__dirname, 'components', 'secondary'),
 });

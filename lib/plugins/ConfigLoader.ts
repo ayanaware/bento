@@ -28,8 +28,11 @@ export interface ConfigItem {
 	validator?: string | ConfigItemValidator;
 }
 
-export class ConfigLoaderPlugin {
-	public constructor(options: ConfigLoaderOptions) {
+export class ConfigLoader {
+	public constructor(private opts: ConfigLoaderOptions) {
+		this.opts = Object.assign({}, {
+			file: null,
+		}, this.opts);
 	}
 
 	public async onLoad() {

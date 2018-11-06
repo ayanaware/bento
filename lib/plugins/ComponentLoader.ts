@@ -8,7 +8,7 @@ import { DetectedComponent } from '../interfaces/internal';
 /**
  * Abstract Loader class containing an interface to the outside and core functionality
  */
-export abstract class ComponentLoaderPlugin {
+export abstract class ComponentLoader {
 
 	/**
 	 * The currently attached Bento instance

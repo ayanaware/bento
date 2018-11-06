@@ -1,6 +1,6 @@
 'use strict';
 
-export * from './ConfigLoaderPlugin';
+export * from './ConfigLoader';
 
-export * from './ComponentLoaderPlugin';
-export * from './FSComponentLoaderPlugin';
+export * from './ComponentLoader';
+export * from './FSComponentLoader';

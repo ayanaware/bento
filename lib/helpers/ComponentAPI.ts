@@ -7,7 +7,7 @@ import { Logger } from '@ayana/logger';
 
 import { SubscriptionType } from '../constants';
 
-import { ComponentManager } from '../ComponentManager';
+import { Bento } from '../Bento';
 
 const log = Logger.get('ComponentAPI');
 
@@ -15,7 +15,7 @@ export class ComponentAPI {
 	// namespace, subIDs
 	private readonly subscriptions: Map<string, string[]> = new Map();
 
-	constructor(private readonly name: string, private readonly manager: ComponentManager) {}
+	constructor(private readonly name: string, private readonly manager: Bento) {}
 
 	/**
 	 * Fetch the provided primary component instance

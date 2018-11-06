@@ -1,0 +1,22 @@
+[
+	{
+		"type": "string",
+		"name": "FOO",
+		"value": {
+			"env": "FOO"
+		},
+		"default": "BAR",
+		"required": true
+	},
+	{
+		"type": "number",
+		"name": "BAR",
+		"value": {
+			"file": "/var/run/foo/bar"
+		},
+		"validator": {
+			"name": "gt",
+			"value": 1
+		}
+	}
+]

@@ -1,7 +1,7 @@
 'use strict';
 
-const { ComponentManager } = require('../build');
-const manager = new ComponentManager();
+const { Bento } = require('../build');
+const bento = new Bento();
 
 // example component
 class Example {
@@ -50,9 +50,9 @@ class Example2 {
 	const example2 = new Example2();
 	const example = new Example();
 
-	await manager.addPrimaryComponent(example2);
-	await manager.addPrimaryComponent(example);
+	await bento.addPrimaryComponent(example2);
+	await bento.addPrimaryComponent(example);
 
-	console.log(manager);
+	console.log(bento);
 })();
 

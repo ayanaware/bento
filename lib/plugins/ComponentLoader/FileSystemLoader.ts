@@ -6,7 +6,7 @@ import * as util from 'util';
 
 import { IllegalArgumentError } from '@ayana/errors';
 
-import { ComponentLoadError } from '../errors';
+import { ComponentLoadError } from '../../errors';
 
 import { Loader } from './Loader';
 
@@ -37,12 +37,14 @@ export interface FileSystemLoaderOptions {
  * Loads components from the file system
  */
 export class FileSystemLoader extends Loader {
+	private readonly name: string;
 
 	private readonly primary: string;
 	private readonly secondary: string;
 
 	public constructor(options: FileSystemLoaderOptions) {
 		super();
+		this.name = 'FileSystemLoaderPlugin';
 
 		options = options || { primary: null, secondary: null };
 
@@ -53,9 +55,7 @@ export class FileSystemLoader extends Loader {
 		this.secondary = options.secondary || null;
 	}
 
-	public async load() {
-		super.load();
-
+	public async onLoad() {
 		let primaries;
 		try {
 			primaries = await this.getComponentFiles(this.primary);
@@ -73,8 +73,6 @@ export class FileSystemLoader extends Loader {
 			}
 			await this.createComponents(secondaries, false);
 		}
-
-		return true;
 	}
 
 	private async createComponents(componentFiles: string[], primary: boolean) {
@@ -92,9 +90,9 @@ export class FileSystemLoader extends Loader {
 
 				try {
 					if (primary) {
-						await this.manager.addPrimaryComponent(instance);
+						await this.bento.addPrimaryComponent(instance);
 					} else {
-						await this.manager.addSecondaryComponent(instance);
+						await this.bento.addSecondaryComponent(instance);
 					}
 				} catch (e) {
 					throw new ComponentLoadError(component, 'Failed to add component to attached manager').setCause(e);

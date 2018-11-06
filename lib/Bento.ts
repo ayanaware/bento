@@ -6,17 +6,20 @@ import * as EventEmitter from 'eventemitter3';
 
 import Logger from '@ayana/logger';
 
-import { ComponentRegistrationError } from './errors';
+import { PluginRegistrationError, ComponentRegistrationError } from './errors';
 import { ComponentAPI } from './helpers/ComponentAPI';
 import { ComponentEvents } from './helpers/ComponentEvents';
-import { PrimaryComponent, SecondaryComponent } from './interfaces';
+import { Plugin, PrimaryComponent, SecondaryComponent } from './interfaces';
 import { DecoratorSubscription } from './interfaces/internal';
 
-export interface ComponentManagerOptions { }
+export interface BentoOptions { }
 
-const log = Logger.get('ComponentManager');
+const log = Logger.get('Bento');
 
-export class ComponentManager extends EventEmitter {
+export class Bento extends EventEmitter {
+	public readonly config: Map<string, any>;
+
+	public readonly plugins: Map<string, Plugin>;
 
 	public readonly primary: Map<string, PrimaryComponent>;
 	public readonly secondary: Map<string, SecondaryComponent>;
@@ -25,10 +28,14 @@ export class ComponentManager extends EventEmitter {
 
 	public readonly events: Map<string, ComponentEvents>;
 
-	public readonly opts: ComponentManagerOptions;
+	public readonly opts: BentoOptions;
 
-	constructor(opts?: ComponentManagerOptions) {
+	constructor(opts?: BentoOptions) {
 		super();
+		this.opts = opts;
+
+		this.config = new Map();
+		this.plugins = new Map();
 
 		this.primary = new Map();
 		this.secondary = new Map();
@@ -36,10 +43,12 @@ export class ComponentManager extends EventEmitter {
 		this.pending = new Map();
 
 		this.events = new Map();
-
-		this.opts = opts;
 	}
 
+	/**
+	 * Generates a uniqueID
+	 * @param len - length of id
+	 */
 	public createID(len: number = 16) {
 		return crypto.randomBytes(len)
 			.toString('base64')
@@ -47,6 +56,79 @@ export class ComponentManager extends EventEmitter {
 			.slice(0, len);
 	}
 
+	public setConfig(key: string, value: any) {
+		this.config.set(key, value);
+	}
+
+	public getConfig(key: string) {
+		if (!this.config.has(key)) return null;
+		return this.config.get(key); 
+	}
+
+	/**
+	 * Add a Plugin to Bento
+	 * @param plugin - Plugin
+	 */
+	public async addPlugin(plugin: Plugin) {
+		if (!plugin.name) throw new PluginRegistrationError(plugin, 'Plugins must specify a name');
+		if (this.plugins.has(plugin.name)) throw new PluginRegistrationError(plugin, 'Plugin names must be unique');
+
+		await this.registerPlugin(plugin);
+
+		return plugin.name;
+	}
+
+	/**
+	 * Remove a Plugin from Bento
+	 * @param name - Name of plugin
+	 */
+	public async removePlugin(name: string) {
+		const plugin = this.plugins.get(name);
+		if (!plugin) throw new Error(`Plugin '${name}' is not currently attached`);
+
+		// call onUnload
+		if (plugin.onUnload) {
+			try {
+				await plugin.onUnload();
+			} catch (e) {
+				// force unload
+			}
+		}
+	}
+
+	private async registerPlugin(plugin: Plugin) {
+		Object.defineProperty(plugin, 'name', {
+			configurable: true,
+			writable: false,
+			enumerable: true,
+			value: plugin.name,
+		});
+
+		// Define bento instance
+		Object.defineProperty(plugin, 'bento', {
+			configurable: false,
+			writable: false,
+			enumerable: true,
+			value: this,
+		});
+
+		// call onLoad
+		if (plugin.onLoad) {
+			try {
+				await plugin.onLoad();
+			} catch (e) {
+				return false;
+			}
+		}
+
+		this.plugins.set(plugin.name, plugin);
+		return plugin.name;
+	}
+
+	/**
+	 * Add a Primary Component to Bento
+	 * @param component - Primary Component
+	 */
 	public async addPrimaryComponent(component: PrimaryComponent): Promise<string> {
 		if (!component.name) throw new ComponentRegistrationError(component, `Primary components must specify a name`);
 		if (this.primary.has(component.name)) throw new ComponentRegistrationError(component, `Primary component names must be unique`);
@@ -75,6 +157,10 @@ export class ComponentManager extends EventEmitter {
 		return component.name;
 	}
 
+	/**
+	 * Remove a Primary Component from Bento
+	 * @param name - Name of primary component
+	 */
 	public async removePrimaryComponent(name: string) {
 		const component = this.primary.get(name);
 		if (!component) throw new Error(`Primary Component '${name}' is not currently loaded.`);
@@ -186,6 +272,10 @@ export class ComponentManager extends EventEmitter {
 		if (loaded > 0) await this.handlePendingComponents();
 	}
 
+	/**
+	 * Add a Secondary Component to Bento
+	 * @param component - Secondary Component
+	 */
 	public async addSecondaryComponent(component: SecondaryComponent) {
 		// TODO Add check if pending components are still there
 		// TODO Also add explicit depends to secondary components and check them
@@ -194,6 +284,10 @@ export class ComponentManager extends EventEmitter {
 		return component.name;
 	}
 
+	/**
+	 * Remove a Secondary Component from Bento
+	 * @param id - Generated ID from addSecondaryComponent
+	 */
 	public async removeSecondaryComponent(id: string) {
 		const component = this.secondary.get(id);
 		if (!component) throw new Error(`Component '${id}' is not currently loaded.`);
@@ -244,6 +338,6 @@ export class ComponentManager extends EventEmitter {
 	}
 }
 
-export interface ComponentManager {
+export interface Bento {
 	on(event: 'error', listener: (error: Error) => void): this;
 }

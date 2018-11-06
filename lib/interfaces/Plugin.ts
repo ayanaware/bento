@@ -1,9 +1,8 @@
 'use strict';
 
-export interface SecondaryComponent {
+export interface Plugin {
 	name: string;
 	version?: string;
-	dependencies?: string[];
 
 	onLoad?(): Promise<void>;
 	onUnload?(): Promise<void>;

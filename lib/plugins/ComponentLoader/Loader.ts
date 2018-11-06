@@ -2,10 +2,10 @@
 
 import { IllegalStateError } from '@ayana/errors';
 
-import { ComponentManager } from '../ComponentManager';
-import { ComponentLoadError } from '../errors';
-import { PrimaryComponent, SecondaryComponent } from '../interfaces';
-import { DetectedComponent } from '../interfaces/internal';
+import { Bento } from '../../Bento';
+import { ComponentLoadError } from '../../errors';
+import { PrimaryComponent, SecondaryComponent } from '../../interfaces';
+import { DetectedComponent } from '../../interfaces/internal';
 
 /**
  * Abstract Loader class containing an interface to the outside and core functionality
@@ -13,33 +13,14 @@ import { DetectedComponent } from '../interfaces/internal';
 export abstract class Loader {
 
 	/**
-	 * The currently attached ComponentManager
+	 * The currently attached Bento instance
 	 */
-	protected manager: ComponentManager = null;
+	protected bento: Bento = null;
 
 	/**
-	 * Attaches a ComponentManager to this loader
-	 *
-	 * @param manager A ComponentManager
+	 * Loads the components. This only works if a Bento is attached
 	 */
-	public attach(manager: ComponentManager) {
-		this.manager = manager;
-	}
-
-	/**
-	 * Detaches the currently attached ComponentManager
-	 */
-	public detach() {
-		this.manager = null;
-	}
-
-	/**
-	 * Loads the components. This only works if a ComponentManager is attached
-	 */
-	public async load() {
-		if (this.manager == null) throw new IllegalStateError('A manager must be attached before loading');
-		return true;
-	}
+	public abstract async onLoad(): Promise<void>;
 
 	/**
 	 * Detects if a value is component-like.

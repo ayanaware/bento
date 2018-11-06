@@ -2,17 +2,13 @@
 
 const path = require('path');
 
-const { ComponentManager, FileSystemLoader } = require('../build');
+const { Bento, FileSystemLoader } = require('../build');
 
-const manager = new ComponentManager();
-const loader = new FileSystemLoader({
-	primary: path.resolve('./test/components/primary'),
-	secondary: path.resolve('./test/components/secondary'),
+const bento = new Bento();
+const fileSystemLoader = new FileSystemLoader({
+	primary: path.resolve(__dirname, 'components', 'primary'),
+	secondary: path.resolve(__dirname, 'components', 'secondary'),
 });
 
-loader.attach(manager);
-
-loader.load().catch(e => {
-	console.log(e);
-});
+bento.addPlugin(fileSystemLoader);
 

@@ -15,14 +15,18 @@ export class ComponentAPI {
 	// namespace, subIDs
 	private readonly subscriptions: Map<string, string[]> = new Map();
 
-	constructor(private readonly name: string, private readonly manager: Bento) {}
+	constructor(private readonly name: string, private readonly bento: Bento) {}
+
+	public getConfig(key: string) {
+		return this.bento.getConfig(key);
+	}
 
 	/**
 	 * Fetch the provided primary component instance
 	 * @param name - Primary component name
 	 */
 	public getPrimary(name: string) {
-		const component = this.manager.primary.get(name);
+		const component = this.bento.primary.get(name);
 		if (!component) return null;
 
 		return component;
@@ -36,7 +40,7 @@ export class ComponentAPI {
 	 * @param events - events to watch for
 	 */
 	public forwardEvents(fromEmitter: EventEmitter, events: string[]) {
-		const emitter = this.manager.events.get(this.name);
+		const emitter = this.bento.events.get(this.name);
 		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Primary component emitter does not exist?');
 
 		if (events != null && !Array.isArray(events)) {
@@ -55,7 +59,7 @@ export class ComponentAPI {
 	}
 
 	public async emit(eventName: string, ...args: any[]) {
-		const emitter = this.manager.events.get(this.name);
+		const emitter = this.bento.events.get(this.name);
 		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Primary component emitter does not exist?');
 
 		emitter.emit(eventName, ...args);
@@ -63,7 +67,7 @@ export class ComponentAPI {
 
 	public subscribe(type: SubscriptionType, namespace: string, name: string, handler: (...args: any[]) => void, context?: any) {
 		// Get the namespace
-		const events = this.manager.events.get(namespace);
+		const events = this.bento.events.get(namespace);
 		if (events == null) throw new IllegalArgumentError('Namespace does not exist');
 
 		const subID = events.subscribe(type, name, handler, context);
@@ -86,7 +90,7 @@ export class ComponentAPI {
 
 	public unsubscribe(namespace: string, subID: string) {
 		// Check if the namespace exists
-		const events = this.manager.events.get(namespace);
+		const events = this.bento.events.get(namespace);
 		if (events == null) {
 			log.warn(`Could not find events for namespace "${namespace}" while trying to unsubscribe`, this.name);
 			return;
@@ -112,7 +116,7 @@ export class ComponentAPI {
 	public unsubscribeAll(namespace?: string) {
 		if (namespace != null) {
 			// Get the namespace events
-			const events = this.manager.events.get(namespace);
+			const events = this.bento.events.get(namespace);
 			if (events == null) {
 				log.warn(`Could not find events for namespace "${namespace}" while trying to unsubscribe`, this.name);
 				return;

@@ -56,13 +56,13 @@ export class Bento extends EventEmitter {
 			.slice(0, len);
 	}
 
-	public setConfig(key: string, value: any) {
-		this.config.set(key, value);
-	}
-
 	public getConfig(key: string) {
 		if (!this.config.has(key)) return null;
 		return this.config.get(key); 
+	}
+
+	public setConfig(key: string, value: any) {
+		this.config.set(key, value);
 	}
 
 	/**

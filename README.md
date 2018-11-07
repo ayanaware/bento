@@ -17,7 +17,7 @@ Components should not take on more then required. (IE: instead of having one com
 ### How to use Bento (IN-PROGRESS)
 Using bento is pretty simple. First import and initilize bento and any plugins you wish to use. Then simply add plugins to bento
 
-```
+```js
 'use strict';
 
 import * as path from 'path';
@@ -37,5 +37,7 @@ const loader = new FSComponentLoader({
 
 // Apply plugin to Bento.
 // NOTE: Keep in mind that addPlugin is async and you should .catch any errors
-await bento.addPlugin(loader);
+bento.addPlugin(loader).catch(e => {
+	console.log('Sad day', e);
+});
 ```

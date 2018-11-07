@@ -28,10 +28,14 @@ import { Bento, FSComponentLoader } from '@ayana/bento';
 const bento = new Bento();
 
 // Create FSComponentLoader
+// NOTE: Keep in mind all FSComponentLoader does is find Bento components in the path provided
+// Instantiates them and calls bento.addPrimaryComponent or bento.addSecondaryComponent
+// Behind the scenes
 const loader = new FSComponentLoader({
 	primary: path.resolve(__dirname, 'modules'),
 });
 
-// Apply plugin to Bento
+// Apply plugin to Bento.
+// NOTE: Keep in mind that addPlugin is async and you should .catch any errors
 await bento.addPlugin(loader);
 ```

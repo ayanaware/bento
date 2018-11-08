@@ -42,7 +42,7 @@ export interface ConfigLoaderOptions {
 };
 
 export class ConfigLoader {
-	protected bento: Bento;
+	public bento: Bento;
 
 	public name: string;
 

@@ -9,20 +9,51 @@ import { SubscriptionType } from '../constants';
 
 import { Bento } from '../Bento';
 
+/**
+ * WeakMap for storing the reference to the associated Bento instance
+ * This is used to prevent components accessing the Bento instance
+ * The map entry is deleted if there is no reference to the API instance anymore.
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap
+ */
+const bentoRef = new WeakMap<ComponentAPI, Bento>();
+
+/**
+ * Logger instance for the ComponentAPI class
+ */
 const log = Logger.get('ComponentAPI');
 
+/**
+ * The gateway of a component to the rest of the application.
+ * Each component (primary and secondary) gets one if loaded.
+ */
 export class ComponentAPI {
-	// namespace, subIDs
+
+	/**
+	 * The name of the component this API object belongs to
+	 */
+	private readonly name: string;
+
+	/**
+	 * Currently existing subscriptions of this component.
+	 * The key is the namespace where a subscription was added,
+	 * the value is an array of subscription ids on that namespace.
+	 */
 	private readonly subscriptions: Map<string, string[]> = new Map();
 
-	constructor(private readonly name: string, private readonly manager: Bento) {}
+	public constructor(name: string, bento: Bento) {
+		this.name = name;
+
+		bentoRef.set(this, bento);
+	}
 
 	/**
 	 * Fetch the provided primary component instance
+	 *
 	 * @param name - Primary component name
 	 */
 	public getPrimary(name: string) {
-		const component = this.manager.primary.get(name);
+		const component = bentoRef.get(this).primary.get(name);
 		if (!component) return null;
 
 		return component;
@@ -32,11 +63,15 @@ export class ComponentAPI {
 	// TODO: Consider name and maybe change it
 	/**
 	 * Re-emits events from a standard event emitter into component events.
-	 * @param fromEmitter - emitter to re-emit from
-	 * @param events - events to watch for
+	 *
+	 * @param fromEmitter - Emitter to re-emit from
+	 * @param events - Events to watch for
+	 *
+	 * @throws IllegalStateError if the emitter on the current component wasn't initialized
+	 * @throws IllegalArgumentError if fromEmitter is not an EventEmitter or events is not an array
 	 */
 	public forwardEvents(fromEmitter: EventEmitter, events: string[]) {
-		const emitter = this.manager.events.get(this.name);
+		const emitter = bentoRef.get(this).events.get(this.name);
 		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Primary component emitter does not exist?');
 
 		if (events != null && !Array.isArray(events)) {
@@ -55,7 +90,7 @@ export class ComponentAPI {
 	}
 
 	public async emit(eventName: string, ...args: any[]) {
-		const emitter = this.manager.events.get(this.name);
+		const emitter = bentoRef.get(this).events.get(this.name);
 		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Primary component emitter does not exist?');
 
 		emitter.emit(eventName, ...args);
@@ -63,7 +98,7 @@ export class ComponentAPI {
 
 	public subscribe(type: SubscriptionType, namespace: string, name: string, handler: (...args: any[]) => void, context?: any) {
 		// Get the namespace
-		const events = this.manager.events.get(namespace);
+		const events = bentoRef.get(this).events.get(namespace);
 		if (events == null) throw new IllegalArgumentError('Namespace does not exist');
 
 		const subID = events.subscribe(type, name, handler, context);
@@ -86,7 +121,7 @@ export class ComponentAPI {
 
 	public unsubscribe(namespace: string, subID: string) {
 		// Check if the namespace exists
-		const events = this.manager.events.get(namespace);
+		const events = bentoRef.get(this).events.get(namespace);
 		if (events == null) {
 			log.warn(`Could not find events for namespace "${namespace}" while trying to unsubscribe`, this.name);
 			return;
@@ -107,12 +142,12 @@ export class ComponentAPI {
 	 * Unsubscribes from all events in a namespace or all events alltogether.
 	 * This will automatically get called when your component gets unloaded
 	 *
-	 * @param namespace Optional. A namespace where all events should be unsubscribed
+	 * @param namespace - Optional. A namespace where all events should be unsubscribed
 	 */
 	public unsubscribeAll(namespace?: string) {
 		if (namespace != null) {
 			// Get the namespace events
-			const events = this.manager.events.get(namespace);
+			const events = bentoRef.get(this).events.get(namespace);
 			if (events == null) {
 				log.warn(`Could not find events for namespace "${namespace}" while trying to unsubscribe`, this.name);
 				return;

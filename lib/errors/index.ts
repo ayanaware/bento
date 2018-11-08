@@ -1,6 +1,5 @@
 'use strict';
 
-export * from './PluginRegistartionError';
-
-export * from './ComponentRegistrationError';
 export * from './ComponentLoadError';
+export * from './ComponentRegistrationError';
+export * from './PluginRegistrationError';

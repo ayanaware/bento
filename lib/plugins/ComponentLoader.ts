@@ -6,7 +6,7 @@ import { PrimaryComponent, SecondaryComponent } from '../interfaces';
 import { DetectedComponent } from '../interfaces/internal';
 
 /**
- * Abstract Loader class containing an interface to the outside and core functionality
+ * Abstract loader class containing an interface to the outside and core functionality
  */
 export abstract class ComponentLoader {
 

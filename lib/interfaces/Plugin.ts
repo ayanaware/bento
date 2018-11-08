@@ -1,10 +1,13 @@
 'use strict';
 
-import { Bento } from "../Bento";
+import { Bento } from '../Bento';
 
 export interface Plugin {
 	bento?: Bento;
 
+	/**
+	 * The name of this plugin
+	 */
 	name: string;
 	version?: string;
 

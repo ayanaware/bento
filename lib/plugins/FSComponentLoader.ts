@@ -7,6 +7,7 @@ import * as util from 'util';
 import { IllegalArgumentError } from '@ayana/errors';
 
 import { ComponentLoadError } from '../errors';
+import { Plugin } from '../interfaces';
 
 import { ComponentLoader } from './ComponentLoader';
 
@@ -36,7 +37,8 @@ export interface FileSystemLoaderOptions {
 /**
  * Loads components from the file system
  */
-export class FSComponentLoader extends ComponentLoader {
+export class FSComponentLoader extends ComponentLoader implements Plugin {
+
 	public readonly name: string;
 
 	private readonly primary: string;
@@ -49,7 +51,7 @@ export class FSComponentLoader extends ComponentLoader {
 		options = options || { primary: null, secondary: null };
 
 		if (typeof options.primary !== 'string') throw new IllegalArgumentError('Path to primary components must be a string');
-		if (options.secondary && typeof options.secondary !== 'string') throw new IllegalArgumentError('Path to secondary components must be a string');
+		if (options.secondary != null && typeof options.secondary !== 'string') throw new IllegalArgumentError('Path to secondary components must be a string');
 
 		this.primary = options.primary;
 		this.secondary = options.secondary || null;
@@ -98,8 +100,13 @@ export class FSComponentLoader extends ComponentLoader {
 					throw new ComponentLoadError(component, 'Failed to add component to attached manager').setCause(e);
 				}
 			} catch (e) {
-				// TODO Better logging
-				console.log(e);
+				if (primary) {
+					// Throw the error if we are loading primary components as we have to abort anyway
+					throw e;
+				} else {
+					// TODO Better logging
+					console.log(e);
+				}
 			}
 		}
 	}

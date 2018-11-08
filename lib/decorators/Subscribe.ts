@@ -1,6 +1,7 @@
 'use strict';
 
 import { SubscriptionType } from '../constants';
+import { Symbols } from '../constants/internal';
 import { DecoratorSubscription } from '../interfaces/internal';
 
 export function Subscribe(type: SubscriptionType, namespace: string, name: string): MethodDecorator {
@@ -10,7 +11,7 @@ export function Subscribe(type: SubscriptionType, namespace: string, name: strin
 		}
 
 		if (target.constructor._subscriptions == null) {
-			Object.defineProperty(target.constructor, '_subscriptions', {
+			Object.defineProperty(target.constructor, Symbols.subscriptions, {
 				configurable: false,
 				enumerable: false,
 				writable: false,
@@ -18,7 +19,7 @@ export function Subscribe(type: SubscriptionType, namespace: string, name: strin
 			});
 		}
 
-		target.constructor._subscriptions.push({
+		target.constructor[Symbols.subscriptions].push({
 			type,
 			namespace,
 			name,

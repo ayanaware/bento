@@ -4,10 +4,11 @@ import * as crypto from 'crypto';
 
 import * as EventEmitter from 'eventemitter3';
 
-import Logger from '@ayana/logger';
 import { IllegalArgumentError } from '@ayana/errors';
+import Logger from '@ayana/logger';
 
-import { PluginRegistrationError, ComponentRegistrationError } from './errors';
+import { Symbols } from './constants/internal';
+import { ComponentRegistrationError, PluginRegistrationError } from './errors';
 import { ComponentAPI } from './helpers/ComponentAPI';
 import { ComponentEvents } from './helpers/ComponentEvents';
 import { Plugin, PrimaryComponent, SecondaryComponent } from './interfaces';
@@ -59,7 +60,7 @@ export class Bento extends EventEmitter {
 
 	public getConfig(key: string) {
 		if (!this.config.has(key)) return null;
-		return this.config.get(key); 
+		return this.config.get(key);
 	}
 
 	public setConfig(key: string, value: any) {
@@ -241,7 +242,7 @@ export class Bento extends EventEmitter {
 		}
 
 		// Subscribe to all the events from the decorator subscriptions
-		const subscriptions: DecoratorSubscription[] = (component.constructor as any)._subscriptions;
+		const subscriptions: DecoratorSubscription[] = (component.constructor as any)[Symbols.subscriptions];
 		if (Array.isArray(subscriptions)) {
 			for (const subscription of subscriptions) {
 				api.subscribe(subscription.type, subscription.namespace, subscription.name, subscription.handler, component);

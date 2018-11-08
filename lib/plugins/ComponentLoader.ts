@@ -13,7 +13,7 @@ export abstract class ComponentLoader {
 	/**
 	 * The currently attached Bento instance
 	 */
-	protected bento: Bento = null;
+	public bento: Bento = null;
 
 	/**
 	 * Loads the components. This only works if a Bento is attached

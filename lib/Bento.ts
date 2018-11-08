@@ -5,6 +5,7 @@ import * as crypto from 'crypto';
 import * as EventEmitter from 'eventemitter3';
 
 import Logger from '@ayana/logger';
+import { IllegalArgumentError } from '@ayana/errors';
 
 import { PluginRegistrationError, ComponentRegistrationError } from './errors';
 import { ComponentAPI } from './helpers/ComponentAPI';
@@ -56,13 +57,13 @@ export class Bento extends EventEmitter {
 			.slice(0, len);
 	}
 
-	public setConfig(key: string, value: any) {
-		this.config.set(key, value);
-	}
-
 	public getConfig(key: string) {
 		if (!this.config.has(key)) return null;
 		return this.config.get(key); 
+	}
+
+	public setConfig(key: string, value: any) {
+		this.config.set(key, value);
 	}
 
 	/**
@@ -94,6 +95,22 @@ export class Bento extends EventEmitter {
 				// force unload
 			}
 		}
+	}
+
+	/**
+	 * Adds plugins to Bento in order of array
+	 * @param plugins - Array of Plugins
+	 */
+	public async addPlugins(plugins: Plugin[]) {
+		if (!Array.isArray(plugins)) throw new IllegalArgumentError('addPlugins only accepts an array.');
+
+		const results = [];
+		for (const plugin of plugins) {
+			const name = await this.addPlugin(plugin);
+			results.push(name);
+		}
+
+		return results;
 	}
 
 	private async registerPlugin(plugin: Plugin) {

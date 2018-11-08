@@ -47,6 +47,10 @@ export class ComponentAPI {
 		bentoRef.set(this, bento);
 	}
 
+	public getConfig(key: string) {
+		return bentoRef.get(this).getConfig(key);
+	}
+
 	/**
 	 * Fetch the provided primary component instance
 	 *

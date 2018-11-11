@@ -12,7 +12,7 @@
 			"./lib/@types"
 		],
 		"types": [
-			"node",
+			"node"
 		],
 		"forceConsistentCasingInFileNames": true,
 		"pretty": false,

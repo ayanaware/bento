@@ -132,11 +132,7 @@ export class Bento extends EventEmitter {
 
 		// call onLoad
 		if (plugin.onLoad) {
-			try {
-				await plugin.onLoad();
-			} catch (e) {
-				return false;
-			}
+			await plugin.onLoad();
 		}
 
 		this.plugins.set(plugin.name, plugin);
@@ -255,7 +251,6 @@ export class Bento extends EventEmitter {
 				await component.onLoad();
 			} catch (e) {
 				throw new ComponentRegistrationError(component, `Primary component '${component.name}' failed loading`).setCause(e);
-				return false;
 			}
 		}
 
@@ -342,12 +337,12 @@ export class Bento extends EventEmitter {
 			value: api,
 		});
 
-		// call onMount
+		// call onLoad
 		if (component.onLoad) {
 			try {
 				await component.onLoad();
 			} catch (e) {
-				return false;
+				throw new ComponentRegistrationError(component, `Secondary component '${component.name}' failed loading`).setCause(e);
 			}
 		}
 

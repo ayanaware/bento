@@ -10,7 +10,7 @@ export function Subscribe(type: SubscriptionType, namespace: string, name: strin
 			throw new Error(`The subscribe decorator can only be applied to non-static class methods ("${propertyKey}" in class "${target.name}")`);
 		}
 
-		if (target.constructor._subscriptions == null) {
+		if (target.constructor[Symbols.subscriptions] == null) {
 			Object.defineProperty(target.constructor, Symbols.subscriptions, {
 				configurable: false,
 				enumerable: false,

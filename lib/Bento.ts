@@ -2,8 +2,6 @@
 
 import * as crypto from 'crypto';
 
-import * as EventEmitter from 'eventemitter3';
-
 import { IllegalArgumentError } from '@ayana/errors';
 import Logger from '@ayana/logger';
 
@@ -16,9 +14,12 @@ import { DecoratorSubscription } from './interfaces/internal';
 
 export interface BentoOptions { }
 
+/**
+ * @ignore
+ */
 const log = Logger.get('Bento');
 
-export class Bento extends EventEmitter {
+export class Bento {
 	public readonly config: Map<string, any>;
 
 	public readonly plugins: Map<string, Plugin>;
@@ -33,7 +34,6 @@ export class Bento extends EventEmitter {
 	public readonly opts: BentoOptions;
 
 	constructor(opts?: BentoOptions) {
-		super();
 		this.opts = opts;
 
 		this.config = new Map();

@@ -11,9 +11,19 @@ import { Plugin } from '../interfaces';
 
 import { ComponentLoader } from './ComponentLoader';
 
+/**
+ * @ignore
+ */
 const readdir = util.promisify(fs.readdir);
+/**
+ * @ignore
+ */
 const stat = util.promisify(fs.stat);
 
+/**
+ * @ignore
+ * @private
+ */
 interface DirectoryContent {
 	file: string;
 	path: string;

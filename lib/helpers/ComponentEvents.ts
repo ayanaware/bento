@@ -10,6 +10,9 @@ import { Logger } from '@ayana/logger';
 import { SubscriptionType } from '../constants';
 import { Subscriber } from '../interfaces/internal';
 
+/**
+ * @ignore
+ */
 const log = Logger.get('ComponentEvents');
 
 export class ComponentEvents {

@@ -15,11 +15,14 @@ import { Bento } from '../Bento';
  * The map entry is deleted if there is no reference to the API instance anymore.
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap
+ * @ignore
  */
 const bentoRef = new WeakMap<ComponentAPI, Bento>();
 
 /**
  * Logger instance for the ComponentAPI class
+ *
+ * @ignore
  */
 const log = Logger.get('ComponentAPI');
 

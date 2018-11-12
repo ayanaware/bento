@@ -129,8 +129,6 @@ export class Bento {
 	 * @param value - new value
 	 */
 	public setVariable(name: string, value: any) {
-		// Enforce all variables to upper case
-		name = name.toUpperCase();
 		this.variables.set(name, value);
 	}
 
@@ -139,9 +137,6 @@ export class Bento {
 	 * @param name - name of variable to get
 	 */
 	public getVariable(name: string) {
-		// Enforce all variables to upper case
-		name = name.toUpperCase();
-
 		if (!this.variables.has(name)) return null;
 		return this.variables.get(name);
 	}

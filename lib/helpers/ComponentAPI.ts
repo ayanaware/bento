@@ -85,9 +85,6 @@ export class ComponentAPI {
 		if (!definition.type) throw new IllegalArgumentError('VariableDefinition must define a type');
 		if (!definition.name) throw new IllegalArgumentError('VariableDefinition must define a name');
 
-		// Enforce all variables have uppercase names
-		definition.name = definition.name.toUpperCase();
-
 		if (this.definitions.has(definition.name)) throw new IllegalStateError('A VariableDefinition with this name already exists');
 
 		this.definitions.set(definition.name, definition);

@@ -1,6 +1,6 @@
 'use strict';
 
-const { Bento, ConfigLoader } = require('../build');
+const { Bento } = require('../build');
 
 const bento = new Bento();
 
@@ -9,23 +9,22 @@ bento.setVariable('someVal', Math.random());
 class Test {
 	constructor() {
 		this.name = 'TestComponent';
+	}
 
-		this.variables = [
+	async onLoad() {
+		this.api.addDefinitions([
 			{
 				type: 'string',
 				name: 'someVal',
 				default: 'blah',
-				required: true,
 			},
 			{
 				type: 'number',
 				name: 'noExist',
-				required: true,
+				default: 1,
 			},
-		];
-	}
+		]);
 
-	async onLoad() {
 		const someVal = this.api.getVariable('someVal');
 		console.log('someVal =', someVal);
 	}

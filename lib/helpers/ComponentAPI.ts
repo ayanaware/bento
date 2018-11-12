@@ -5,19 +5,10 @@ import { EventEmitter } from 'events';
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 import { Logger } from '@ayana/logger';
 
-import { SubscriptionType } from '../constants';
-
 import { Bento } from '../Bento';
 
-/**
- * WeakMap for storing the reference to the associated Bento instance
- * This is used to prevent components accessing the Bento instance
- * The map entry is deleted if there is no reference to the API instance anymore.
- *
- * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap
- * @ignore
- */
-const bentoRef = new WeakMap<ComponentAPI, Bento>();
+import { SubscriptionType } from '../constants';
+import { VariableDefinition } from '../interfaces';
 
 /**
  * Logger instance for the ComponentAPI class
@@ -31,6 +22,7 @@ const log = Logger.get('ComponentAPI');
  * Each component (primary and secondary) gets one if loaded.
  */
 export class ComponentAPI {
+	private readonly bento: Bento;
 
 	/**
 	 * The name of the component this API object belongs to
@@ -38,20 +30,77 @@ export class ComponentAPI {
 	private readonly name: string;
 
 	/**
+	 * Component defined variable definitions
+	 */
+	private readonly definitions: Map<string, VariableDefinition>;
+	private readonly variables: Map<string, any>;
+
+	/**
 	 * Currently existing subscriptions of this component.
 	 * The key is the namespace where a subscription was added,
 	 * the value is an array of subscription ids on that namespace.
 	 */
-	private readonly subscriptions: Map<string, string[]> = new Map();
+	private readonly subscriptions: Map<string, string[]>;
 
-	public constructor(name: string, bento: Bento) {
+	public constructor(bento: Bento, name: string) {
+		this.bento = bento;
 		this.name = name;
 
-		bentoRef.set(this, bento);
+		this.definitions = new Map();
+		this.variables = new Map();
+
+		this.subscriptions = new Map();
 	}
 
-	public getConfig(key: string) {
-		return bentoRef.get(this).getConfig(key);
+	public addDefinitions(definitions: VariableDefinition[]) {
+		if (!Array.isArray(definitions)) throw new IllegalArgumentError('Definitions must be an array');
+
+		for (let definition of definitions) {
+			this.addDefinition(definition);
+		}
+	}
+
+	public addDefinition(definition: VariableDefinition) {
+		if (!definition.name) throw new Error('VariableDefinition must define a name');
+		if (this.definitions.has(definition.name)) throw new Error('A VariableDefinition with this name already exists');
+
+		this.definitions.set(definition.name, definition);
+
+		this.processValue(definition);
+	}
+
+	public removeDefinition(name: string) {
+		if (!this.definitions.has(name)) throw new Error('There is no VariableDefinition with that name loaded');
+
+		this.definitions.delete(name);
+	}
+
+	/**
+	 * Gets a variable 
+	 * @param name - Variable name
+	 */
+	public getVariable(name: string) {
+		if (!this.variables.has(name)) return null;
+		return this.variables.get(name);
+	}
+
+	private processValue(definition: VariableDefinition) {
+		let value = null;
+
+		// check in bento
+		if (this.bento.variables.has(definition.name)) {
+			value = this.bento.variables.get(definition.name);
+		}
+
+		// if null and have default set now
+		if (!value && definition.default) value = definition.default;
+
+		// if required and still null fail now
+		if (!value && definition.required) throw new Error('VariableDefinition required and unable to parse value');
+
+		// TODO: Validator support
+
+		this.variables.set(definition.name, value);
 	}
 
 	/**
@@ -60,7 +109,7 @@ export class ComponentAPI {
 	 * @param name - Primary component name
 	 */
 	public getPrimary(name: string) {
-		const component = bentoRef.get(this).primary.get(name);
+		const component = this.bento.primary.get(name);
 		if (!component) return null;
 
 		return component;
@@ -78,7 +127,7 @@ export class ComponentAPI {
 	 * @throws IllegalArgumentError if fromEmitter is not an EventEmitter or events is not an array
 	 */
 	public forwardEvents(fromEmitter: EventEmitter, events: string[]) {
-		const emitter = bentoRef.get(this).events.get(this.name);
+		const emitter = this.bento.events.get(this.name);
 		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Primary component emitter does not exist?');
 
 		if (events != null && !Array.isArray(events)) {
@@ -97,7 +146,7 @@ export class ComponentAPI {
 	}
 
 	public async emit(eventName: string, ...args: any[]) {
-		const emitter = bentoRef.get(this).events.get(this.name);
+		const emitter = this.bento.events.get(this.name);
 		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Primary component emitter does not exist?');
 
 		emitter.emit(eventName, ...args);
@@ -105,7 +154,7 @@ export class ComponentAPI {
 
 	public subscribe(type: SubscriptionType, namespace: string, name: string, handler: (...args: any[]) => void, context?: any) {
 		// Get the namespace
-		const events = bentoRef.get(this).events.get(namespace);
+		const events = this.bento.events.get(namespace);
 		if (events == null) throw new IllegalArgumentError('Namespace does not exist');
 
 		const subID = events.subscribe(type, name, handler, context);
@@ -128,7 +177,7 @@ export class ComponentAPI {
 
 	public unsubscribe(namespace: string, subID: string) {
 		// Check if the namespace exists
-		const events = bentoRef.get(this).events.get(namespace);
+		const events = this.bento.events.get(namespace);
 		if (events == null) {
 			log.warn(`Could not find events for namespace "${namespace}" while trying to unsubscribe`, this.name);
 			return;
@@ -154,7 +203,7 @@ export class ComponentAPI {
 	public unsubscribeAll(namespace?: string) {
 		if (namespace != null) {
 			// Get the namespace events
-			const events = bentoRef.get(this).events.get(namespace);
+			const events = this.bento.events.get(namespace);
 			if (events == null) {
 				log.warn(`Could not find events for namespace "${namespace}" while trying to unsubscribe`, this.name);
 				return;

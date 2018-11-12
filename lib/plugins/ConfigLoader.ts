@@ -154,7 +154,7 @@ export class ConfigLoader {
 	private async processDefinitions() {
 		for (const [name, definition] of this.definitions.entries()) {
 			const value = await this.processValue(definition);
-			this.bento.setConfig(name, value);
+			this.bento.setVariable(name, value);
 		}
 	}
 

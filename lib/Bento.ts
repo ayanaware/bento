@@ -20,7 +20,7 @@ export interface BentoOptions { }
 const log = Logger.get('Bento');
 
 export class Bento {
-	public readonly config: Map<string, any>;
+	public readonly variables: Map<string, any>;
 
 	public readonly plugins: Map<string, Plugin>;
 
@@ -36,7 +36,7 @@ export class Bento {
 	constructor(opts?: BentoOptions) {
 		this.opts = opts;
 
-		this.config = new Map();
+		this.variables = new Map();
 		this.plugins = new Map();
 
 		this.primary = new Map();
@@ -58,13 +58,13 @@ export class Bento {
 			.slice(0, len);
 	}
 
-	public getConfig(key: string) {
-		if (!this.config.has(key)) return null;
-		return this.config.get(key);
+	public getVariable(key: string) {
+		if (!this.variables.has(key)) return null;
+		return this.variables.get(key);
 	}
 
-	public setConfig(key: string, value: any) {
-		this.config.set(key, value);
+	public setVariable(key: string, value: any) {
+		this.variables.set(key, value);
 	}
 
 	/**
@@ -147,6 +147,16 @@ export class Bento {
 		if (!component.name) throw new ComponentRegistrationError(component, `Primary components must specify a name`);
 		if (this.primary.has(component.name)) throw new ComponentRegistrationError(component, `Primary component names must be unique`);
 
+		// Check variables
+		if (component.variables != null && !Array.isArray(component.variables)) {
+			throw new ComponentRegistrationError(component, 'Component variables is not an array');
+		}
+
+		// Check dependencies
+		if (component.dependencies != null && !Array.isArray(component.dependencies)) {
+			throw new ComponentRegistrationError(component, 'Component dependencies is not an array');
+		}
+
 		if (!component.dependencies || component.dependencies.length === 0) {
 			// Zero dependency primary component, insta-load
 			const success = await this.registerPrimaryComponent(component);
@@ -200,10 +210,12 @@ export class Bento {
 			value: component.name,
 		});
 
-		// Check and define dependencies
-		if (component.dependencies != null && !Array.isArray(component.dependencies)) {
-			throw new ComponentRegistrationError(component, 'Component dependencies are not an array');
-		}
+		Object.defineProperty(component, 'variables', {
+			configurable: true,
+			writable: false,
+			enumerable: true,
+			value: component.variables || [],
+		});
 
 		Object.defineProperty(component, 'dependencies', {
 			configurable: true,
@@ -221,7 +233,10 @@ export class Bento {
 		});
 
 		// Create components' api
-		const api = new ComponentAPI(component.name, this);
+		const api = new ComponentAPI(this, component.name);
+
+		// handle component variables
+		api.addDefinitions(component.variables);
 
 		// Define api
 		Object.defineProperty(component, 'api', {
@@ -290,6 +305,16 @@ export class Bento {
 	 * @param component - Secondary Component
 	 */
 	public async addSecondaryComponent(component: SecondaryComponent) {
+		// Check variables
+		if (component.variables != null && !Array.isArray(component.variables)) {
+			throw new ComponentRegistrationError(component, 'Component variables is not an array');
+		}
+
+		// Check dependencies
+		if (component.dependencies != null && !Array.isArray(component.dependencies)) {
+			throw new ComponentRegistrationError(component, 'Component dependencies is not an array');
+		}
+
 		// TODO Add check if pending components are still there
 		// TODO Also add explicit depends to secondary components and check them
 		await this.registerSecondaryComponent(component);
@@ -327,7 +352,24 @@ export class Bento {
 			value: name,
 		});
 
-		const api = new ComponentAPI(name, this);
+		Object.defineProperty(component, 'variables', {
+			configurable: true,
+			writable: false,
+			enumerable: true,
+			value: component.variables || [],
+		});
+
+		Object.defineProperty(component, 'dependencies', {
+			configurable: true,
+			writable: false,
+			enumerable: true,
+			value: component.dependencies || [],
+		});
+
+		const api = new ComponentAPI(this, name);
+
+		// handle component variables
+		api.addDefinitions(component.variables);
 
 		// define api
 		Object.defineProperty(component, 'api', {

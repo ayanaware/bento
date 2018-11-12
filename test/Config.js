@@ -4,30 +4,34 @@ const { Bento, ConfigLoader } = require('../build');
 
 const bento = new Bento();
 
-const config = new ConfigLoader({
-	definitions: [
-		{
-			type: 'string',
-			name: 'FOO',
-			value: {
-				env: 'FOO',
-			}
-		},
-		{
-			type: 'number',
-			name: 'BAR',
-			value: 2,
-			validator: {
-				name: 'gt',
-				arg: 1,
-			},
-		},
-	]
-});
+bento.setVariable('someVal', Math.random());
 
-bento.addPlugin(config).then(() => {
-	console.log(bento);
-})
+class Test {
+	constructor() {
+		this.name = 'TestComponent';
+
+		this.variables = [
+			{
+				name: 'someVal',
+				default: 'blah',
+				required: true,
+			},
+			{
+				name: 'noExist',
+				required: true,
+			},
+		];
+	}
+
+	async onLoad() {
+		const someVal = this.api.getVariable('someVal');
+		console.log('someVal =', someVal);
+	}
+}
+
+const instance = new Test();
+
+bento.addPrimaryComponent(instance)
 .catch(e => {
 	console.log(e);
 })

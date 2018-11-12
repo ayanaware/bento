@@ -12,7 +12,7 @@ import { ComponentEvents } from './helpers/ComponentEvents';
 import { Plugin, PrimaryComponent, SecondaryComponent } from './interfaces';
 import { DecoratorSubscription } from './interfaces/internal';
 
-export interface BentoOptions { }
+export interface BentoOptions {}
 
 /**
  * @ignore
@@ -20,13 +20,34 @@ export interface BentoOptions { }
 const log = Logger.get('Bento');
 
 export class Bento {
+	/**
+	 * Runtime Application properties (static) (ex: name, version, time started)
+	 */
+	public readonly properties: Map<string, any>;
+
+	/**
+	 * Runtime component variables (dynamic)
+	 */
 	public readonly variables: Map<string, any>;
 
+	/**
+	 * Currently loaded Bento plugins
+	 */
 	public readonly plugins: Map<string, Plugin>;
 
+	/**
+	 * Currently loaded Primary components
+	 */
 	public readonly primary: Map<string, PrimaryComponent>;
+
+	/**
+	 * Currently loaded Secondary components
+	 */
 	public readonly secondary: Map<string, SecondaryComponent>;
 
+	/**
+	 * Primary components currently pending to be loaded
+	 */
 	private readonly pending: Map<string, PrimaryComponent>;
 
 	public readonly events: Map<string, ComponentEvents>;
@@ -36,7 +57,9 @@ export class Bento {
 	constructor(opts?: BentoOptions) {
 		this.opts = opts;
 
+		this.properties = new Map();
 		this.variables = new Map();
+
 		this.plugins = new Map();
 
 		this.primary = new Map();
@@ -58,18 +81,45 @@ export class Bento {
 			.slice(0, len);
 	}
 
-	public getVariable(key: string) {
-		if (!this.variables.has(key)) return null;
-		return this.variables.get(key);
+	/**
+	 * Fetch a value for given application property
+	 * @param name - name of variable to get
+	 */
+	public getProperty(name: string) {
+		if (!this.properties.has(name)) return null;
+		return this.properties.get(name);
 	}
 
-	public setVariable(key: string, value: any) {
-		this.variables.set(key, value);
+	/**
+	 * Update a given application property value
+	 * @param name -name of variable to update
+	 * @param value - new value
+	 */
+	public setProperty(name: string, value: any) {
+		this.properties.set(name, value);
+	}
+
+	/**
+	 * Fetch a value for given variable name
+	 * @param name - name of variable to get
+	 */
+	public getVariable(name: string) {
+		if (!this.variables.has(name)) return null;
+		return this.variables.get(name);
+	}
+
+	/**
+	 * Update a given variables value
+	 * @param name -name of variable to update
+	 * @param value - new value
+	 */
+	public setVariable(name: string, value: any) {
+		this.variables.set(name, value);
 	}
 
 	/**
 	 * Add a Plugin to Bento
-	 * @param plugin - Plugin
+	 * @param plugin - plugin to add
 	 */
 	public async addPlugin(plugin: Plugin) {
 		if (!plugin.name) throw new PluginRegistrationError(plugin, 'Plugins must specify a name');
@@ -82,7 +132,7 @@ export class Bento {
 
 	/**
 	 * Remove a Plugin from Bento
-	 * @param name - Name of plugin
+	 * @param name - name of plugin to remove
 	 */
 	public async removePlugin(name: string) {
 		const plugin = this.plugins.get(name);
@@ -100,7 +150,7 @@ export class Bento {
 
 	/**
 	 * Adds plugins to Bento in order of array
-	 * @param plugins - Array of Plugins
+	 * @param plugins - array of plugins
 	 */
 	public async addPlugins(plugins: Plugin[]) {
 		if (!Array.isArray(plugins)) throw new IllegalArgumentError('addPlugins only accepts an array.');

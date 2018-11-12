@@ -9,6 +9,7 @@ import { Bento } from '../Bento';
 
 import { SubscriptionType } from '../constants';
 import { VariableDefinition } from '../interfaces';
+import { VariableProcessError } from '../errors/VariableProcessError';
 
 /**
  * Logger instance for the ComponentAPI class
@@ -33,6 +34,10 @@ export class ComponentAPI {
 	 * Component defined variable definitions
 	 */
 	private readonly definitions: Map<string, VariableDefinition>;
+
+	/**
+	 * Variable cache for getVariable
+	 */
 	private readonly variables: Map<string, any>;
 
 	/**
@@ -52,31 +57,51 @@ export class ComponentAPI {
 		this.subscriptions = new Map();
 	}
 
+	/**
+	 * Fetch the value of given application property
+	 * @param name - name of application property
+	 */
+	public getProperty(name: string) {
+		return this.bento.getProperty(name);
+	}
+
+	/**
+	 * Helper to add and track multiple definitions
+	 * @param definitions - Array of definitions
+	 */
 	public addDefinitions(definitions: VariableDefinition[]) {
 		if (!Array.isArray(definitions)) throw new IllegalArgumentError('Definitions must be an array');
 
-		for (let definition of definitions) {
+		for (const definition of definitions) {
 			this.addDefinition(definition);
 		}
 	}
 
+	/**
+	 * Adds and begins tracking provided VariableDefinition
+	 * @param definition - The definition to track
+	 */
 	public addDefinition(definition: VariableDefinition) {
-		if (!definition.name) throw new Error('VariableDefinition must define a name');
-		if (this.definitions.has(definition.name)) throw new Error('A VariableDefinition with this name already exists');
+		if (!definition.name) throw new IllegalArgumentError('VariableDefinition must define a name');
+		if (this.definitions.has(definition.name)) throw new IllegalStateError('A VariableDefinition with this name already exists');
 
 		this.definitions.set(definition.name, definition);
 
 		this.processValue(definition);
 	}
 
+	/**
+	 * Removes and prevents further tracking of a VariableDefinition
+	 * @param name - Name of definition to remove
+	 */
 	public removeDefinition(name: string) {
-		if (!this.definitions.has(name)) throw new Error('There is no VariableDefinition with that name loaded');
+		if (!this.definitions.has(name)) throw new IllegalStateError('There is no VariableDefinition with that name loaded');
 
 		this.definitions.delete(name);
 	}
 
 	/**
-	 * Gets a variable 
+	 * Gets the value of a variable. Remember you must use addDefinition for this to work
 	 * @param name - Variable name
 	 */
 	public getVariable(name: string) {
@@ -84,6 +109,11 @@ export class ComponentAPI {
 		return this.variables.get(name);
 	}
 
+	/**
+	 * Proccess VariableDefinition to determine value
+	 * @private
+	 * @param definition - VariableDefinition to process
+	 */
 	private processValue(definition: VariableDefinition) {
 		let value = null;
 
@@ -96,7 +126,7 @@ export class ComponentAPI {
 		if (!value && definition.default) value = definition.default;
 
 		// if required and still null fail now
-		if (!value && definition.required) throw new Error('VariableDefinition required and unable to parse value');
+		if (!value && definition.required) throw new VariableProcessError(this.name, definition, 'required variable not found');
 
 		// TODO: Validator support
 
@@ -145,6 +175,11 @@ export class ComponentAPI {
 		});
 	}
 
+	/**
+	 * Emit a event on Component Events
+	 * @param eventName - Name of event
+	 * @param args - Ordered Array of args to emit
+	 */
 	public async emit(eventName: string, ...args: any[]) {
 		const emitter = this.bento.events.get(this.name);
 		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Primary component emitter does not exist?');
@@ -152,6 +187,14 @@ export class ComponentAPI {
 		emitter.emit(eventName, ...args);
 	}
 
+	/**
+	 * Subscribe to a Component event
+	 * @param type - Type of subscription. Normal event or Subject
+	 * @param namespace - Namespace / name of PrimaryComponent where the event comes from
+	 * @param name - Name of the event
+	 * @param handler - The function to be called
+	 * @param context - Optional `this` context for above handler function
+	 */
 	public subscribe(type: SubscriptionType, namespace: string, name: string, handler: (...args: any[]) => void, context?: any) {
 		// Get the namespace
 		const events = this.bento.events.get(namespace);
@@ -167,14 +210,33 @@ export class ComponentAPI {
 		return subID;
 	}
 
+	/**
+	 * Alias for subscribe with normal event
+	 * @param namespace - Namespace / name of PrimaryComponent where the event comes from
+	 * @param eventName - Name of the event
+	 * @param handler - The function to be called
+	 * @param context - Optional `this` context for above handler function
+	 */
 	public subscribeEvent(namespace: string, eventName: string, handler: (...args: any[]) => void, context?: any) {
 		return this.subscribe(SubscriptionType.EVENT, namespace, eventName, handler, context);
 	}
 
+	/**
+	 * Alias for subscribe with subject
+	 * @param namespace - Namespace / name of PrimaryComponent where the event comes from
+	 * @param eventName - Name of the event
+	 * @param handler - The function to be called
+	 * @param context - Optional `this` context for above handler function
+	 */
 	public subscribeSubject(namespace: string, subjectName: string, handler: (...args: any[]) => void, context?: any) {
 		return this.subscribe(SubscriptionType.SUBJECT, namespace, subjectName, handler, context);
 	}
 
+	/**
+	 * Ubsubscribe from a Component Event
+	 * @param namespace - Namespace / name of PrimaryComponent where the event comes from
+	 * @param subID - subscription id provided by subscribe
+	 */
 	public unsubscribe(namespace: string, subID: string) {
 		// Check if the namespace exists
 		const events = this.bento.events.get(namespace);

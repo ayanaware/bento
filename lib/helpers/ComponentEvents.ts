@@ -56,8 +56,8 @@ export class ComponentEvents {
 
 	public subscribe(type: SubscriptionType, name: string, handler: (...args: any[]) => void, context: any): string {
 		const subID = this.createID();
-		const subscriber = function (...args: any[]) {
-			handler(...args);
+		const subscriber = function() {
+			handler.apply(this, arguments);
 		};
 
 		this.subscribers.set(subID, {

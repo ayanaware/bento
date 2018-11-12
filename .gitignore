@@ -2,3 +2,4 @@
 /build/
 /.nyc_output/
 *.tgz
+*.log

@@ -11,3 +11,4 @@ tslint.json
 yarn.lock
 package-lock.json
 *.tgz
+*.log

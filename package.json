@@ -6,7 +6,7 @@
 	"scripts": {
 		"start": "node build/index.js",
 		"build": "rm -rf build/ && tsc",
-		"prepare": "rm -rf build/ && tsc",
+		"prepublishOnly": "rm -rf build/ && tsc && mocha",
 		"test": "mocha",
 		"testcoverage": "nyc mocha"
 	},

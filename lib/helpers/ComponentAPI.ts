@@ -8,8 +8,8 @@ import { Logger } from '@ayana/logger';
 import { Bento } from '../Bento';
 
 import { SubscriptionType } from '../constants';
-import { VariableDefinition } from '../interfaces';
-import { VariableProcessError } from '../errors/VariableProcessError';
+import { VariableProcessError } from '../errors';
+import { PrimaryComponent, VariableDefinition } from '../interfaces';
 
 /**
  * Logger instance for the ComponentAPI class
@@ -142,11 +142,11 @@ export class ComponentAPI {
 	 *
 	 * @param name - Primary component name
 	 */
-	public getPrimary(name: string) {
+	public getPrimary<T extends PrimaryComponent>(name: string): T {
 		const component = this.bento.primary.get(name);
 		if (!component) return null;
 
-		return component;
+		return component as T;
 	}
 
 	// TODO: Add a error handler

@@ -442,7 +442,3 @@ export class Bento {
 		return true;
 	}
 }
-
-export interface Bento {
-	on(event: 'error', listener: (error: Error) => void): this;
-}

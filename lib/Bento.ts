@@ -14,6 +14,10 @@ import { DecoratorSubscription } from './interfaces/internal';
 
 export interface BentoOptions {}
 
+export interface SetProperties {
+	[key: string]: any;
+}
+
 /**
  * @ignore
  */
@@ -82,12 +86,13 @@ export class Bento {
 	}
 
 	/**
-	 * Fetch a value for given application property
-	 * @param name - name of variable to get
+	 * Define multiple application properties at once
+	 * @param properties - SetProperties object
 	 */
-	public getProperty(name: string) {
-		if (!this.properties.has(name)) return null;
-		return this.properties.get(name);
+	public setProperties(properties: SetProperties) {
+		for (const [name, value] of Object.entries(properties)) {
+			this.setProperty(name, value);
+		}
 	}
 
 	/**
@@ -100,21 +105,35 @@ export class Bento {
 	}
 
 	/**
-	 * Fetch a value for given variable name
+	 * Fetch a value for given application property
 	 * @param name - name of variable to get
 	 */
-	public getVariable(name: string) {
-		if (!this.variables.has(name)) return null;
-		return this.variables.get(name);
+	public getProperty(name: string) {
+		if (!this.properties.has(name)) return null;
+		return this.properties.get(name);
 	}
 
 	/**
 	 * Update a given variables value
-	 * @param name -name of variable to update
+	 * @param name - name of variable to update
 	 * @param value - new value
 	 */
 	public setVariable(name: string, value: any) {
+		// Enforce all variables to upper case
+		name = name.toUpperCase();
 		this.variables.set(name, value);
+	}
+
+	/**
+	 * Fetch a value for given variable name
+	 * @param name - name of variable to get
+	 */
+	public getVariable(name: string) {
+		// Enforce all variables to upper case
+		name = name.toUpperCase();
+
+		if (!this.variables.has(name)) return null;
+		return this.variables.get(name);
 	}
 
 	/**

@@ -82,6 +82,7 @@ export class ComponentAPI {
 	 * @param definition - The definition to track
 	 */
 	public addDefinition(definition: VariableDefinition) {
+		if (!definition.type) throw new IllegalArgumentError('VariableDefinition must define a type');
 		if (!definition.name) throw new IllegalArgumentError('VariableDefinition must define a name');
 		if (this.definitions.has(definition.name)) throw new IllegalStateError('A VariableDefinition with this name already exists');
 
@@ -127,6 +128,8 @@ export class ComponentAPI {
 
 		// if required and still null fail now
 		if (!value && definition.required) throw new VariableProcessError(this.name, definition, 'required variable not found');
+
+		// TODO: use definition.type to convert value to proper type
 
 		// TODO: Validator support
 

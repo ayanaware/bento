@@ -12,11 +12,13 @@ class Test {
 
 		this.variables = [
 			{
+				type: 'string',
 				name: 'someVal',
 				default: 'blah',
 				required: true,
 			},
 			{
+				type: 'number',
 				name: 'noExist',
 				required: true,
 			},

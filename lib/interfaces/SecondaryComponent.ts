@@ -1,7 +1,7 @@
 'use strict';
 
-import { ComponentAPI } from "../helpers";
-import { VariableDefinition } from "./VariableDefinition";
+import { ComponentAPI } from '../helpers';
+import { VariableDefinition } from './VariableDefinition';
 
 export interface SecondaryComponent {
 	api?: ComponentAPI;

@@ -111,6 +111,7 @@ export class Bento {
 	 * @param value - new value
 	 */
 	public setProperty(name: string, value: any) {
+		if (typeof name !== 'string') throw new IllegalArgumentError('Property name must be a string');
 		this.properties.set(name, value);
 	}
 
@@ -248,38 +249,25 @@ export class Bento {
 	 * @param component - Primary Component
 	 */
 	public async addPrimaryComponent(component: PrimaryComponent): Promise<string> {
-		if (!component.name) throw new ComponentRegistrationError(component, `Primary components must specify a name`);
+		if (!component.name) throw new ComponentRegistrationError(component, 'Primary components must specify a name');
 		if (this.primary.has(component.name)) throw new ComponentRegistrationError(component, `Primary component names must be unique`);
-
-		// Check variables
-		if (component.variables != null && !Array.isArray(component.variables)) {
-			throw new ComponentRegistrationError(component, 'Component variables is not an array');
-		}
 
 		// Check dependencies
 		if (component.dependencies != null && !Array.isArray(component.dependencies)) {
 			throw new ComponentRegistrationError(component, 'Component dependencies is not an array');
 		}
 
-		if (!component.dependencies || component.dependencies.length === 0) {
-			// Zero dependency primary component, insta-load
+		// determine dependencies
+		const missing = this.getMissingDependencies(component);
+		if (missing.length === 0) {
+			// All dependencies are already loaded
 			const success = await this.registerPrimaryComponent(component);
 
-			// If any pending components attempt to handle them now
+			// if any pending components attempt to handle them now
 			if (success && this.pending.size > 0) await this.handlePendingComponents();
 		} else {
-			// determine dependencies
-			const missing = this.getMissingDependencies(component);
-			if (missing.length === 0) {
-				// All dependencies are already loaded
-				const success = await this.registerPrimaryComponent(component);
-
-				// if any pending components attempt to handle them now
-				if (success && this.pending.size > 0) await this.handlePendingComponents();
-			} else {
-				// not able to load this component yet :c
-				this.pending.set(component.name, component);
-			}
+			// not able to load this component yet :c
+			this.pending.set(component.name, component);
 		}
 
 		return component.name;
@@ -393,11 +381,6 @@ export class Bento {
 	 * @param component - Secondary Component
 	 */
 	public async addSecondaryComponent(component: SecondaryComponent) {
-		// Check variables
-		if (component.variables != null && !Array.isArray(component.variables)) {
-			throw new ComponentRegistrationError(component, 'Component variables is not an array');
-		}
-
 		// Check dependencies
 		if (component.dependencies != null && !Array.isArray(component.dependencies)) {
 			throw new ComponentRegistrationError(component, 'Component dependencies is not an array');

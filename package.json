@@ -6,7 +6,9 @@
 	"scripts": {
 		"start": "node build/index.js",
 		"build": "rm -rf build/ && tsc",
-		"prepare": "rm -rf build/ && tsc"
+		"prepare": "rm -rf build/ && tsc",
+		"test": "mocha",
+		"testcoverage": "nyc mocha"
 	},
 	"author": "Ayana Developers <devs@ayana.io>",
 	"contributors": [
@@ -19,10 +21,15 @@
 		"eventemitter3": "^3.1.0"
 	},
 	"devDependencies": {
+		"@ayana/eslint-config": "^1.0.3",
 		"@types/node": "^10.12.5",
+		"eslint": "^5.9.0",
+		"mocha": "^5.2.0",
+		"nyc": "^13.1.0",
 		"tslint": "^5.11.0",
 		"tslint-config-xo": "^1.4.0",
 		"typescript": "^3.1.6"
 	},
+	"license": "MIT",
 	"private": false
 }

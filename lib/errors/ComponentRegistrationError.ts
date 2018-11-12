@@ -12,7 +12,7 @@ export class ComponentRegistrationError extends ComponentError {
 	public readonly component: PrimaryComponent | SecondaryComponent;
 
 	constructor(component: PrimaryComponent | SecondaryComponent, msg: string) {
-		super(msg);
+		super(`${component && component.name ? `${component.name}: ` : ''}${msg}`);
 
 		this.define('component', component);
 	}

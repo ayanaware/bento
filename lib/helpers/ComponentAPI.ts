@@ -120,7 +120,7 @@ export class ComponentAPI {
 	 * @param definition - VariableDefinition to process
 	 */
 	private processValue(definition: VariableDefinition) {
-		let value = null;
+		let value = undefined;
 
 		// check in bento
 		if (this.bento.variables.has(definition.name)) {
@@ -128,10 +128,10 @@ export class ComponentAPI {
 		}
 
 		// if null and have default set now
-		if (!value && definition.default) value = definition.default;
+		if (value === undefined && definition.default !== undefined) value = definition.default;
 
 		// if required and still null fail now
-		if (!value && definition.required) throw new VariableProcessError(this.name, definition, 'required variable not found');
+		if (value === undefined) throw new VariableProcessError(this.name, definition, 'required variable not found');
 
 		// TODO: use definition.type to convert value to proper type
 

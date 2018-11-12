@@ -10,7 +10,7 @@ import { ComponentRegistrationError, PluginRegistrationError } from './errors';
 import { ComponentAPI } from './helpers/ComponentAPI';
 import { ComponentEvents } from './helpers/ComponentEvents';
 import { Plugin, PrimaryComponent, SecondaryComponent } from './interfaces';
-import { DecoratorSubscription } from './interfaces/internal';
+import { DecoratorSubscription, DecoratorVariable } from './interfaces/internal';
 
 export interface BentoOptions {}
 
@@ -72,6 +72,16 @@ export class Bento {
 		this.pending = new Map();
 
 		this.events = new Map();
+	}
+
+	/**
+	 * Checks whether a component is a primary component or not
+	 *
+	 * @param component The component that should be checked
+	 * @returns true if the given component is a primary component, false if otherwise
+	 */
+	public static isPrimary(component: PrimaryComponent | SecondaryComponent): boolean {
+		return Boolean((component as any)[Symbols.primary]);
 	}
 
 	/**
@@ -208,6 +218,36 @@ export class Bento {
 		return plugin.name;
 	}
 
+	private handleDecorators(component: PrimaryComponent | SecondaryComponent) {
+		// Subscribe to all the events from the decorator subscriptions
+		const subscriptions: DecoratorSubscription[] = (component.constructor as any)[Symbols.subscriptions];
+		if (Array.isArray(subscriptions)) {
+			for (const subscription of subscriptions) {
+				component.api.subscribe(subscription.type, subscription.namespace, subscription.name, subscription.handler, component);
+			}
+		}
+
+		// Add property descriptors for all the decorated variables
+		const variables: DecoratorVariable[] = (component.constructor as any)[Symbols.variables];
+		if (Array.isArray(variables)) {
+			for (const variable of variables) {
+				component.api.addDefinition(variable.definition);
+
+				Object.defineProperty(component, variable.propertyKey, {
+					configurable: true,
+					enumerable: false,
+					get: function () {
+						return this.api.getVariable(variable.definition.name);
+					},
+					set: function () {
+						// TODO Change to IllegalAccessError
+						throw new Error(`Cannot set Bento variable "${variable.definition.name}" through decorated property`);
+					}
+				});
+			}
+		}
+	}
+
 	/**
 	 * Add a Primary Component to Bento
 	 * @param component - Primary Component
@@ -279,13 +319,6 @@ export class Bento {
 			value: component.name,
 		});
 
-		Object.defineProperty(component, 'variables', {
-			configurable: true,
-			writable: false,
-			enumerable: true,
-			value: component.variables || [],
-		});
-
 		Object.defineProperty(component, 'dependencies', {
 			configurable: true,
 			writable: false,
@@ -293,19 +326,16 @@ export class Bento {
 			value: component.dependencies || [],
 		});
 
-		// Define __primary
-		Object.defineProperty(component, '__primary', {
+		// Define property to know it's a primary component
+		Object.defineProperty(component, Symbols.primary, {
 			configurable: false,
 			writable: false,
-			enumerable: false,
+			enumerable: true,
 			value: true,
 		});
 
 		// Create components' api
 		const api = new ComponentAPI(this, component.name);
-
-		// handle component variables
-		api.addDefinitions(component.variables);
 
 		// Define api
 		Object.defineProperty(component, 'api', {
@@ -321,13 +351,7 @@ export class Bento {
 			this.events.set(component.name, events);
 		}
 
-		// Subscribe to all the events from the decorator subscriptions
-		const subscriptions: DecoratorSubscription[] = (component.constructor as any)[Symbols.subscriptions];
-		if (Array.isArray(subscriptions)) {
-			for (const subscription of subscriptions) {
-				api.subscribe(subscription.type, subscription.namespace, subscription.name, subscription.handler, component);
-			}
-		}
+		this.handleDecorators(component);
 
 		// Call onLoad if present
 		if (component.onLoad) {
@@ -421,13 +445,6 @@ export class Bento {
 			value: name,
 		});
 
-		Object.defineProperty(component, 'variables', {
-			configurable: true,
-			writable: false,
-			enumerable: true,
-			value: component.variables || [],
-		});
-
 		Object.defineProperty(component, 'dependencies', {
 			configurable: true,
 			writable: false,
@@ -435,10 +452,15 @@ export class Bento {
 			value: component.dependencies || [],
 		});
 
-		const api = new ComponentAPI(this, name);
+		// Define property to know it's NOT a primary component
+		Object.defineProperty(component, Symbols.primary, {
+			configurable: false,
+			writable: false,
+			enumerable: true,
+			value: false,
+		});
 
-		// handle component variables
-		api.addDefinitions(component.variables);
+		const api = new ComponentAPI(this, name);
 
 		// define api
 		Object.defineProperty(component, 'api', {
@@ -447,6 +469,8 @@ export class Bento {
 			enumerable: true,
 			value: api,
 		});
+
+		this.handleDecorators(component);
 
 		// call onLoad
 		if (component.onLoad) {

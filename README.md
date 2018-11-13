@@ -1,4 +1,4 @@
-# Bento
+# Bento [![npm (scoped)](https://img.shields.io/npm/v/@ayana/bento.svg)](https://www.npmjs.com/package/@ayana/bento) [![install size](https://packagephobia.now.sh/badge?p=@ayana/bento)](https://packagephobia.now.sh/result?p=@ayana/bento)
 
 Bento is a NodeJS framework designed to make creating and maintaing complex projects a simple and fast process.
 

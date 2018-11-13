@@ -54,8 +54,11 @@ export class Bento {
 	 */
 	private readonly pending: Map<string, PrimaryComponent> = new Map();
 
-	public readonly events: Map<string, ComponentEvents>;
+	public readonly events: Map<string, ComponentEvents> = new Map();
 
+	/**
+	 * @ignore
+	 */
 	public readonly opts: BentoOptions;
 
 	constructor(opts?: BentoOptions) {

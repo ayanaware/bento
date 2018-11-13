@@ -1,10 +1,12 @@
 'use strict';
 
 describe('Bento', function () {
-	require('./setProperties');
 	require('./setProperty');
 	require('./getProperty');
+	require('./setProperties');
 	require('./setVariable');
 	require('./getVariable');
+	require('./addPlugin');
+	require('./removePlugin');
 	require('./addPrimaryComponent');
 });

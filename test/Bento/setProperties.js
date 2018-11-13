@@ -15,7 +15,7 @@ describe('#setProperties', function () {
 		};
 
 		bento.setProperty = function (name, value) {
-			assert.equal(properties[name], value);
+			assert.strictEqual(properties[name], value);
 		};
 
 		bento.setProperties(properties);

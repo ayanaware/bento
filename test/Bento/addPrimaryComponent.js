@@ -23,28 +23,42 @@ describe('#addPrimaryComponent', function () {
 		return bento;
 	};
 
-	it('should throw an error if the PrimaryComponent doesn\'t have a name', async function () {
+	it('should throw an error if the component is not an object', async function () {
 		await assert.rejects(
-			getCleanBento().addPrimaryComponent({}),
-			expectErrorMessage('Primary components must specify a name')
+			getCleanBento().addPrimaryComponent('totallyAComponent'),
+			{ message: 'Component must be a object' },
 		);
 	});
 
-	it('should throw an error if a PrimaryComponent with the same name already exists', async function () {
+	it('should throw an error if name is not a string', async function () {
+		await assert.rejects(
+			getCleanBento().addPrimaryComponent({ name: null }),
+			{ message: 'Component name must be a string' },
+		);
+	});
+
+	it('should throw an error if the component does not specify a name', async function () {
+		await assert.rejects(
+			getCleanBento().addPrimaryComponent({ name: '' }),
+			{ message: 'Primary components must specify a name' },
+		);
+	});
+
+	it('should throw an error if a component with the same name already exists', async function () {
 		const bento = getCleanBento();
 
 		bento.primary.set('TestPrimary', {});
 
 		await assert.rejects(
 			bento.addPrimaryComponent({ name: 'TestPrimary' }),
-			expectErrorMessage(`TestPrimary: Primary component names must be unique`),
+			{ message: `TestPrimary: Primary component names must be unique` },
 		);
 	});
 
 	it('should throw an error if dependencies is set but not an array', async function () {
 		await assert.rejects(
 			getCleanBento().addPrimaryComponent({ name: 'TestPrimary', dependencies: '' }),
-			expectErrorMessage('TestPrimary: Component dependencies is not an array')
+			{ message: 'TestPrimary: Component dependencies is not an array' },
 		);
 	});
 
@@ -59,7 +73,7 @@ describe('#addPrimaryComponent', function () {
 
 		await bento.addPrimaryComponent({ name: 'TestPrimary' });
 
-		assert.equal(registerCalled, true, 'registerPrimaryComponent() wasn\'t called');
+		assert.strictEqual(registerCalled, true, 'registerPrimaryComponent() wasn\'t called');
 	});
 
 	it('should not handle pending components if the registration fails', async function () {
@@ -100,7 +114,7 @@ describe('#addPrimaryComponent', function () {
 
 		await bento.addPrimaryComponent({ name: 'TestPrimary' });
 
-		assert.equal(handleCalled, true, 'Pending components were not handled');
+		assert.strictEqual(handleCalled, true, 'Pending components were not handled');
 	});
 
 	it('should add the component to pending if dependencies are missing', async function () {
@@ -112,11 +126,11 @@ describe('#addPrimaryComponent', function () {
 
 		await bento.addPrimaryComponent({ name: 'TestPrimary' });
 
-		assert.equal(bento.pending.size, 1, 'Component wasn\'t added to the pending map');
+		assert.strictEqual(bento.pending.size, 1, 'Component wasn\'t added to the pending map');
 	});
 
 	it('should return the component name', async function () {
 		const name = await getCleanBento().addPrimaryComponent({ name: 'TestPrimary' });
-		assert.equal(name, 'TestPrimary');
+		assert.strictEqual(name, 'TestPrimary');
 	});
 });

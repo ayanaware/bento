@@ -10,7 +10,7 @@ describe('#setProperty', function () {
 
 		bento.setProperty('test', 'stuff');
 
-		assert.equal(bento.properties.get('test'), 'stuff');
+		assert.strictEqual(bento.properties.get('test'), 'stuff');
 	});
 
 	it('should fail when the property name is not a string', function () {
@@ -18,7 +18,7 @@ describe('#setProperty', function () {
 
 		assert.throws(
 			() => bento.setProperty(null, 'something'),
-			expectErrorMessage('Property name must be a string'),
+			{ message: 'Property name must be a string' },
 		);
 	});
 });

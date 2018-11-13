@@ -2,7 +2,6 @@
 	"extends": "@ayana/eslint-config",
 	"globals": {
 		"describe": true,
-		"it": true,
-		"expectErrorMessage": true
+		"it": true
 	}
 }

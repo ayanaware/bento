@@ -84,16 +84,6 @@ export class Bento {
 	}
 
 	/**
-	 * Define multiple application properties at once
-	 * @param properties - SetProperties object
-	 */
-	public setProperties(properties: SetProperties) {
-		for (const [name, value] of Object.entries(properties)) {
-			this.setProperty(name, value);
-		}
-	}
-
-	/**
 	 * Update a given application property value
 	 * @param name -name of variable to update
 	 * @param value - new value
@@ -111,6 +101,16 @@ export class Bento {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Property name must be a string');
 		if (!this.properties.has(name)) return null;
 		return this.properties.get(name);
+	}
+
+	/**
+	 * Define multiple application properties at once
+	 * @param properties - SetProperties object
+	 */
+	public setProperties(properties: SetProperties) {
+		for (const [name, value] of Object.entries(properties)) {
+			this.setProperty(name, value);
+		}
 	}
 
 	/**
@@ -138,7 +138,9 @@ export class Bento {
 	 * @param plugin - plugin to add
 	 */
 	public async addPlugin(plugin: Plugin) {
-		if (!plugin.name) throw new PluginRegistrationError(plugin, 'Plugins must specify a name');
+		if (plugin == null || typeof plugin !== 'object') throw new IllegalArgumentError('Plugin must be a object');
+		if (typeof plugin.name !== 'string') throw new IllegalArgumentError('Plugin name must be a string');
+		if (!plugin.name) throw new PluginRegistrationError(plugin, 'Plugin must specify a name');
 		if (this.plugins.has(plugin.name)) throw new PluginRegistrationError(plugin, 'Plugin names must be unique');
 
 		await this.registerPlugin(plugin);
@@ -151,8 +153,11 @@ export class Bento {
 	 * @param name - name of plugin to remove
 	 */
 	public async removePlugin(name: string) {
+		if (typeof name !== 'string') throw new IllegalArgumentError('Plugin name must be a string');
+		if (!name) throw new IllegalArgumentError('Plugin name must not be empty');
+
 		const plugin = this.plugins.get(name);
-		if (!plugin) throw new Error(`Plugin '${name}' is not currently attached`);
+		if (!plugin) throw new Error(`Plugin "${name}" is not currently attached`);
 
 		// call onUnload
 		if (plugin.onUnload) {
@@ -240,6 +245,8 @@ export class Bento {
 	 * @param component - Primary Component
 	 */
 	public async addPrimaryComponent(component: PrimaryComponent): Promise<string> {
+		if (component == null || typeof component !== 'object') throw new IllegalArgumentError('Component must be a object');
+		if (typeof component.name !== 'string') throw new IllegalArgumentError('Component name must be a string');
 		if (!component.name) throw new ComponentRegistrationError(component, 'Primary components must specify a name');
 		if (this.primary.has(component.name)) throw new ComponentRegistrationError(component, `Primary component names must be unique`);
 

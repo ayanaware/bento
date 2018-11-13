@@ -10,7 +10,7 @@ describe('#getVariable', function () {
 
 		bento.variables.set('test', 'stuff');
 
-		assert.equal(bento.getVariable('test'), 'stuff');
+		assert.strictEqual(bento.getVariable('test'), 'stuff');
 	});
 
 	it('should fail when variable name is not a string', function () {
@@ -18,7 +18,7 @@ describe('#getVariable', function () {
 
 		assert.throws(
 			() => bento.getVariable(null),
-			expectErrorMessage('Variable name must be a string'),
+			{ message: 'Variable name must be a string' },
 		);
 	});
 });

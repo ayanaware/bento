@@ -27,32 +27,32 @@ export class Bento {
 	/**
 	 * Runtime Application properties (static) (ex: name, version, time started)
 	 */
-	public readonly properties: Map<string, any>;
+	public readonly properties: Map<string, any> = new Map();
 
 	/**
 	 * Runtime component variables (dynamic)
 	 */
-	public readonly variables: Map<string, any>;
+	public readonly variables: Map<string, any> = new Map();
 
 	/**
 	 * Currently loaded Bento plugins
 	 */
-	public readonly plugins: Map<string, Plugin>;
+	public readonly plugins: Map<string, Plugin> = new Map();
 
 	/**
 	 * Currently loaded Primary components
 	 */
-	public readonly primary: Map<string, PrimaryComponent>;
+	public readonly primary: Map<string, PrimaryComponent> = new Map();
 
 	/**
 	 * Currently loaded Secondary components
 	 */
-	public readonly secondary: Map<string, SecondaryComponent>;
+	public readonly secondary: Map<string, SecondaryComponent> = new Map();
 
 	/**
 	 * Primary components currently pending to be loaded
 	 */
-	private readonly pending: Map<string, PrimaryComponent>;
+	private readonly pending: Map<string, PrimaryComponent> = new Map();
 
 	public readonly events: Map<string, ComponentEvents>;
 
@@ -60,18 +60,6 @@ export class Bento {
 
 	constructor(opts?: BentoOptions) {
 		this.opts = opts;
-
-		this.properties = new Map();
-		this.variables = new Map();
-
-		this.plugins = new Map();
-
-		this.primary = new Map();
-		this.secondary = new Map();
-
-		this.pending = new Map();
-
-		this.events = new Map();
 	}
 
 	/**
@@ -120,6 +108,7 @@ export class Bento {
 	 * @param name - name of variable to get
 	 */
 	public getProperty(name: string) {
+		if (typeof name !== 'string') throw new IllegalArgumentError('Property name must be a string');
 		if (!this.properties.has(name)) return null;
 		return this.properties.get(name);
 	}
@@ -130,6 +119,7 @@ export class Bento {
 	 * @param value - new value
 	 */
 	public setVariable(name: string, value: any) {
+		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
 		this.variables.set(name, value);
 	}
 
@@ -138,6 +128,7 @@ export class Bento {
 	 * @param name - name of variable to get
 	 */
 	public getVariable(name: string) {
+		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
 		if (!this.variables.has(name)) return null;
 		return this.variables.get(name);
 	}

@@ -207,7 +207,6 @@ export class Bento {
 		}
 
 		this.plugins.set(plugin.name, plugin);
-		return plugin.name;
 	}
 
 	private handleDecorators(component: PrimaryComponent | SecondaryComponent) {

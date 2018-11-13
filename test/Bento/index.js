@@ -8,6 +8,10 @@ describe('Bento', function () {
 	require('./setVariable');
 	require('./getVariable');
 
+	require('./addValidator');
+	require('./removeValidator');
+	require('./runValidator');
+
 	require('./addPlugin');
 	require('./removePlugin');
 	require('./registerPlugin');

@@ -2,11 +2,11 @@
 
 import * as crypto from 'crypto';
 
-import { IllegalArgumentError } from '@ayana/errors';
+import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 import Logger from '@ayana/logger';
 
 import { Symbols } from './constants/internal';
-import { ComponentRegistrationError, PluginRegistrationError } from './errors';
+import { ComponentRegistrationError, PluginRegistrationError, ValidatorRegistrationError } from './errors';
 import { ComponentAPI } from './helpers/ComponentAPI';
 import { ComponentEvents } from './helpers/ComponentEvents';
 import { Plugin, PrimaryComponent, SecondaryComponent } from './interfaces';
@@ -35,6 +35,11 @@ export class Bento {
 	public readonly variables: Map<string, any> = new Map();
 
 	/**
+	 * Currently loaded validators
+	 */
+	public readonly validators: Map<string, (value: any, ...args: any[]) => boolean> = new Map();
+
+	/**
 	 * Currently loaded Bento plugins
 	 */
 	public readonly plugins: Map<string, Plugin> = new Map();
@@ -54,6 +59,9 @@ export class Bento {
 	 */
 	private readonly pending: Map<string, PrimaryComponent> = new Map();
 
+	/**
+	 * @ignore
+	 */
 	public readonly events: Map<string, ComponentEvents> = new Map();
 
 	/**
@@ -134,6 +142,47 @@ export class Bento {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
 		if (!this.variables.has(name)) return null;
 		return this.variables.get(name);
+	}
+
+	/**
+	 * Add a new validator into Bento
+	 * @param name - validator name
+	 * @param validator - validator function
+	 */
+	public addValidator(name: string, validator: (value: any, ...args: any[]) => boolean) {
+		if (name == null || typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');
+		if (typeof validator !== 'function') throw new IllegalArgumentError('Validator must be a function');
+
+		this.validators.set(name, validator);
+	}
+
+	/**
+	 * Remove validator from Bento
+	 * @param name - validator name
+	 */
+	public removeValidator(name: string) {
+		if (name == null || typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');
+		if (!this.validators.has(name)) throw new IllegalStateError(`Validator "${name}" does not exist`);
+
+		this.validators.delete(name);
+	}
+
+	/**
+	 * Run a validator
+	 * @param name - validator name
+	 * @param args - array of args to be passed
+	 */
+	public runValidator(name: string, ...args: any[]) {
+		if (name == null || typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');
+		if (!this.validators.has(name)) throw new IllegalStateError(`Validator "${name}" does not exist`);
+
+		const validator = this.validators.get(name);
+
+		try {
+			return validator.call(undefined, ...args);
+		} catch (e) {
+			throw new ValidatorRegistrationError(name, `Validator "${name}" failed to execute`).setCause(e);
+		}
 	}
 
 	/**

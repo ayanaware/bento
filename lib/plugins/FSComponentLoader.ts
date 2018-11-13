@@ -48,7 +48,6 @@ export interface FileSystemLoaderOptions {
  * Loads components from the file system
  */
 export class FSComponentLoader extends ComponentLoader implements Plugin {
-
 	public readonly name: string;
 
 	private readonly primary: string;
@@ -173,5 +172,4 @@ export class FSComponentLoader extends ComponentLoader implements Plugin {
 
 		return components.concat(await Promise.all(dirCompPromises)).filter(v => v != null);
 	}
-
 }

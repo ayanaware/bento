@@ -1,10 +1,10 @@
 'use strict';
 
-const { Bento } = require('../build');
+const { Bento, ConfigLoader } = require('../../build');
 
 const bento = new Bento();
 
-bento.setVariable('someVal', Math.random());
+const config = new ConfigLoader();
 
 class Test {
 	constructor() {
@@ -21,7 +21,6 @@ class Test {
 			{
 				type: 'number',
 				name: 'noExist',
-				default: 1,
 			},
 		]);
 
@@ -32,7 +31,17 @@ class Test {
 
 const instance = new Test();
 
-bento.addPrimaryComponent(instance)
-.catch(e => {
-	console.log(e);
-})
+bento.addPlugin(config).then(async () => {
+	await config.addDefinitions([
+		{
+			name: 'someVal',
+			env: 'EXAMPLE',
+		},
+		{
+			name: 'noExist',
+			value: 'abcdef',
+		},
+	]);
+
+	await bento.addPrimaryComponent(instance);
+});

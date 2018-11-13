@@ -1,12 +1,12 @@
 {
 	"name": "@ayana/bento",
-	"version": "1.0.0-alpha4",
+	"version": "1.0.0-alpha3",
 	"description": "Modular runtime framework designed to solve complex tasks",
 	"main": "build/index.js",
 	"scripts": {
 		"start": "node build/index.js",
 		"build": "rm -rf build/ && tsc",
-		"prepublishOnly": "rm -rf build/ && tsc && nyc mocha",
+		"prepublishOnly": "rm -rf build/ && tsc && nyc --check-coverage --lines 80 mocha",
 		"test": "rm -rf build && tsc && mocha",
 		"testcoverage": "rm -rf build && tsc && nyc mocha"
 	},

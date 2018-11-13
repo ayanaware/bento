@@ -12,7 +12,7 @@ describe('#registerPlugin', async function () {
 
 		await bento.registerPlugin(testPlugin);
 
-		assert.strictEqual(testPlugin.hasOwnProperty('bento'), true, 'Bento property was not defined');
+		assert.strictEqual(Object.prototype.hasOwnProperty.call(testPlugin, 'bento'), true, 'Bento property was not defined');
 	});
 
 	it('should attempt to call plugin onLoad method', async function () {

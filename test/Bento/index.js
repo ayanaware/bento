@@ -13,4 +13,8 @@ describe('Bento', function () {
 	require('./registerPlugin');
 
 	require('./addPrimaryComponent');
+	require('./removePrimaryComponent');
+	require('./registerPrimaryComponent');
+
+	require('./getMissingDependencies');
 });

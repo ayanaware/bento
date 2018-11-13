@@ -51,14 +51,14 @@ describe('#addPrimaryComponent', function () {
 
 		await assert.rejects(
 			bento.addPrimaryComponent({ name: 'TestPrimary' }),
-			{ message: `TestPrimary: Primary component names must be unique` },
+			{ message: `Component name "TestPrimary" must be unique` },
 		);
 	});
 
 	it('should throw an error if dependencies is set but not an array', async function () {
 		await assert.rejects(
 			getCleanBento().addPrimaryComponent({ name: 'TestPrimary', dependencies: '' }),
-			{ message: 'TestPrimary: Component dependencies is not an array' },
+			{ message: '"TestPrimary" Component dependencies is not an array' },
 		);
 	});
 

@@ -8,13 +8,11 @@ import { ComponentError } from './ComponentError';
 
 @GlobalInstanceOf('@ayana/components', '1')
 export class ComponentRegistrationError extends ComponentError {
-
 	public readonly component: PrimaryComponent | SecondaryComponent;
 
 	constructor(component: PrimaryComponent | SecondaryComponent, msg: string) {
-		super(`${component && component.name ? `${component.name}: ` : ''}${msg}`);
+		super(msg);
 
 		this.define('component', component);
 	}
-
 }

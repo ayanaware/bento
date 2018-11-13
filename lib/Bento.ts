@@ -250,11 +250,11 @@ export class Bento {
 		if (component == null || typeof component !== 'object') throw new IllegalArgumentError('Component must be a object');
 		if (typeof component.name !== 'string') throw new IllegalArgumentError('Component name must be a string');
 		if (!component.name) throw new ComponentRegistrationError(component, 'Primary components must specify a name');
-		if (this.primary.has(component.name)) throw new ComponentRegistrationError(component, `Primary component names must be unique`);
+		if (this.primary.has(component.name)) throw new ComponentRegistrationError(component, `Component name "${component.name}" must be unique`);
 
 		// Check dependencies
 		if (component.dependencies != null && !Array.isArray(component.dependencies)) {
-			throw new ComponentRegistrationError(component, 'Component dependencies is not an array');
+			throw new ComponentRegistrationError(component, `"${component.name}" Component dependencies is not an array`);
 		}
 
 		// determine dependencies
@@ -278,6 +278,8 @@ export class Bento {
 	 * @param name - Name of primary component
 	 */
 	public async removePrimaryComponent(name: string) {
+		if (name == null || typeof name !== 'string') throw new IllegalArgumentError('Name must be a string');
+		if (!name) throw new IllegalArgumentError('Name must not be empty');
 		const component = this.primary.get(name);
 		if (!component) throw new Error(`Primary Component '${name}' is not currently loaded.`);
 
@@ -341,7 +343,7 @@ export class Bento {
 			try {
 				await component.onLoad();
 			} catch (e) {
-				throw new ComponentRegistrationError(component, `Primary component '${component.name}' failed loading`).setCause(e);
+				throw new ComponentRegistrationError(component, `Primary component "${component.name}" failed loading`).setCause(e);
 			}
 		}
 

@@ -125,6 +125,16 @@ export class Bento {
 	}
 
 	/**
+	 * Check if a given variable exists
+	 * @param name - name of variable to get
+	 */
+	public hasVariable(name: string) {
+		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
+		if (this.variables.has(name)) return true;
+		return false;
+	}
+
+	/**
 	 * Update a given variables value
 	 * @param name - name of variable to update
 	 * @param value - new value
@@ -274,19 +284,7 @@ export class Bento {
 		const variables: DecoratorVariable[] = (component.constructor as any)[Symbols.variables];
 		if (Array.isArray(variables)) {
 			for (const variable of variables) {
-				component.api.addDefinition(variable.definition);
-
-				Object.defineProperty(component, variable.propertyKey, {
-					configurable: true,
-					enumerable: false,
-					get: function () {
-						return this.api.getVariable(variable.definition.name);
-					},
-					set: function () {
-						// TODO Change to IllegalAccessError
-						throw new Error(`Cannot set Bento variable "${variable.definition.name}" through decorated property`);
-					}
-				});
+				component.api.defineVariable(variable.definition);
 			}
 		}
 	}
@@ -369,7 +367,7 @@ export class Bento {
 		});
 
 		// Create components' api
-		const api = new ComponentAPI(this, component.name);
+		const api = new ComponentAPI(this, component);
 
 		// Define api
 		Object.defineProperty(component, 'api', {
@@ -489,7 +487,7 @@ export class Bento {
 			value: false,
 		});
 
-		const api = new ComponentAPI(this, name);
+		const api = new ComponentAPI(this, component);
 
 		// define api
 		Object.defineProperty(component, 'api', {

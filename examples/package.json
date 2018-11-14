@@ -1,0 +1,23 @@
+{
+	"name": "bento-examples",
+	"version": "1.0.0",
+	"description": "Learning how Bento works 101",
+	"author": "Ayana Developers <devs@ayana.io>",
+	"contributors": [
+		"HcgRandon <me@randon.moe>",
+		"TheAkio <me@theak.io>"
+	],
+	"scripts": {
+		"build": "rm -rf build/ && tsc"
+	},
+	"dependencies": {
+		"@ayana/bento": "latest",
+		"@ayana/logger": "^1.1.0"
+	},
+	"devDependencies": {
+		"@types/node": "^10.12.7",
+		"tslint": "^5.11.0",
+		"tslint-config-xo": "^1.4.0",
+		"typescript": "^3.1.6"
+	}
+}

@@ -12,7 +12,7 @@ class Test {
 	}
 
 	async onLoad() {
-		this.api.addDefinitions([
+		this.api.defineVariables([
 			{
 				type: 'string',
 				name: 'someVal',
@@ -24,8 +24,7 @@ class Test {
 			},
 		]);
 
-		const someVal = this.api.getVariable('someVal');
-		console.log('someVal =', someVal);
+		console.log('someVal =', this.someVal);
 	}
 }
 
@@ -43,5 +42,9 @@ bento.addPlugin(config).then(async () => {
 		},
 	]);
 
-	await bento.addPrimaryComponent(instance);
+	try {
+		await bento.addPrimaryComponent(instance);
+	} catch (e) {
+		console.log(e);
+	}
 });

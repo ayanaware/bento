@@ -9,7 +9,7 @@ import { Bento } from '../Bento';
 
 import { SubscriptionType } from '../constants';
 import { VariableProcessError } from '../errors';
-import { PrimaryComponent, VariableDefinition } from '../interfaces';
+import { PrimaryComponent, SecondaryComponent, VariableDefinition } from '../interfaces';
 
 /**
  * Logger instance for the ComponentAPI class
@@ -26,35 +26,25 @@ export class ComponentAPI {
 	private readonly bento: Bento;
 
 	/**
-	 * The name of the component this API object belongs to
+	 * The component this API object belongs to
 	 */
-	private readonly name: string;
+	private readonly component: PrimaryComponent | SecondaryComponent;
 
 	/**
 	 * Component defined variable definitions
 	 */
-	private readonly definitions: Map<string, VariableDefinition>;
-
-	/**
-	 * Variable cache for getVariable
-	 */
-	private readonly variables: Map<string, any>;
+	private readonly definitions: Map<string, VariableDefinition> = new Map();
 
 	/**
 	 * Currently existing subscriptions of this component.
 	 * The key is the namespace where a subscription was added,
 	 * the value is an array of subscription ids on that namespace.
 	 */
-	private readonly subscriptions: Map<string, string[]>;
+	private readonly subscriptions: Map<string, string[]> = new Map();
 
-	public constructor(bento: Bento, name: string) {
+	public constructor(bento: Bento, component: PrimaryComponent | SecondaryComponent) {
 		this.bento = bento;
-		this.name = name;
-
-		this.definitions = new Map();
-		this.variables = new Map();
-
-		this.subscriptions = new Map();
+		this.component = component;
 	}
 
 	/**
@@ -66,75 +56,96 @@ export class ComponentAPI {
 	}
 
 	/**
-	 * Helper to add and track multiple definitions
+	 * Define multiple variables at once
 	 * @param definitions - Array of definitions
 	 */
-	public addDefinitions(definitions: VariableDefinition[]) {
+	public defineVariables(definitions: VariableDefinition[]) {
 		if (!Array.isArray(definitions)) throw new IllegalArgumentError('Definitions must be an array');
 
 		for (const definition of definitions) {
-			this.addDefinition(definition);
+			this.defineVariable(definition);
 		}
 	}
 
 	/**
-	 * Adds and begins tracking provided VariableDefinition
-	 * @param definition - The definition to track
+	 * Defines and attaches a variable to component
+	 * @param definition - The definition of the variable to define
 	 */
-	public addDefinition(definition: VariableDefinition) {
+	public defineVariable(definition: VariableDefinition) {
 		if (!definition.type) throw new IllegalArgumentError('VariableDefinition must define a type');
 		if (!definition.name) throw new IllegalArgumentError('VariableDefinition must define a name');
 
-		if (this.definitions.has(definition.name)) throw new IllegalStateError('A VariableDefinition with this name already exists');
+		if (this.definitions.has(definition.name)) throw new IllegalStateError('A VariableDefinition with this name is already defined');
+
+		// if no default, and undefined throw an error
+		if (!this.bento.hasVariable(definition.name) && definition.default === undefined) {
+			throw new IllegalStateError(`Can not attach variable "${definition.name}", not in Bento, and no default`);
+		}
+
+		// attach property to component
+		Object.defineProperty(this.component, definition.name, {
+			configurable: true,
+			enumerable: false,
+			get: () => {
+				return this.processValue(definition);
+			},
+			set: function () {
+				// TODO Change to IllegalAccessError
+				throw new Error(`Cannot set Bento variable "${definition.name}" on Component "${this.component.name}"`);
+			}
+		});
 
 		this.definitions.set(definition.name, definition);
-
-		this.processValue(definition);
 	}
 
 	/**
-	 * Removes and prevents further tracking of a VariableDefinition
-	 * @param name - Name of definition to remove
+	 * Undefines and detaches a variable from component
+	 * @param name - Name of variable to remove
 	 */
-	public removeDefinition(name: string) {
-		if (!this.definitions.has(name)) throw new IllegalStateError('There is no VariableDefinition with that name loaded');
+	public undefineVariable(name: string) {
+		if (typeof name !== 'string') throw new IllegalArgumentError('name must be a string');
+		if (!this.definitions.has(name)) throw new IllegalStateError('There is no VariableDefinition with that name defined');
+
+		if (this.component.hasOwnProperty(name)) delete (this.component as any)[name];
 
 		this.definitions.delete(name);
 	}
 
 	/**
-	 * Gets the value of a variable. Remember you must use addDefinition for this to work
-	 * @param name - Variable name
+	 * Check if bento has a variable loaded
+	 * @param name - name of variable to check
 	 */
-	public getVariable(name: string) {
-		if (!this.variables.has(name)) return null;
-		return this.variables.get(name);
+	public hasVariable(name: string) {
+		return this.bento.hasVariable(name);
 	}
 
 	/**
-	 * Proccess VariableDefinition to determine value
-	 * @private
-	 * @param definition - VariableDefinition to process
+	 * Gets the value of a variable
+	 * @param name - Variable name
 	 */
+	public getVariable(name: string): any {
+		// check if we have the variable defined in definitions, if so use processValue
+		if (this.definitions.has(name)) return this.processValue(this.definitions.get(name));
+
+		// else pull directly from Bento
+		if (!this.hasVariable(name)) throw new IllegalStateError(`Variable "${name}" does not exist in Bento`);
+		return this.bento.getVariable(name);
+	}
+
 	private processValue(definition: VariableDefinition) {
 		let value = undefined;
 
-		// check in bento
-		if (this.bento.variables.has(definition.name)) {
-			value = this.bento.variables.get(definition.name);
+		// get latest
+		if (this.bento.hasVariable(definition.name)) {
+			value = this.bento.getVariable(definition.name);
 		}
 
-		// if null and have default set now
+		// if undefined and have default set now
 		if (value === undefined && definition.default !== undefined) value = definition.default;
 
-		// if required and still null fail now
-		if (value === undefined) throw new VariableProcessError(this.name, definition, 'required variable not found');
+		// TODO: validators
 
-		// TODO: use definition.type to convert value to proper type
-
-		// TODO: Validator support
-
-		this.variables.set(definition.name, value);
+		return value;
 	}
 
 	/**
@@ -161,7 +172,7 @@ export class ComponentAPI {
 	 * @throws IllegalArgumentError if fromEmitter is not an EventEmitter or events is not an array
 	 */
 	public forwardEvents(fromEmitter: EventEmitter, events: string[]) {
-		const emitter = this.bento.events.get(this.name);
+		const emitter = this.bento.events.get(this.component.name);
 		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Primary component emitter does not exist?');
 
 		if (events != null && !Array.isArray(events)) {
@@ -185,7 +196,7 @@ export class ComponentAPI {
 	 * @param args - Ordered Array of args to emit
 	 */
 	public async emit(eventName: string, ...args: any[]) {
-		const emitter = this.bento.events.get(this.name);
+		const emitter = this.bento.events.get(this.component.name);
 		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Primary component emitter does not exist?');
 
 		emitter.emit(eventName, ...args);
@@ -245,7 +256,7 @@ export class ComponentAPI {
 		// Check if the namespace exists
 		const events = this.bento.events.get(namespace);
 		if (events == null) {
-			log.warn(`Could not find events for namespace "${namespace}" while trying to unsubscribe`, this.name);
+			log.warn(`Could not find events for namespace "${namespace}" while trying to unsubscribe`, this.component.name);
 			return;
 		}
 
@@ -271,7 +282,7 @@ export class ComponentAPI {
 			// Get the namespace events
 			const events = this.bento.events.get(namespace);
 			if (events == null) {
-				log.warn(`Could not find events for namespace "${namespace}" while trying to unsubscribe`, this.name);
+				log.warn(`Could not find events for namespace "${namespace}" while trying to unsubscribe`, this.component.name);
 				return;
 			}
 

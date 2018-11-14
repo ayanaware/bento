@@ -1,0 +1,7 @@
+# build
+build
+
+# dependencies (dont need in examples)
+node_modules
+yarn.lock
+package-lock.json

@@ -150,7 +150,7 @@ export class Bento {
 	 * @param validator - validator function
 	 */
 	public addValidator(name: string, validator: (value: any, ...args: any[]) => boolean) {
-		if (name == null || typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');
+		if (typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');
 		if (typeof validator !== 'function') throw new IllegalArgumentError('Validator must be a function');
 
 		this.validators.set(name, validator);
@@ -161,7 +161,7 @@ export class Bento {
 	 * @param name - validator name
 	 */
 	public removeValidator(name: string) {
-		if (name == null || typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');
+		if (typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');
 		if (!this.validators.has(name)) throw new IllegalStateError(`Validator "${name}" does not exist`);
 
 		this.validators.delete(name);
@@ -173,7 +173,7 @@ export class Bento {
 	 * @param args - array of args to be passed
 	 */
 	public runValidator(name: string, ...args: any[]) {
-		if (name == null || typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');
+		if (typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');
 		if (!this.validators.has(name)) throw new IllegalStateError(`Validator "${name}" does not exist`);
 
 		const validator = this.validators.get(name);
@@ -327,7 +327,7 @@ export class Bento {
 	 * @param name - Name of primary component
 	 */
 	public async removePrimaryComponent(name: string) {
-		if (name == null || typeof name !== 'string') throw new IllegalArgumentError('Name must be a string');
+		if (typeof name !== 'string') throw new IllegalArgumentError('Name must be a string');
 		if (!name) throw new IllegalArgumentError('Name must not be empty');
 		const component = this.primary.get(name);
 		if (!component) throw new Error(`Primary Component '${name}' is not currently loaded.`);

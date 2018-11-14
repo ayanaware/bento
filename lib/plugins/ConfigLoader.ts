@@ -37,7 +37,7 @@ export class ConfigLoader {
 	 */
 	public async addDefinition(definition: ConfigLoaderDefinition, reload: boolean = true) {
 		if (definition == null || typeof definition !== 'object') throw new IllegalArgumentError('Definition must be a object');
-		if (definition.name == null || typeof definition.name !== 'string') throw new IllegalArgumentError('Definition name must be a string');
+		if (typeof definition.name !== 'string') throw new IllegalArgumentError('Definition name must be a string');
 		if (!definition.name) throw new IllegalArgumentError('Definition must specify a name');
 
 		if (definition.value === undefined && definition.env === undefined && definition.file === undefined) {
@@ -56,7 +56,7 @@ export class ConfigLoader {
 	 * @param name - definition name
 	 */
 	public async removeDefinition(name: string) {
-		if (name == null || typeof name !== 'string') throw new IllegalArgumentError('Name must be a string');
+		if (typeof name !== 'string') throw new IllegalArgumentError('Name must be a string');
 		if (!name) throw new IllegalArgumentError('Name must not be empty');
 
 		if (!this.definitions.has(name)) throw new IllegalStateError(`Definition "${name}" is not currently loaded`);
@@ -69,7 +69,7 @@ export class ConfigLoader {
 	 * @param definitions - array of definitions
 	 */
 	public async addDefinitions(definitions: ConfigLoaderDefinition[]) {
-		if (definitions == null || !Array.isArray(definitions)) throw new IllegalArgumentError('Definitions must be an array');
+		if (!Array.isArray(definitions)) throw new IllegalArgumentError('Definitions must be an array');
 
 		for (const definition of definitions) await this.addDefinition(definition, false);
 

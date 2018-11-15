@@ -68,7 +68,7 @@ describe('#registerComponent', async function () {
 
 		await assert.rejects(
 			async () => bento.registerComponent('primary', testComponent),
-			{ message: 'Primary component "TestComponent" failed loading' }
+			{ message: 'Component "TestComponent" failed loading' }
 		);
 	});
 });

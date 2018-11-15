@@ -474,7 +474,7 @@ export class Bento {
 			try {
 				await component.onLoad();
 			} catch (e) {
-				throw new ComponentRegistrationError(component, `Primary component "${component.name}" failed loading`).setCause(e);
+				throw new ComponentRegistrationError(component, `Component "${component.name}" failed loading`).setCause(e);
 			}
 		}
 

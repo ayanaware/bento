@@ -24,8 +24,8 @@ export interface SetProperties {
 const log = Logger.get('Bento');
 
 enum ComponentType {
-	Primary = 'primary',
-	Secondary = 'secondary',
+	PRIMARY = 'primary',
+	SECONDARY = 'secondary',
 }
 
 export class Bento {
@@ -315,7 +315,7 @@ export class Bento {
 		const missing = this.getMissingDependencies(component);
 		if (missing.length === 0) {
 			// All dependencies are already loaded
-			const success = await this.registerComponent(ComponentType.Primary, component);
+			const success = await this.registerComponent(ComponentType.PRIMARY, component);
 
 			// if any pending components attempt to handle them now
 			if (success && this.pending.size > 0) await this.handlePendingComponents();
@@ -373,7 +373,7 @@ export class Bento {
 			if (missing.length === 0) {
 				this.pending.delete(component.name);
 
-				const name = await this.registerComponent(ComponentType.Primary, component);
+				const name = await this.registerComponent(ComponentType.PRIMARY, component);
 				if (name) loaded++;
 			}
 		}
@@ -393,7 +393,7 @@ export class Bento {
 
 		// TODO Add check if pending components are still there
 		// TODO Also add explicit depends to secondary components and check them
-		const name = await this.registerComponent(ComponentType.Secondary, component);
+		const name = await this.registerComponent(ComponentType.SECONDARY, component);
 
 		return name;
 	}
@@ -418,7 +418,7 @@ export class Bento {
 
 	private async registerComponent(type: ComponentType, component: PrimaryComponent | SecondaryComponent) {
 		let name = null;
-		if (type === ComponentType.Primary) name = component.name;
+		if (type === ComponentType.PRIMARY) name = component.name;
 		else name = this.createID();
 
 		Object.defineProperty(component, 'name', {
@@ -440,7 +440,7 @@ export class Bento {
 			configurable: false,
 			writable: false,
 			enumerable: true,
-			value: type === ComponentType.Primary,
+			value: type === ComponentType.PRIMARY,
 		});
 
 		// Create components' api
@@ -456,13 +456,13 @@ export class Bento {
 
 		// PRIMARY ONLY
 		// if component has constructor lets track it
-		if (type === ComponentType.Primary && component.constructor) {
+		if (type === ComponentType.PRIMARY && component.constructor) {
 			this.primaryConstructors.set(component.constructor, name);
 		}
 
 		// PRIMARY ONLY
 		// Create primary component event helper if it doesn't already exist
-		if (type === ComponentType.Primary && !this.events.has(name)) {
+		if (type === ComponentType.PRIMARY && !this.events.has(name)) {
 			const events = new ComponentEvents(name);
 			this.events.set(name, events);
 		}
@@ -478,7 +478,7 @@ export class Bento {
 			}
 		}
 
-		if (type === ComponentType.Primary) this.primary.set(name, component);
+		if (type === ComponentType.PRIMARY) this.primary.set(name, component);
 		else this.secondary.set(name, component);
 
 		return name;

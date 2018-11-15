@@ -6,7 +6,14 @@ import * as util from 'util';
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 import { Bento } from '../Bento';
 
+/**
+ * @ignore
+ */
 const stat = util.promisify(fs.stat);
+
+/**
+ * @ignore
+ */
 const readFile = util.promisify(fs.readFile);
 
 export interface ConfigLoaderDefinition {

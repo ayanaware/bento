@@ -18,7 +18,7 @@ describe('Bento', function () {
 
 	require('./addPrimaryComponent');
 	require('./removePrimaryComponent');
-	require('./registerPrimaryComponent');
-
 	require('./getMissingDependencies');
+
+	require('./registerComponent');
 });

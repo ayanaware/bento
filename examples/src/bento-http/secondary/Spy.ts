@@ -13,12 +13,12 @@ export class Spy {
 	public dependencies: string[] = ['HTTPServer'];
 
 	async onLoad() {
-		// alternative way to subscribe to component events
+		// alternative way to subscribe to component events, you can also sub by reference which can be seen in EveryTen Component
 		this.api.subscribeEvent('HTTPServer', 'httpHit', this.handleHit, this);
 	}
 
 	handleHit(address: string, port: number) {
-		const counter = this.api.getPrimary<HitCounter>('HitCounter');
+		const counter = this.api.getPrimary<HitCounter>(HitCounter);
 		log.info(`Got HTTP hit from: '${address}:${port}'. Been hit "${counter.getTotalHits()}" times now!`);
 	}
 }

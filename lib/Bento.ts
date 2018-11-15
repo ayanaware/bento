@@ -23,6 +23,11 @@ export interface SetProperties {
  */
 const log = Logger.get('Bento');
 
+enum ComponentType {
+	Primary = 'primary',
+	Secondary = 'secondary',
+}
+
 export class Bento {
 	/**
 	 * Runtime Application properties (static) (ex: name, version, time started)
@@ -48,6 +53,7 @@ export class Bento {
 	 * Currently loaded Primary components
 	 */
 	public readonly primary: Map<string, PrimaryComponent> = new Map();
+	private readonly primaryConstructors: Map<any, string> = new Map();
 
 	/**
 	 * Currently loaded Secondary components
@@ -271,22 +277,23 @@ export class Bento {
 		this.plugins.set(plugin.name, plugin);
 	}
 
-	private handleDecorators(component: PrimaryComponent | SecondaryComponent) {
-		// Subscribe to all the events from the decorator subscriptions
-		const subscriptions: DecoratorSubscription[] = (component.constructor as any)[Symbols.subscriptions];
-		if (Array.isArray(subscriptions)) {
-			for (const subscription of subscriptions) {
-				component.api.subscribe(subscription.type, subscription.namespace, subscription.name, subscription.handler, component);
-			}
+	public resolveComponentName(component: PrimaryComponent | string) {
+		let name = null;
+		if (typeof component === 'string') name = component;
+		else {
+			// check if we have the constructor
+			if (this.primaryConstructors.has(component)) name = this.primaryConstructors.get(component);
+
+			// check if .name exists on the object
+			else if (Object.prototype.hasOwnProperty.call(component, 'name')) name = component.name;
 		}
 
-		// Add property descriptors for all the decorated variables
-		const variables: DecoratorVariable[] = (component.constructor as any)[Symbols.variables];
-		if (Array.isArray(variables)) {
-			for (const variable of variables) {
-				component.api.defineVariable(variable.definition);
-			}
-		}
+		if (name == null) throw new Error('Could not determine component name');
+
+		// verfiy the name resolved actually exists
+		// if (!this.primary.has(name)) throw new Error('Resolved name does not have a corresponding component');
+
+		return name;
 	}
 
 	/**
@@ -308,7 +315,7 @@ export class Bento {
 		const missing = this.getMissingDependencies(component);
 		if (missing.length === 0) {
 			// All dependencies are already loaded
-			const success = await this.registerPrimaryComponent(component);
+			const success = await this.registerComponent(ComponentType.Primary, component);
 
 			// if any pending components attempt to handle them now
 			if (success && this.pending.size > 0) await this.handlePendingComponents();
@@ -327,6 +334,7 @@ export class Bento {
 	public async removePrimaryComponent(name: string) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Name must be a string');
 		if (!name) throw new IllegalArgumentError('Name must not be empty');
+
 		const component = this.primary.get(name);
 		if (!component) throw new Error(`Primary Component '${name}' is not currently loaded.`);
 
@@ -340,63 +348,11 @@ export class Bento {
 				// force unload
 			}
 		}
-	}
 
-	private async registerPrimaryComponent(component: PrimaryComponent): Promise<boolean> {
-		// Primary component name (existence was checked before)
-		Object.defineProperty(component, 'name', {
-			configurable: true,
-			writable: false,
-			enumerable: true,
-			value: component.name,
-		});
-
-		Object.defineProperty(component, 'dependencies', {
-			configurable: true,
-			writable: false,
-			enumerable: true,
-			value: component.dependencies || [],
-		});
-
-		// Define property to know it's a primary component
-		Object.defineProperty(component, Symbols.primary, {
-			configurable: false,
-			writable: false,
-			enumerable: true,
-			value: true,
-		});
-
-		// Create components' api
-		const api = new ComponentAPI(this, component);
-
-		// Define api
-		Object.defineProperty(component, 'api', {
-			configurable: false,
-			writable: false,
-			enumerable: true,
-			value: api,
-		});
-
-		// Create primary component event helper if it doesn't already exist
-		if (!this.events.has(component.name)) {
-			const events = new ComponentEvents(component.name);
-			this.events.set(component.name, events);
+		// remove primaryConstructor
+		if (component.constructor && this.primaryConstructors.has(component.constructor)) {
+			this.primaryConstructors.delete(component.constructor);
 		}
-
-		this.handleDecorators(component);
-
-		// Call onLoad if present
-		if (component.onLoad) {
-			try {
-				await component.onLoad();
-			} catch (e) {
-				throw new ComponentRegistrationError(component, `Primary component "${component.name}" failed loading`).setCause(e);
-			}
-		}
-
-		this.primary.set(component.name, component);
-
-		return true;
 	}
 
 	private getMissingDependencies(component: PrimaryComponent): string[] {
@@ -417,8 +373,8 @@ export class Bento {
 			if (missing.length === 0) {
 				this.pending.delete(component.name);
 
-				const success = await this.registerPrimaryComponent(component);
-				if (success) loaded++;
+				const name = await this.registerComponent(ComponentType.Primary, component);
+				if (name) loaded++;
 			}
 		}
 
@@ -437,9 +393,9 @@ export class Bento {
 
 		// TODO Add check if pending components are still there
 		// TODO Also add explicit depends to secondary components and check them
-		await this.registerSecondaryComponent(component);
+		const name = await this.registerComponent(ComponentType.Secondary, component);
 
-		return component.name;
+		return name;
 	}
 
 	/**
@@ -460,11 +416,11 @@ export class Bento {
 		}
 	}
 
-	private async registerSecondaryComponent(component: SecondaryComponent) {
-		// generate uniqueID (name)
-		const name = this.createID();
+	private async registerComponent(type: ComponentType, component: PrimaryComponent | SecondaryComponent) {
+		let name = null;
+		if (type === ComponentType.Primary) name = component.name;
+		else name = this.createID();
 
-		// apply it to component
 		Object.defineProperty(component, 'name', {
 			configurable: true,
 			writable: false,
@@ -479,17 +435,18 @@ export class Bento {
 			value: component.dependencies || [],
 		});
 
-		// Define property to know it's NOT a primary component
+		// Define property to know it's a primary or secondary component
 		Object.defineProperty(component, Symbols.primary, {
 			configurable: false,
 			writable: false,
 			enumerable: true,
-			value: false,
+			value: type === ComponentType.Primary,
 		});
 
+		// Create components' api
 		const api = new ComponentAPI(this, component);
 
-		// define api
+		// Define api
 		Object.defineProperty(component, 'api', {
 			configurable: false,
 			writable: false,
@@ -497,18 +454,51 @@ export class Bento {
 			value: api,
 		});
 
+		// PRIMARY ONLY
+		// if component has constructor lets track it
+		if (type === ComponentType.Primary && component.constructor) {
+			this.primaryConstructors.set(component.constructor, name);
+		}
+
+		// PRIMARY ONLY
+		// Create primary component event helper if it doesn't already exist
+		if (type === ComponentType.Primary && !this.events.has(name)) {
+			const events = new ComponentEvents(name);
+			this.events.set(name, events);
+		}
+
 		this.handleDecorators(component);
 
-		// call onLoad
+		// Call onLoad if present
 		if (component.onLoad) {
 			try {
 				await component.onLoad();
 			} catch (e) {
-				throw new ComponentRegistrationError(component, `Secondary component '${component.name}' failed loading`).setCause(e);
+				throw new ComponentRegistrationError(component, `Primary component "${component.name}" failed loading`).setCause(e);
 			}
 		}
 
-		this.secondary.set(name, component);
-		return true;
+		if (type === ComponentType.Primary) this.primary.set(name, component);
+		else this.secondary.set(name, component);
+
+		return name;
+	}
+
+	private handleDecorators(component: PrimaryComponent | SecondaryComponent) {
+		// Subscribe to all the events from the decorator subscriptions
+		const subscriptions: DecoratorSubscription[] = (component.constructor as any)[Symbols.subscriptions];
+		if (Array.isArray(subscriptions)) {
+			for (const subscription of subscriptions) {
+				component.api.subscribe(subscription.type, subscription.namespace, subscription.name, subscription.handler, component);
+			}
+		}
+
+		// Add property descriptors for all the decorated variables
+		const variables: DecoratorVariable[] = (component.constructor as any)[Symbols.variables];
+		if (Array.isArray(variables)) {
+			for (const variable of variables) {
+				component.api.defineVariable(variable.definition);
+			}
+		}
 	}
 }

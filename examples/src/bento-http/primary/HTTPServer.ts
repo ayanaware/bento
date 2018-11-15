@@ -39,14 +39,14 @@ export class HTTPServer {
 		this.server.listen(this.port, '127.0.0.1');
 	}
 
-	// example of using decorator to register an event, alternative can be seen in Spy secondary component
-	@SubscribeEvent('HTTPServer', 'request')
+	// example of using decorator & reference to register an event, alternative can be seen in Spy secondary component
+	@SubscribeEvent(HTTPServer, 'request')
 	handleRequest(req: http.IncomingMessage, res: http.ServerResponse) {
 		const remoteAddress = req.connection.remoteAddress;
 		const remotePort = req.connection.remotePort;
 
 		// example of accessing methods on a primary component
-		const counter = this.api.getPrimary<HitCounter>('HitCounter');
+		const counter = this.api.getPrimary<HitCounter>(HitCounter);
 		counter.incrementHit(1);
 
 		// lets emit a component event!

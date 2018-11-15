@@ -6,7 +6,7 @@ class CauseError {
 	}
 
 	async onLoad() {
-		throw new Error('Hello from CauseError!');
+		// throw new Error('Hello from CauseError!');
 	}
 }
 

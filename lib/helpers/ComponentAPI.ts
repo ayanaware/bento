@@ -153,7 +153,9 @@ export class ComponentAPI {
 	 *
 	 * @param name - Primary component name
 	 */
-	public getPrimary<T extends PrimaryComponent>(name: string): T {
+	public getPrimary<T extends PrimaryComponent>(reference: PrimaryComponent | string): T {
+		const name = this.bento.resolveComponentName(reference);
+
 		const component = this.bento.primary.get(name);
 		if (!component) return null;
 
@@ -205,63 +207,67 @@ export class ComponentAPI {
 	/**
 	 * Subscribe to a Component event
 	 * @param type - Type of subscription. Normal event or Subject
-	 * @param namespace - Namespace / name of PrimaryComponent where the event comes from
+	 * @param namespace - Component Reference / Name
 	 * @param name - Name of the event
 	 * @param handler - The function to be called
 	 * @param context - Optional `this` context for above handler function
 	 */
-	public subscribe(type: SubscriptionType, namespace: string, name: string, handler: (...args: any[]) => void, context?: any) {
+	public subscribe(type: SubscriptionType, namespace: PrimaryComponent | string, name: string, handler: (...args: any[]) => void, context?: any) {
+		const componentName = this.bento.resolveComponentName(namespace);
+
 		// Get the namespace
-		const events = this.bento.events.get(namespace);
-		if (events == null) throw new IllegalArgumentError('Namespace does not exist');
+		const events = this.bento.events.get(componentName);
+		if (events == null) throw new IllegalArgumentError(`Component Events "${componentName}" does not exist`);
 
 		const subID = events.subscribe(type, name, handler, context);
 
 		// Register subscription so if the current component unloads we can remove all events
-		// TODO If the namespace component unloads we need to remove that array
-		if (!this.subscriptions.has(namespace)) this.subscriptions.set(namespace, []);
-		this.subscriptions.get(namespace).push(subID);
+		// TODO If the componentName component unloads we need to remove that array
+		if (!this.subscriptions.has(componentName)) this.subscriptions.set(componentName, []);
+		this.subscriptions.get(componentName).push(subID);
 
 		return subID;
 	}
 
 	/**
 	 * Alias for subscribe with normal event
-	 * @param namespace - Namespace / name of PrimaryComponent where the event comes from
+	 * @param namespace - Component Reference / Name
 	 * @param eventName - Name of the event
 	 * @param handler - The function to be called
 	 * @param context - Optional `this` context for above handler function
 	 */
-	public subscribeEvent(namespace: string, eventName: string, handler: (...args: any[]) => void, context?: any) {
+	public subscribeEvent(namespace: PrimaryComponent | string, eventName: string, handler: (...args: any[]) => void, context?: any) {
 		return this.subscribe(SubscriptionType.EVENT, namespace, eventName, handler, context);
 	}
 
 	/**
 	 * Alias for subscribe with subject
-	 * @param namespace - Namespace / name of PrimaryComponent where the event comes from
+	 * @param namespace - Component Reference / Name
 	 * @param eventName - Name of the event
 	 * @param handler - The function to be called
 	 * @param context - Optional `this` context for above handler function
 	 */
-	public subscribeSubject(namespace: string, subjectName: string, handler: (...args: any[]) => void, context?: any) {
+	public subscribeSubject(namespace: PrimaryComponent | string, subjectName: string, handler: (...args: any[]) => void, context?: any) {
 		return this.subscribe(SubscriptionType.SUBJECT, namespace, subjectName, handler, context);
 	}
 
 	/**
 	 * Ubsubscribe from a Component Event
-	 * @param namespace - Namespace / name of PrimaryComponent where the event comes from
+	 * @param namespace - Component Reference / Name
 	 * @param subID - subscription id provided by subscribe
 	 */
-	public unsubscribe(namespace: string, subID: string) {
-		// Check if the namespace exists
-		const events = this.bento.events.get(namespace);
+	public unsubscribe(namespace: PrimaryComponent | string, subID: string) {
+		const componentName = this.bento.resolveComponentName(namespace);
+
+		// Check if the component events exists
+		const events = this.bento.events.get(componentName);
 		if (events == null) {
-			log.warn(`Could not find events for namespace "${namespace}" while trying to unsubscribe`, this.component.name);
+			log.warn(`Could not find events for namespace "${componentName}" while trying to unsubscribe`, this.component.name);
 			return;
 		}
 
 		// Check if this subscriber actually exists
-		const subscriber = this.subscriptions.get(namespace);
+		const subscriber = this.subscriptions.get(componentName);
 		if (subscriber == null || !subscriber.includes(subID)) throw new IllegalArgumentError(`Tried to unsubscribe from unknown subID "${subID}"`);
 
 		// Unsubscribe
@@ -277,17 +283,18 @@ export class ComponentAPI {
 	 *
 	 * @param namespace - Optional. A namespace where all events should be unsubscribed
 	 */
-	public unsubscribeAll(namespace?: string) {
+	public unsubscribeAll(namespace?: PrimaryComponent | string) {
 		if (namespace != null) {
+			const componentName = this.bento.resolveComponentName(namespace);
 			// Get the namespace events
-			const events = this.bento.events.get(namespace);
+			const events = this.bento.events.get(componentName);
 			if (events == null) {
-				log.warn(`Could not find events for namespace "${namespace}" while trying to unsubscribe`, this.component.name);
+				log.warn(`Could not find events for namespace "${componentName}" while trying to unsubscribe`, this.component.name);
 				return;
 			}
 
 			// Get subscriptions on that namespace
-			const subscriptions = this.subscriptions.get(namespace);
+			const subscriptions = this.subscriptions.get(componentName);
 			// No subscriptions on that namespace exist
 			if (subscriptions == null) return;
 
@@ -297,7 +304,7 @@ export class ComponentAPI {
 			}
 
 			// Remove array
-			this.subscriptions.delete(namespace);
+			this.subscriptions.delete(componentName);
 		} else {
 			// No namespace was given so we unsubscribe everything
 			for (const ns of this.subscriptions.keys()) {

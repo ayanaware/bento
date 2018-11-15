@@ -3,6 +3,7 @@
 import { ComponentAPI } from '@ayana/bento';
 import { Logger } from '@ayana/logger';
 import { HitCounter } from '../primary/HitCounter';
+import { HTTPServer } from '../primary/HTTPServer';
 
 const log = Logger.get('EveryTen');
 
@@ -14,7 +15,7 @@ export class EveryTen {
 
 	async onLoad() {
 		// alternative way to subscribe to component events
-		this.api.subscribeEvent('HTTPServer', 'httpHit', this.handleHit, this);
+		this.api.subscribeEvent(HTTPServer, 'httpHit', this.handleHit, this);
 	}
 
 	handleHit(address: string, port: number) {

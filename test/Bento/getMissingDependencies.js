@@ -9,7 +9,7 @@ describe('#getMissingDependencies', function () {
 		const bento = new Bento();
 
 		assert.strictEqual(
-			Array.isArray(bento.getMissingDependencies({ name: 'TestComponent' })),
+			Array.isArray(bento.getMissingDependencies([])),
 			true, 'Did not return an array'
 		);
 	});
@@ -20,10 +20,7 @@ describe('#getMissingDependencies', function () {
 		bento.primary.set('A', {});
 		bento.primary.set('B', {});
 
-		const missing = bento.getMissingDependencies({
-			name: 'TestComponent',
-			dependencies: ['A', 'B', 'C', 'D'],
-		});
+		const missing = bento.getMissingDependencies(['A', 'B', 'C', 'D']);
 
 		assert.strictEqual(
 			missing.length === 2 && missing.indexOf('C') > -1 && missing.indexOf('D') > -1,

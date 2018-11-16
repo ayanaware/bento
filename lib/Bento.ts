@@ -280,7 +280,7 @@ export class Bento {
 	public resolveComponentName(component: PrimaryComponent | string) {
 		let name = null;
 		if (typeof component === 'string') name = component;
-		else {
+		else if (component != null) {
 			// check if we have the constructor
 			if (this.primaryConstructors.has(component)) name = this.primaryConstructors.get(component);
 
@@ -309,10 +309,13 @@ export class Bento {
 		// Check dependencies
 		if (component.dependencies != null && !Array.isArray(component.dependencies)) {
 			throw new ComponentRegistrationError(component, `"${component.name}" Component dependencies is not an array`);
-		}
+		} else component.dependencies = [];
+
+		// run dependencies through the resolver
+		component.dependencies = this.resolveDependencies(component.dependencies);
 
 		// determine dependencies
-		const missing = this.getMissingDependencies(component);
+		const missing = this.getMissingDependencies(component.dependencies);
 		if (missing.length === 0) {
 			// All dependencies are already loaded
 			const success = await this.registerComponent(ComponentType.PRIMARY, component);
@@ -355,11 +358,27 @@ export class Bento {
 		}
 	}
 
-	private getMissingDependencies(component: PrimaryComponent): string[] {
-		if (!component.dependencies) return [];
+	public resolveDependencies(dependencies: PrimaryComponent[] | string[]) {
+		if (!Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
 
-		return component.dependencies.reduce((a, depend) => {
-			if (!this.primary.has(depend)) a.push(depend);
+		const resolved = [];
+		for (const dependency of dependencies) {
+			try {
+				const name = this.resolveComponentName(dependency);
+				resolved.push(name);
+			} catch (e) {
+				throw new IllegalStateError('Unable to resolve dependency').setCause(e);
+			}
+		}
+
+		return resolved;
+	}
+
+	private getMissingDependencies(dependencies: string[]) {
+		if (!Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
+
+		return dependencies.reduce((a, dependency) => {
+			if (!this.primary.has(dependency)) a.push(dependency);
 
 			return a;
 		}, []);
@@ -369,7 +388,7 @@ export class Bento {
 		let loaded = 0;
 
 		for (const component of this.pending.values()) {
-			const missing = await this.getMissingDependencies(component);
+			const missing = await this.getMissingDependencies(component.dependencies);
 			if (missing.length === 0) {
 				this.pending.delete(component.name);
 
@@ -389,7 +408,10 @@ export class Bento {
 		// Check dependencies
 		if (component.dependencies != null && !Array.isArray(component.dependencies)) {
 			throw new ComponentRegistrationError(component, 'Component dependencies is not an array');
-		}
+		} else component.dependencies = [];
+
+		// run dependencies through the resolver
+		component.dependencies = this.resolveDependencies(component.dependencies);
 
 		// TODO Add check if pending components are still there
 		// TODO Also add explicit depends to secondary components and check them

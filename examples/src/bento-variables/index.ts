@@ -1,13 +1,5 @@
 'use strict';
 
-/*
-		This example teaches you how Bento variables work.
-	A bento Variable is a configurable piece of information for
-	your application to consume. You can set them manually or use a
-	plugin like ConfigLoader to dynamically load them from various
-	places like env or a file
-*/
-
 import { Bento, ComponentAPI, ConfigLoader, Variable } from '@ayana/bento';
 
 import { Logger } from '@ayana/logger';

@@ -2,6 +2,7 @@
 	"name": "@ayana/bento",
 	"version": "1.0.0-alpha5",
 	"description": "Modular runtime framework designed to solve complex tasks",
+	"repository": "https://gitlab.com/ayana/bento",
 	"author": "Ayana Developers <devs@ayana.io>",
 	"contributors": [
 		"HcgRandon <me@randon.moe>",

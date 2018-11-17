@@ -309,7 +309,7 @@ export class Bento {
 		// Check dependencies
 		if (component.dependencies != null && !Array.isArray(component.dependencies)) {
 			throw new ComponentRegistrationError(component, `"${component.name}" Component dependencies is not an array`);
-		} else component.dependencies = [];
+		} else if (component.dependencies == null) component.dependencies = [];
 
 		// run dependencies through the resolver
 		component.dependencies = this.resolveDependencies(component.dependencies);
@@ -411,7 +411,7 @@ export class Bento {
 		// Check dependencies
 		if (component.dependencies != null && !Array.isArray(component.dependencies)) {
 			throw new ComponentRegistrationError(component, 'Component dependencies is not an array');
-		} else component.dependencies = [];
+		} else if (component.dependencies == null) component.dependencies = [];
 
 		// run dependencies through the resolver
 		component.dependencies = this.resolveDependencies(component.dependencies);

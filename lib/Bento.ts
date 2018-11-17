@@ -374,8 +374,11 @@ export class Bento {
 		return resolved;
 	}
 
-	private getMissingDependencies(dependencies: string[]) {
+	private getMissingDependencies(dependencies: PrimaryComponent[] | string[]) {
 		if (!Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
+
+		// run dependencies through the resolver
+		dependencies = this.resolveDependencies(dependencies);
 
 		return dependencies.reduce((a, dependency) => {
 			if (!this.primary.has(dependency)) a.push(dependency);

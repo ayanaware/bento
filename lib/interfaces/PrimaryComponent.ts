@@ -8,7 +8,7 @@ export interface PrimaryComponent {
 
 	name: string;
 	version?: string;
-	dependencies?: string[];
+	dependencies?: PrimaryComponent[] | string[];
 	variables?: VariableDefinition[];
 
 	onLoad?(): Promise<void>;

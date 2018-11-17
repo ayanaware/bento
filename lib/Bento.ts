@@ -380,7 +380,7 @@ export class Bento {
 		// run dependencies through the resolver
 		dependencies = this.resolveDependencies(dependencies);
 
-		return dependencies.reduce((a, dependency) => {
+		return (dependencies as string[]).reduce((a, dependency) => {
 			if (!this.primary.has(dependency)) a.push(dependency);
 
 			return a;

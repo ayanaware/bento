@@ -151,7 +151,7 @@ export class ComponentAPI {
 	/**
 	 * Fetch the provided component instance
 	 *
-	 * @param name - Component name
+	 * @param referece - Component name or reference
 	 */
 	public getComponent<T extends Component>(reference: Component | string): T {
 		const name = this.bento.resolveComponentName(reference);
@@ -160,6 +160,25 @@ export class ComponentAPI {
 		if (!component) return null;
 
 		return component as T;
+	}
+
+	/**
+	 * Inject component dependency into invoking component
+	 * @param reference - Component name or reference
+	 * @param name - name to inject into
+	 */
+	public injectComponent(reference: Component | string, injectName: string) {
+		if (this.component.hasOwnProperty(injectName)) throw new IllegalStateError(`Component already has property "${injectName}" defined.`);
+
+		const component = this.getComponent(reference);
+		if (!component) throw new IllegalStateError('Component not found');
+
+		Object.defineProperty(this.component, injectName, {
+			configurable: false,
+			enumerable: true,
+			writable: false,
+			value: component,
+		});
 	}
 
 	// TODO: Add a error handler

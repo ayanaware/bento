@@ -61,7 +61,7 @@ const bento = new Bento();
 	const instance = new ExampleComponent();
 
 	// load the component
-	await bento.addPrimaryComponent(instance);
+	await bento.addComponent(instance);
 })().catch(e => {
 	log.error('Uh-oh it looks like this example is broken! Please let someone know.');
 	console.log(e);

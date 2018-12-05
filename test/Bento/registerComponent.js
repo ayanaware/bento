@@ -14,7 +14,7 @@ describe('#registerComponent', async function () {
 			// Disabled for this test
 		};
 
-		await bento.registerComponent('primary', testComponent);
+		await bento.registerComponent(testComponent);
 
 		assert.strictEqual(
 			Object.prototype.hasOwnProperty.call(testComponent, 'api'),
@@ -22,14 +22,14 @@ describe('#registerComponent', async function () {
 		);
 	});
 
-	it('should create primary component event helper', async function () {
+	it('should create component event helper', async function () {
 		const bento = new Bento();
 
 		bento.handleDecorators = function () {
 			// Disabled for this test
 		};
 
-		await bento.registerComponent('primary', { name: 'TestComponent' });
+		await bento.registerComponent({ name: 'TestComponent' });
 
 		assert.strictEqual(bento.events.has('TestComponent'), true, 'Component event helper does not exist');
 	});
@@ -42,7 +42,7 @@ describe('#registerComponent', async function () {
 		};
 
 		let attempted = false;
-		await bento.registerComponent('primary', {
+		await bento.registerComponent({
 			name: 'TestComponent',
 			async onLoad() {
 				attempted = true;
@@ -52,7 +52,7 @@ describe('#registerComponent', async function () {
 		assert.strictEqual(attempted, true, 'Component onLoad was not called');
 	});
 
-	it('should throw an error if primary component onLoad throws an error', async function () {
+	it('should throw an error if component onLoad throws an error', async function () {
 		const bento = new Bento();
 
 		bento.handleDecorators = function () {
@@ -67,7 +67,7 @@ describe('#registerComponent', async function () {
 		};
 
 		await assert.rejects(
-			async () => bento.registerComponent('primary', testComponent),
+			async () => bento.registerComponent(testComponent),
 			{ message: 'Component "TestComponent" failed loading' }
 		);
 	});

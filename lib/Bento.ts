@@ -3,29 +3,18 @@
 import * as crypto from 'crypto';
 
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
-import Logger from '@ayana/logger';
 
 import { Symbols } from './constants/internal';
 import { ComponentRegistrationError, PluginRegistrationError, ValidatorRegistrationError } from './errors';
 import { ComponentAPI } from './helpers/ComponentAPI';
 import { ComponentEvents } from './helpers/ComponentEvents';
-import { Plugin, PrimaryComponent, SecondaryComponent } from './interfaces';
+import { Component, Plugin } from './interfaces';
 import { DecoratorSubscription, DecoratorVariable } from './interfaces/internal';
 
 export interface BentoOptions {}
 
 export interface SetProperties {
 	[key: string]: any;
-}
-
-/**
- * @ignore
- */
-const log = Logger.get('Bento');
-
-enum ComponentType {
-	PRIMARY = 'primary',
-	SECONDARY = 'secondary',
 }
 
 export class Bento {
@@ -50,20 +39,15 @@ export class Bento {
 	public readonly plugins: Map<string, Plugin> = new Map();
 
 	/**
-	 * Currently loaded Primary components
+	 * Currently loaded components
 	 */
-	public readonly primary: Map<string, PrimaryComponent> = new Map();
-	private readonly primaryConstructors: Map<any, string> = new Map();
+	public readonly components: Map<string, Component> = new Map();
+	private readonly componentConstructors: Map<any, string> = new Map();
 
 	/**
-	 * Currently loaded Secondary components
+	 * Components currently pending to be loaded
 	 */
-	public readonly secondary: Map<string, SecondaryComponent> = new Map();
-
-	/**
-	 * Primary components currently pending to be loaded
-	 */
-	private readonly pending: Map<string, PrimaryComponent> = new Map();
+	private readonly pending: Map<string, Component> = new Map();
 
 	/**
 	 * @ignore
@@ -77,16 +61,6 @@ export class Bento {
 
 	constructor(opts?: BentoOptions) {
 		this.opts = opts;
-	}
-
-	/**
-	 * Checks whether a component is a primary component or not
-	 *
-	 * @param component The component that should be checked
-	 * @returns true if the given component is a primary component, false if otherwise
-	 */
-	public static isPrimary(component: PrimaryComponent | SecondaryComponent): boolean {
-		return Boolean((component as any)[Symbols.primary]);
 	}
 
 	/**
@@ -277,34 +251,30 @@ export class Bento {
 		this.plugins.set(plugin.name, plugin);
 	}
 
-	public resolveComponentName(component: PrimaryComponent | string) {
+	public resolveComponentName(component: Component | string) {
 		let name = null;
 		if (typeof component === 'string') name = component;
 		else if (component != null) {
 			// check if we have the constructor
-			if (this.primaryConstructors.has(component)) name = this.primaryConstructors.get(component);
+			if (this.componentConstructors.has(component)) name = this.componentConstructors.get(component);
 
 			// check if .name exists on the object
 			else if (Object.prototype.hasOwnProperty.call(component, 'name')) name = component.name;
 		}
 
 		if (name == null) throw new Error('Could not determine component name');
-
-		// verfiy the name resolved actually exists
-		// if (!this.primary.has(name)) throw new Error('Resolved name does not have a corresponding component');
-
 		return name;
 	}
 
 	/**
-	 * Add a Primary Component to Bento
-	 * @param component - Primary Component
+	 * Add a Component to Bento
+	 * @param component - Component
 	 */
-	public async addPrimaryComponent(component: PrimaryComponent): Promise<string> {
+	public async addComponent(component: Component): Promise<string> {
 		if (component == null || typeof component !== 'object') throw new IllegalArgumentError('Component must be a object');
 		if (typeof component.name !== 'string') throw new IllegalArgumentError('Component name must be a string');
-		if (!component.name) throw new ComponentRegistrationError(component, 'Primary components must specify a name');
-		if (this.primary.has(component.name)) throw new ComponentRegistrationError(component, `Component name "${component.name}" must be unique`);
+		if (!component.name) throw new ComponentRegistrationError(component, 'Components must specify a name');
+		if (this.components.has(component.name)) throw new ComponentRegistrationError(component, `Component name "${component.name}" must be unique`);
 
 		// Check dependencies
 		if (component.dependencies != null && !Array.isArray(component.dependencies)) {
@@ -318,7 +288,7 @@ export class Bento {
 		const missing = this.getMissingDependencies(component.dependencies);
 		if (missing.length === 0) {
 			// All dependencies are already loaded
-			const success = await this.registerComponent(ComponentType.PRIMARY, component);
+			const success = await this.registerComponent(component);
 
 			// if any pending components attempt to handle them now
 			if (success && this.pending.size > 0) await this.handlePendingComponents();
@@ -331,15 +301,15 @@ export class Bento {
 	}
 
 	/**
-	 * Remove a Primary Component from Bento
-	 * @param name - Name of primary component
+	 * Remove a Component from Bento
+	 * @param name - Name of component
 	 */
-	public async removePrimaryComponent(name: string) {
+	public async removeComponent(name: string) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Name must be a string');
 		if (!name) throw new IllegalArgumentError('Name must not be empty');
 
-		const component = this.primary.get(name);
-		if (!component) throw new Error(`Primary Component '${name}' is not currently loaded.`);
+		const component = this.components.get(name);
+		if (!component) throw new Error(`Component '${name}' is not currently loaded.`);
 
 		// TODO: check if required, required components can't be unloaded
 
@@ -352,13 +322,13 @@ export class Bento {
 			}
 		}
 
-		// remove primaryConstructor
-		if (component.constructor && this.primaryConstructors.has(component.constructor)) {
-			this.primaryConstructors.delete(component.constructor);
+		// remove componentConstructor
+		if (component.constructor && this.componentConstructors.has(component.constructor)) {
+			this.componentConstructors.delete(component.constructor);
 		}
 	}
 
-	public resolveDependencies(dependencies: PrimaryComponent[] | string[]) {
+	public resolveDependencies(dependencies: Component[] | string[]) {
 		if (!Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
 
 		const resolved = [];
@@ -374,14 +344,14 @@ export class Bento {
 		return resolved;
 	}
 
-	private getMissingDependencies(dependencies: PrimaryComponent[] | string[]) {
+	private getMissingDependencies(dependencies: Component[] | string[]) {
 		if (!Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
 
 		// run dependencies through the resolver
 		dependencies = this.resolveDependencies(dependencies);
 
 		return (dependencies as string[]).reduce((a, dependency) => {
-			if (!this.primary.has(dependency)) a.push(dependency);
+			if (!this.components.has(dependency)) a.push(dependency);
 
 			return a;
 		}, []);
@@ -395,7 +365,7 @@ export class Bento {
 			if (missing.length === 0) {
 				this.pending.delete(component.name);
 
-				const name = await this.registerComponent(ComponentType.PRIMARY, component);
+				const name = await this.registerComponent(component);
 				if (name) loaded++;
 			}
 		}
@@ -403,48 +373,8 @@ export class Bento {
 		if (loaded > 0) await this.handlePendingComponents();
 	}
 
-	/**
-	 * Add a Secondary Component to Bento
-	 * @param component - Secondary Component
-	 */
-	public async addSecondaryComponent(component: SecondaryComponent) {
-		// Check dependencies
-		if (component.dependencies != null && !Array.isArray(component.dependencies)) {
-			throw new ComponentRegistrationError(component, 'Component dependencies is not an array');
-		} else if (component.dependencies == null) component.dependencies = [];
-
-		// run dependencies through the resolver
-		component.dependencies = this.resolveDependencies(component.dependencies);
-
-		// TODO Add check if pending components are still there
-		// TODO Also add explicit depends to secondary components and check them
-		const name = await this.registerComponent(ComponentType.SECONDARY, component);
-
-		return name;
-	}
-
-	/**
-	 * Remove a Secondary Component from Bento
-	 * @param id - Generated ID from addSecondaryComponent
-	 */
-	public async removeSecondaryComponent(id: string) {
-		const component = this.secondary.get(id);
-		if (!component) throw new Error(`Component '${id}' is not currently loaded.`);
-
-		// call unMount
-		if (component.onUnload) {
-			try {
-				await component.onUnload();
-			} catch (e) {
-				// force unload
-			}
-		}
-	}
-
-	private async registerComponent(type: ComponentType, component: PrimaryComponent | SecondaryComponent) {
-		let name = null;
-		if (type === ComponentType.PRIMARY) name = component.name;
-		else name = this.createID();
+	private async registerComponent(component: Component) {
+		const name = component.name;
 
 		Object.defineProperty(component, 'name', {
 			configurable: true,
@@ -460,14 +390,6 @@ export class Bento {
 			value: component.dependencies || [],
 		});
 
-		// Define property to know it's a primary or secondary component
-		Object.defineProperty(component, Symbols.primary, {
-			configurable: false,
-			writable: false,
-			enumerable: true,
-			value: type === ComponentType.PRIMARY,
-		});
-
 		// Create components' api
 		const api = new ComponentAPI(this, component);
 
@@ -479,15 +401,13 @@ export class Bento {
 			value: api,
 		});
 
-		// PRIMARY ONLY
 		// if component has constructor lets track it
-		if (type === ComponentType.PRIMARY && component.constructor) {
-			this.primaryConstructors.set(component.constructor, name);
+		if (component.constructor) {
+			this.componentConstructors.set(component.constructor, name);
 		}
 
-		// PRIMARY ONLY
-		// Create primary component event helper if it doesn't already exist
-		if (type === ComponentType.PRIMARY && !this.events.has(name)) {
+		// Create component event helper if it doesn't already exist
+		if (!this.events.has(name)) {
 			const events = new ComponentEvents(name);
 			this.events.set(name, events);
 		}
@@ -503,13 +423,12 @@ export class Bento {
 			}
 		}
 
-		if (type === ComponentType.PRIMARY) this.primary.set(name, component);
-		else this.secondary.set(name, component);
+		this.components.set(name, component);
 
 		return name;
 	}
 
-	private handleDecorators(component: PrimaryComponent | SecondaryComponent) {
+	private handleDecorators(component: Component) {
 		// Subscribe to all the events from the decorator subscriptions
 		const subscriptions: DecoratorSubscription[] = (component.constructor as any)[Symbols.subscriptions];
 		if (Array.isArray(subscriptions)) {

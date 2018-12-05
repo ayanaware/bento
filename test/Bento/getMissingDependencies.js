@@ -17,8 +17,8 @@ describe('#getMissingDependencies', function () {
 	it('should return a list of components not currently loaded, requested by provided component', function () {
 		const bento = new Bento();
 
-		bento.primary.set('A', {});
-		bento.primary.set('B', {});
+		bento.components.set('A', {});
+		bento.components.set('B', {});
 
 		const missing = bento.getMissingDependencies(['A', 'B', 'C', 'D']);
 

@@ -4,12 +4,12 @@ const assert = require('assert');
 
 const { Bento } = require('../../build');
 
-describe('#removePrimaryComponent', async function () {
+describe('#removeComponent', async function () {
 	it('should throw an error if name is not a string', async function () {
 		const bento = new Bento();
 
 		await assert.rejects(
-			async () => bento.removePrimaryComponent(null),
+			async () => bento.removeComponent(null),
 			{ message: 'Name must be a string' },
 		);
 	});
@@ -18,7 +18,7 @@ describe('#removePrimaryComponent', async function () {
 		const bento = new Bento();
 
 		await assert.rejects(
-			async () => bento.removePrimaryComponent(''),
+			async () => bento.removeComponent(''),
 			{ message: 'Name must not be empty' },
 		);
 	});
@@ -27,14 +27,14 @@ describe('#removePrimaryComponent', async function () {
 		const bento = new Bento();
 
 		let attempted = false;
-		bento.primary.set('TestPlugin', {
+		bento.components.set('TestPlugin', {
 			name: 'TestPlugin',
 			async onUnload() {
 				attempted = true;
 			},
 		});
 
-		await bento.removePrimaryComponent('TestPlugin');
+		await bento.removeComponent('TestPlugin');
 
 		assert.strictEqual(attempted, true, 'Component onUnload was not called');
 	});

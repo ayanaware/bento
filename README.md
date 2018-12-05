@@ -31,10 +31,10 @@ const bento = new Bento();
 
 // Create FSComponentLoader
 // NOTE: Keep in mind all FSComponentLoader does is find Bento components in the path provided
-// Instantiates them and calls bento.addPrimaryComponent or bento.addSecondaryComponent
+// Instantiates them and calls bento.addComponent
 // Behind the scenes
 const loader = new FSComponentLoader({
-	primary: path.resolve(__dirname, 'modules'),
+	directories: [path.resolve(__dirname, 'modules')],
 });
 
 // Apply plugin to Bento.

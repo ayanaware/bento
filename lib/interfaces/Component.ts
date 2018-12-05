@@ -1,15 +1,14 @@
 'use strict';
 
 import { ComponentAPI } from '../helpers';
-import { PrimaryComponent } from './PrimaryComponent';
 import { VariableDefinition } from './VariableDefinition';
 
-export interface SecondaryComponent {
+export interface Component {
 	api?: ComponentAPI;
 
 	name: string;
 	version?: string;
-	dependencies?: PrimaryComponent[] | string[];
+	dependencies?: Component[] | string[];
 	variables?: VariableDefinition[];
 
 	onLoad?(): Promise<void>;

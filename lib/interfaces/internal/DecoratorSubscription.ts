@@ -1,11 +1,11 @@
 'use strict';
 
 import { SubscriptionType } from '../../constants';
-import { PrimaryComponent } from '../PrimaryComponent';
+import { Component } from '../Component';
 
 export interface DecoratorSubscription {
 	type: SubscriptionType;
-	namespace: PrimaryComponent | string;
+	namespace: Component | string;
 	name: string;
 	handler: (...args: any[]) => void;
 }

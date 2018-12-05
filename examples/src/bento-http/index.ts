@@ -33,8 +33,10 @@ bento.setProperties({
 
 	// New Filesystem loader
 	const fsloader = new FSComponentLoader({
-		primary: path.resolve(__dirname, 'primary'),
-		secondary: path.resolve(__dirname, 'secondary'),
+		directories: [
+			path.resolve(__dirname, 'components'),
+			path.resolve(__dirname, 'componentstoo')
+		],
 	});
 
 	// add plugins

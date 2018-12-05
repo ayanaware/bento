@@ -2,7 +2,7 @@
 
 import { Bento } from '../Bento';
 import { ComponentLoadError } from '../errors';
-import { PrimaryComponent, SecondaryComponent } from '../interfaces';
+import { Component } from '../interfaces';
 import { DetectedComponent } from '../interfaces/internal';
 
 /**
@@ -100,7 +100,7 @@ export abstract class ComponentLoader {
 	 * @param component The detected component
 	 * @param componentLocation The component's location if it's known
 	 */
-	protected instantiate<T = PrimaryComponent | SecondaryComponent>(component: DetectedComponent, componentLocation?: string): T {
+	protected instantiate<T = Component>(component: DetectedComponent, componentLocation?: string): T {
 		if (component.classLike) {
 			try {
 				return new component.obj();

@@ -43,7 +43,7 @@ bento.addPlugin(config).then(async () => {
 	]);
 
 	try {
-		await bento.addPrimaryComponent(instance);
+		await bento.addComponent(instance);
 	} catch (e) {
 		console.log(e);
 	}

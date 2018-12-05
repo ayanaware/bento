@@ -25,7 +25,7 @@ describe('#resolveComponentName', async function () {
 
 		const instance = new Test();
 
-		bento.primaryConstructors.set(instance.constructor, 'TestComponent');
+		bento.componentConstructors.set(instance.constructor, 'TestComponent');
 
 		assert.strictEqual(
 			bento.resolveComponentName(instance.constructor),

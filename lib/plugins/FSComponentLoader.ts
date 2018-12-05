@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
 
-import { IllegalArgumentError } from '@ayana/errors';
+import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 
 import { ComponentLoadError } from '../errors';
 import { Plugin } from '../interfaces';
@@ -35,13 +35,9 @@ interface DirectoryContent {
  */
 export interface FileSystemLoaderOptions {
 	/**
-	 * Path to the folder containing primary components
+	 * Paths to directoroes containing components
 	 */
-	primary: string;
-	/**
-	 * Path to the folder containing secondary components
-	 */
-	secondary?: string;
+	directories: string[];
 }
 
 /**
@@ -49,73 +45,61 @@ export interface FileSystemLoaderOptions {
  */
 export class FSComponentLoader extends ComponentLoader implements Plugin {
 	public readonly name: string;
+	private readonly directories: string[] = [];
 
-	private readonly primary: string;
-	private readonly secondary: string;
+	private options: FileSystemLoaderOptions;
 
 	public constructor(options: FileSystemLoaderOptions) {
 		super();
 		this.name = 'FSComponentLoader';
 
-		options = options || { primary: null, secondary: null };
+		options = Object.assign({}, {
+			directories: [],
+		}, options);
 
-		if (typeof options.primary !== 'string') throw new IllegalArgumentError('Path to primary components must be a string');
-		if (options.secondary != null && typeof options.secondary !== 'string') throw new IllegalArgumentError('Path to secondary components must be a string');
-
-		this.primary = options.primary;
-		this.secondary = options.secondary || null;
+		for (const directory of options.directories) {
+			const absolute = path.resolve(directory);
+			this.directories.push(absolute);
+		}
 	}
 
 	public async onLoad() {
-		let primaries;
-		try {
-			primaries = await this.getComponentFiles(this.primary);
-		} catch (e) {
-			throw new ComponentLoadError(this.primary, 'Failed to read primary component files').setCause(e);
-		}
-		await this.createComponents(primaries, true);
-
-		if (this.secondary != null) {
-			let secondaries;
-			try {
-				secondaries = await this.getComponentFiles(this.secondary);
-			} catch (e) {
-				throw new ComponentLoadError(this.secondary, 'Failed to read secondary component files').setCause(e);
-			}
-			await this.createComponents(secondaries, false);
+		for (const directory of this.directories) {
+			const components = await this.getComponentFiles(directory);
+			await this.createComponents(components);
 		}
 	}
 
-	private async createComponents(componentFiles: string[], primary: boolean) {
+	public addDirectory(directory: string) {
+		const absolute = path.resolve(directory);
+		if (this.directories.indexOf(absolute) > -1) throw new IllegalStateError('This directory is already defined');
+
+		this.directories.push(absolute);
+	}
+
+	public removeDirectory(directory: string) {
+		const absolute = path.resolve(directory);
+		if (this.directories.indexOf(absolute) === -1) throw new IllegalStateError('The requested directory is not loaded');
+
+		// TODO
+	}
+
+	private async createComponents(componentFiles: string[]) {
 		for (const component of componentFiles) {
+			let nodeModule: any;
 			try {
-				let nodeModule: any;
-				try {
-					nodeModule = require(component);
-				} catch (e) {
-					throw new ComponentLoadError(component, 'Failed to require module').setCause(e);
-				}
-
-				const comp = this.findComponent(nodeModule, component);
-				const instance = this.instantiate<any>(comp, component);
-
-				try {
-					if (primary) {
-						await this.bento.addPrimaryComponent(instance);
-					} else {
-						await this.bento.addSecondaryComponent(instance);
-					}
-				} catch (e) {
-					throw new ComponentLoadError(component, 'Failed to add component to attached manager').setCause(e);
-				}
+				nodeModule = require(component);
 			} catch (e) {
-				if (primary) {
-					// Throw the error if we are loading primary components as we have to abort anyway
-					throw e;
-				} else {
-					// TODO Better logging
-					console.log(e);
-				}
+				throw new ComponentLoadError(component, 'Failed to require module').setCause(e);
+			}
+
+			const comp = this.findComponent(nodeModule, component);
+			const instance = this.instantiate<any>(comp, component);
+
+			try {
+				await this.bento.addComponent(instance);
+			} catch (e) {
+				throw new ComponentLoadError(component, 'Failed to add component to attached manager').setCause(e);
 			}
 		}
 	}

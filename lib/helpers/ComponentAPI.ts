@@ -9,7 +9,7 @@ import { Bento } from '../Bento';
 
 import { SubscriptionType } from '../constants';
 import { VariableProcessError } from '../errors';
-import { PrimaryComponent, SecondaryComponent, VariableDefinition } from '../interfaces';
+import { Component, VariableDefinition } from '../interfaces';
 
 /**
  * Logger instance for the ComponentAPI class
@@ -20,7 +20,7 @@ const log = Logger.get('ComponentAPI');
 
 /**
  * The gateway of a component to the rest of the application.
- * Each component (primary and secondary) gets one if loaded.
+ * Each component gets one if loaded.
  */
 export class ComponentAPI {
 	private readonly bento: Bento;
@@ -28,7 +28,7 @@ export class ComponentAPI {
 	/**
 	 * The component this API object belongs to
 	 */
-	private readonly component: PrimaryComponent | SecondaryComponent;
+	private readonly component: Component;
 
 	/**
 	 * Component defined variable definitions
@@ -42,7 +42,7 @@ export class ComponentAPI {
 	 */
 	private readonly subscriptions: Map<string, string[]> = new Map();
 
-	public constructor(bento: Bento, component: PrimaryComponent | SecondaryComponent) {
+	public constructor(bento: Bento, component: Component) {
 		this.bento = bento;
 		this.component = component;
 	}
@@ -149,14 +149,14 @@ export class ComponentAPI {
 	}
 
 	/**
-	 * Fetch the provided primary component instance
+	 * Fetch the provided component instance
 	 *
-	 * @param name - Primary component name
+	 * @param name - Component name
 	 */
-	public getPrimary<T extends PrimaryComponent>(reference: PrimaryComponent | string): T {
+	public getComponent<T extends Component>(reference: Component | string): T {
 		const name = this.bento.resolveComponentName(reference);
 
-		const component = this.bento.primary.get(name);
+		const component = this.bento.components.get(name);
 		if (!component) return null;
 
 		return component as T;
@@ -175,7 +175,7 @@ export class ComponentAPI {
 	 */
 	public forwardEvents(fromEmitter: EventEmitter, events: string[]) {
 		const emitter = this.bento.events.get(this.component.name);
-		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Primary component emitter does not exist?');
+		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component emitter does not exist?');
 
 		if (events != null && !Array.isArray(events)) {
 			throw new IllegalArgumentError('events is not an array');
@@ -199,7 +199,7 @@ export class ComponentAPI {
 	 */
 	public async emit(eventName: string, ...args: any[]) {
 		const emitter = this.bento.events.get(this.component.name);
-		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Primary component emitter does not exist?');
+		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component emitter does not exist?');
 
 		emitter.emit(eventName, ...args);
 	}
@@ -212,7 +212,7 @@ export class ComponentAPI {
 	 * @param handler - The function to be called
 	 * @param context - Optional `this` context for above handler function
 	 */
-	public subscribe(type: SubscriptionType, namespace: PrimaryComponent | string, name: string, handler: (...args: any[]) => void, context?: any) {
+	public subscribe(type: SubscriptionType, namespace: Component | string, name: string, handler: (...args: any[]) => void, context?: any) {
 		const componentName = this.bento.resolveComponentName(namespace);
 
 		// Get the namespace
@@ -236,7 +236,7 @@ export class ComponentAPI {
 	 * @param handler - The function to be called
 	 * @param context - Optional `this` context for above handler function
 	 */
-	public subscribeEvent(namespace: PrimaryComponent | string, eventName: string, handler: (...args: any[]) => void, context?: any) {
+	public subscribeEvent(namespace: Component | string, eventName: string, handler: (...args: any[]) => void, context?: any) {
 		return this.subscribe(SubscriptionType.EVENT, namespace, eventName, handler, context);
 	}
 
@@ -247,7 +247,7 @@ export class ComponentAPI {
 	 * @param handler - The function to be called
 	 * @param context - Optional `this` context for above handler function
 	 */
-	public subscribeSubject(namespace: PrimaryComponent | string, subjectName: string, handler: (...args: any[]) => void, context?: any) {
+	public subscribeSubject(namespace: Component | string, subjectName: string, handler: (...args: any[]) => void, context?: any) {
 		return this.subscribe(SubscriptionType.SUBJECT, namespace, subjectName, handler, context);
 	}
 
@@ -256,7 +256,7 @@ export class ComponentAPI {
 	 * @param namespace - Component Reference / Name
 	 * @param subID - subscription id provided by subscribe
 	 */
-	public unsubscribe(namespace: PrimaryComponent | string, subID: string) {
+	public unsubscribe(namespace: Component | string, subID: string) {
 		const componentName = this.bento.resolveComponentName(namespace);
 
 		// Check if the component events exists
@@ -283,7 +283,7 @@ export class ComponentAPI {
 	 *
 	 * @param namespace - Optional. A namespace where all events should be unsubscribed
 	 */
-	public unsubscribeAll(namespace?: PrimaryComponent | string) {
+	public unsubscribeAll(namespace?: Component | string) {
 		if (namespace != null) {
 			const componentName = this.bento.resolveComponentName(namespace);
 			// Get the namespace events

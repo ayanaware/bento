@@ -6,21 +6,21 @@ const { Bento, FSComponentLoader } = require('../../build');
 
 const bento = new Bento();
 const fsloader = new FSComponentLoader({
-	primary: path.resolve(__dirname, 'components', 'primary'),
+	directories: [path.resolve(__dirname, 'components')],
 });
 
 bento.addPlugin(fsloader).then(async () => {
-	console.log(bento.primaryConstructors);
+	console.log(bento.componentConstructors);
 
-	const ClassModule = require('./components/primary/ClassModule');
+	const ClassModule = require('./components/ClassModule');
 	const name = bento.resolveComponentName(ClassModule);
 	console.log(name);
 
 	console.log('object resolveName', bento.resolveComponentName({ name: 'ClassModule' }));
 
-	await bento.removePrimaryComponent(name);
+	await bento.removeComponent(name);
 
-	console.log(bento.primaryConstructors);
+	console.log(bento.componentConstructors);
 }).catch(e => {
 	console.log(e);
 });

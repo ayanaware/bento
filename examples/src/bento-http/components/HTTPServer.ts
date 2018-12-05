@@ -45,8 +45,8 @@ export class HTTPServer {
 		const remoteAddress = req.connection.remoteAddress;
 		const remotePort = req.connection.remotePort;
 
-		// example of accessing methods on a primary component
-		const counter = this.api.getPrimary<HitCounter>(HitCounter);
+		// example of accessing methods on a component
+		const counter = this.api.getComponent<HitCounter>(HitCounter);
 		counter.incrementHit(1);
 
 		// lets emit a component event!

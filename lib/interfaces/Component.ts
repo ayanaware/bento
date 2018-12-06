@@ -1,7 +1,7 @@
 'use strict';
 
 import { ComponentAPI } from '../helpers';
-import { ComponentVariableDefinition } from './ComponentVariableDefinition';
+import { VariableDefinition } from './VariableDefinition';
 
 export interface Component {
 	api?: ComponentAPI;
@@ -9,7 +9,7 @@ export interface Component {
 	name: string;
 	version?: string;
 	dependencies?: Component[] | string[];
-	variables?: ComponentVariableDefinition[];
+	variables?: VariableDefinition[];
 
 	onLoad?(): Promise<void>;
 	onUnload?(): Promise<void>;

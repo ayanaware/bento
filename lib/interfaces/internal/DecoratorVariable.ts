@@ -1,8 +1,8 @@
 'use strict';
 
-import { ComponentVariableDefinition } from '../ComponentVariableDefinition';
+import { VariableDefinition } from '../VariableDefinition';
 
 export interface DecoratorVariable {
 	propertyKey: string;
-	definition: ComponentVariableDefinition;
+	definition: VariableDefinition;
 }

@@ -4,6 +4,9 @@ export * from './Plugin';
 
 export * from './Component';
 
-export * from './ComponentVariableDefinition';
-export * from './VariableType';
-export * from './VariableValidator';
+export * from './ConfigDefinition';
+export * from './ConfigDefinitionType';
+
+export * from './VariableDefinition';
+export * from './VariableDefinitionType';
+export * from './VariableDefinitionValidator';

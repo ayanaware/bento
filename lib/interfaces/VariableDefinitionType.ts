@@ -1,6 +1,6 @@
 'use strict';
 
-export enum VariableType {
+export enum VariableDefinitionType {
 	STRING = 'string',
 	NUMBER = 'number',
 	BOOLEAN = 'boolean',

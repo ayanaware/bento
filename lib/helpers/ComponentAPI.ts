@@ -9,7 +9,7 @@ import { Bento } from '../Bento';
 
 import { SubscriptionType } from '../constants';
 import { VariableProcessError } from '../errors';
-import { Component, ComponentVariableDefinition, VariableType, VariableValidator } from '../interfaces';
+import { Component, VariableDefinition, VariableDefinitionType, VariableDefinitionValidator } from '../interfaces';
 
 /**
  * Logger instance for the ComponentAPI class
@@ -54,7 +54,7 @@ export class ComponentAPI {
 	 * Define multiple variables at once
 	 * @param definitions - Array of definitions
 	 */
-	public injectVariables(definitions: ComponentVariableDefinition[]) {
+	public injectVariables(definitions: VariableDefinition[]) {
 		if (!Array.isArray(definitions)) throw new IllegalArgumentError('Definitions must be an array');
 
 		for (const definition of definitions) {
@@ -66,7 +66,7 @@ export class ComponentAPI {
 	 * Defines and attaches a variable to component
 	 * @param definition - The definition of the variable to define
 	 */
-	public injectVariable(definition: ComponentVariableDefinition) {
+	public injectVariable(definition: VariableDefinition) {
 		if (!definition.name) throw new IllegalArgumentError('A VariableDefinition must define a name');
 
 		// if variable not in bento, and no default defined. Throw an error
@@ -101,12 +101,12 @@ export class ComponentAPI {
 	 * Gets the value of a variable
 	 * @param definition - Variable name or definition
 	 */
-	public getVariable(definition: ComponentVariableDefinition | string): any {
+	public getVariable(definition: VariableDefinition | string): any {
 		// if string, convert to basic definition
 		if (typeof definition === 'string') {
 			definition = {
 				name: definition,
-				type: VariableType.STRING,
+				type: VariableDefinitionType.STRING,
 			};
 		}
 
@@ -120,7 +120,7 @@ export class ComponentAPI {
 		return value;
 	}
 
-	private getValue(definition: ComponentVariableDefinition) {
+	private getValue(definition: VariableDefinition) {
 		let value = undefined;
 
 		// get latest
@@ -134,19 +134,19 @@ export class ComponentAPI {
 
 		// Verifies that value matches definition type
 		switch (definition.type) {
-			case VariableType.NUMBER:
-			case VariableType.STRING:
-			case VariableType.BOOLEAN: {
+			case VariableDefinitionType.NUMBER:
+			case VariableDefinitionType.STRING:
+			case VariableDefinitionType.BOOLEAN: {
 				if (typeof value !== definition.type) throw new IllegalStateError('Found value does not match definition type');
 				break;
 			}
 
-			case VariableType.ARRAY: {
+			case VariableDefinitionType.ARRAY: {
 				if (!Array.isArray) throw new IllegalStateError('Found value does not match definition type');
 				break;
 			}
 
-			case VariableType.OBJECT: {
+			case VariableDefinitionType.OBJECT: {
 				if (typeof value === 'object' && Array.isArray(value)) throw new IllegalStateError('Found value does not match definition type');
 				break;
 			}

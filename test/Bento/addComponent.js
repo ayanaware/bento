@@ -62,17 +62,17 @@ describe('#addComponent', function () {
 		);
 	});
 
-	it('should attempt registering the component if it has no missing dependencies', async function () {
+	it('should attempt to load the component if it has no missing dependencies', async function () {
 		const bento = getCleanBento();
 
 		let attempted = false;
-		bento.registerComponent = async function () {
+		bento.loadComponent = async function () {
 			attempted = true;
 		};
 
 		await bento.addComponent({ name: 'TestPrimary' });
 
-		assert.strictEqual(attempted, true, 'registerPrimaryComponent() wasn\'t called');
+		assert.strictEqual(attempted, true, 'no load attempt made');
 	});
 
 	it('should not handle pending components if the registration fails', async function () {

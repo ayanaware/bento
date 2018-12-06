@@ -75,10 +75,9 @@ export class ComponentAPI {
 		}
 
 		// attach property to component
-		Object.defineProperty(this.component, definition.name, {
+		Object.defineProperty(this.component, definition.property || definition.name, {
 			configurable: true,
 			enumerable: false,
-			writable: false,
 			get: () => {
 				return this.getValue(definition);
 			},

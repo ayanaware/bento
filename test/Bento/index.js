@@ -18,11 +18,13 @@ describe('Bento', function () {
 
 	require('./resolveComponentName');
 
+	require('./prepareComponent');
+
 	require('./addComponent');
 	require('./removeComponent');
 
 	require('./resolveDependencies');
 	require('./getMissingDependencies');
 
-	require('./registerComponent');
+	require('./loadComponent');
 });

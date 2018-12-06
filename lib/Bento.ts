@@ -278,6 +278,59 @@ export class Bento {
 	}
 
 	/**
+	 * Enforces Bento API and prepares component to be loaded
+	 * @param component - Component to be prepared
+	 */
+	private prepareComponent(component: Component) {
+		// take control and redefine component name
+		Object.defineProperty(component, 'name', {
+			configurable: true,
+			writable: false,
+			enumerable: true,
+			value: component.name,
+		});
+
+		// if component has constructor lets track it
+		if (component.constructor) {
+			this.componentConstructors.set(component.constructor, component.name);
+		}
+
+		// Create component events if it does not already exist
+		if (!this.events.has(component.name)) {
+			const events = new ComponentEvents(component.name);
+			this.events.set(component.name, events);
+		}
+
+		// run dependencies through the resolver
+		component.dependencies = this.resolveDependencies(component.dependencies || []);
+		Object.defineProperty(component, 'dependencies', {
+			configurable: true,
+			writable: false,
+			enumerable: true,
+			value: component.dependencies,
+		});
+
+		// Create components' api
+		const api = new ComponentAPI(this, component);
+
+		// Define api
+		Object.defineProperty(component, 'api', {
+			configurable: false,
+			writable: false,
+			enumerable: true,
+			value: api,
+		});
+
+		// Add property descriptors for all the decorated variables
+		const variables: DecoratorVariable[] = (component.constructor as any)[Symbols.variables];
+		if (Array.isArray(variables)) {
+			for (const variable of variables) {
+				component.api.injectVariable(Object.assign({}, variable.definition, { property: variable.propertyKey }));
+			}
+		}
+	}
+
+	/**
 	 * Add a Component to Bento
 	 * @param component - Component
 	 */
@@ -292,17 +345,17 @@ export class Bento {
 			throw new ComponentRegistrationError(component, `"${component.name}" Component dependencies is not an array`);
 		} else if (component.dependencies == null) component.dependencies = [];
 
-		// run dependencies through the resolver
-		component.dependencies = this.resolveDependencies(component.dependencies);
+		// prepare component
+		this.prepareComponent(component);
 
 		// determine dependencies
 		const missing = this.getMissingDependencies(component.dependencies);
 		if (missing.length === 0) {
-			// All dependencies are already loaded
-			const success = await this.registerComponent(component);
+			// All dependencies are already loaded, go ahead and load the component
+			await this.loadComponent(component);
 
-			// if any pending components attempt to handle them now
-			if (success && this.pending.size > 0) await this.handlePendingComponents();
+			// loaded successfuly, if any pending components, attempt to handle them now
+			if (this.pending.size > 0) await this.handlePendingComponents();
 		} else {
 			// not able to load this component yet :c
 			this.pending.set(component.name, component);
@@ -376,54 +429,22 @@ export class Bento {
 			if (missing.length === 0) {
 				this.pending.delete(component.name);
 
-				const name = await this.registerComponent(component);
-				if (name) loaded++;
+				await this.loadComponent(component);
+				loaded++;
 			}
 		}
 
 		if (loaded > 0) await this.handlePendingComponents();
 	}
 
-	private async registerComponent(component: Component) {
-		const name = component.name;
-
-		Object.defineProperty(component, 'name', {
-			configurable: true,
-			writable: false,
-			enumerable: true,
-			value: name,
-		});
-
-		Object.defineProperty(component, 'dependencies', {
-			configurable: true,
-			writable: false,
-			enumerable: true,
-			value: component.dependencies || [],
-		});
-
-		// Create components' api
-		const api = new ComponentAPI(this, component);
-
-		// Define api
-		Object.defineProperty(component, 'api', {
-			configurable: false,
-			writable: false,
-			enumerable: true,
-			value: api,
-		});
-
-		// if component has constructor lets track it
-		if (component.constructor) {
-			this.componentConstructors.set(component.constructor, name);
+	private async loadComponent(component: Component) {
+		// Subscribe to all the events from the decorator subscriptions
+		const subscriptions: DecoratorSubscription[] = (component.constructor as any)[Symbols.subscriptions];
+		if (Array.isArray(subscriptions)) {
+			for (const subscription of subscriptions) {
+				component.api.subscribe(subscription.type, subscription.namespace, subscription.name, subscription.handler, component);
+			}
 		}
-
-		// Create component event helper if it doesn't already exist
-		if (!this.events.has(name)) {
-			const events = new ComponentEvents(name);
-			this.events.set(name, events);
-		}
-
-		this.handleDecorators(component);
 
 		// Call onLoad if present
 		if (component.onLoad) {
@@ -434,26 +455,6 @@ export class Bento {
 			}
 		}
 
-		this.components.set(name, component);
-
-		return name;
-	}
-
-	private handleDecorators(component: Component) {
-		// Subscribe to all the events from the decorator subscriptions
-		const subscriptions: DecoratorSubscription[] = (component.constructor as any)[Symbols.subscriptions];
-		if (Array.isArray(subscriptions)) {
-			for (const subscription of subscriptions) {
-				component.api.subscribe(subscription.type, subscription.namespace, subscription.name, subscription.handler, component);
-			}
-		}
-
-		// Add property descriptors for all the decorated variables
-		const variables: DecoratorVariable[] = (component.constructor as any)[Symbols.variables];
-		if (Array.isArray(variables)) {
-			for (const variable of variables) {
-				component.api.injectVariable(variable.definition);
-			}
-		}
+		this.components.set(component.name, component);
 	}
 }

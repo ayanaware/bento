@@ -6,8 +6,8 @@ import * as util from 'util';
 
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 
-import { ComponentLoadError } from '../errors';
-import { Plugin } from '../interfaces';
+import { ComponentLoadError } from '../../errors';
+import { Plugin } from '../../interfaces';
 
 import { ComponentLoader } from './ComponentLoader';
 

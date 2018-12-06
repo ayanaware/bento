@@ -1,20 +1,7 @@
 'use strict';
 
-import * as fs from 'fs';
-import * as util from 'util';
-
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
-import { Bento } from '../Bento';
-
-/**
- * @ignore
- */
-const stat = util.promisify(fs.stat);
-
-/**
- * @ignore
- */
-const readFile = util.promisify(fs.readFile);
+import { Bento } from '../../Bento';
 
 export interface ConfigLoaderDefinition {
 	name: string;
@@ -47,14 +34,13 @@ export class ConfigLoader {
 		if (typeof definition.name !== 'string') throw new IllegalArgumentError('Definition name must be a string');
 		if (!definition.name) throw new IllegalArgumentError('Definition must specify a name');
 
-		if (definition.value === undefined && definition.env === undefined && definition.file === undefined) {
-			throw new IllegalArgumentError('Definition must specify at least one of the following: value, env, file');
+		if (definition.value === undefined && definition.env === undefined) {
+			throw new IllegalArgumentError('Definition must specify at least one of the following: value, env');
 		}
 
 		this.definitions.set(definition.name, definition);
 
 		if (reload) await this.reloadValues();
-
 		return definition.name;
 	}
 
@@ -87,36 +73,25 @@ export class ConfigLoader {
 	public async reloadValues() {
 		if (this.bento == null) return;
 
-		return this.processDefinitions();
-	}
-
-	private async processDefinitions() {
 		for (const definition of this.definitions.values()) {
-			await this.processValue(definition);
+			const value = await this.getValue(definition);
+			this.bento.setVariable(definition.name, value);
 		}
 	}
 
-	private async processValue(definition: ConfigLoaderDefinition) {
+	private async getValue(definition: ConfigLoaderDefinition) {
 		if (definition == null || typeof definition !== 'object') throw new IllegalArgumentError('Definition must be a object');
-
 		let value = undefined;
 
+		// inline value defined
 		if (definition.value !== undefined) value = definition.value;
 
-		if (definition.file !== undefined) {
-			// TODO: load file
-		}
-
+		// env variable name defined
 		if (definition.env !== undefined) {
 			// verify that item actually exists in env
 			if (Object.keys(process.env).indexOf(definition.env) > -1) value = process.env[definition.env];
 		}
 
-		// update in bento
-		this.bento.setVariable(definition.name, value);
-	}
-
-	private async procesFile(location: string) {
-		// TODO!
+		return value;
 	}
 }

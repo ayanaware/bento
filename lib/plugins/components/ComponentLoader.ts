@@ -1,9 +1,9 @@
 'use strict';
 
-import { Bento } from '../Bento';
-import { ComponentLoadError } from '../errors';
-import { Component } from '../interfaces';
-import { DetectedComponent } from '../interfaces/internal';
+import { Bento } from '../../Bento';
+import { ComponentLoadError } from '../../errors';
+import { Component } from '../../interfaces';
+import { DetectedComponent } from '../../interfaces/internal';
 
 /**
  * Abstract loader class containing an interface to the outside and core functionality

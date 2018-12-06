@@ -121,6 +121,8 @@ export class Bento {
 	 */
 	public setVariable(name: string, value: any) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
+		if (value === undefined) return;
+
 		this.variables.set(name, value);
 	}
 
@@ -132,6 +134,15 @@ export class Bento {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
 		if (!this.variables.has(name)) return null;
 		return this.variables.get(name);
+	}
+
+	/**
+	 * Fully removes all traces of a variable from bento
+	 * @param name - name of variable
+	 */
+	public deleteVariable(name: string) {
+		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
+		if (this.variables.has(name)) this.variables.delete(name);
 	}
 
 	/**
@@ -441,7 +452,7 @@ export class Bento {
 		const variables: DecoratorVariable[] = (component.constructor as any)[Symbols.variables];
 		if (Array.isArray(variables)) {
 			for (const variable of variables) {
-				component.api.defineVariable(variable.definition);
+				component.api.injectVariable(variable.definition);
 			}
 		}
 	}

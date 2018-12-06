@@ -9,7 +9,7 @@ import { Bento } from '../Bento';
 
 import { SubscriptionType } from '../constants';
 import { VariableProcessError } from '../errors';
-import { Component, VariableDefinition } from '../interfaces';
+import { Component, ComponentVariableDefinition, VariableType, VariableValidator } from '../interfaces';
 
 /**
  * Logger instance for the ComponentAPI class
@@ -29,11 +29,6 @@ export class ComponentAPI {
 	 * The component this API object belongs to
 	 */
 	private readonly component: Component;
-
-	/**
-	 * Component defined variable definitions
-	 */
-	private readonly definitions: Map<string, VariableDefinition> = new Map();
 
 	/**
 	 * Currently existing subscriptions of this component.
@@ -59,11 +54,11 @@ export class ComponentAPI {
 	 * Define multiple variables at once
 	 * @param definitions - Array of definitions
 	 */
-	public defineVariables(definitions: VariableDefinition[]) {
+	public injectVariables(definitions: ComponentVariableDefinition[]) {
 		if (!Array.isArray(definitions)) throw new IllegalArgumentError('Definitions must be an array');
 
 		for (const definition of definitions) {
-			this.defineVariable(definition);
+			this.injectVariable(definition);
 		}
 	}
 
@@ -71,49 +66,32 @@ export class ComponentAPI {
 	 * Defines and attaches a variable to component
 	 * @param definition - The definition of the variable to define
 	 */
-	public defineVariable(definition: VariableDefinition) {
-		if (!definition.type) throw new IllegalArgumentError('VariableDefinition must define a type');
-		if (!definition.name) throw new IllegalArgumentError('VariableDefinition must define a name');
+	public injectVariable(definition: ComponentVariableDefinition) {
+		if (!definition.name) throw new IllegalArgumentError('A VariableDefinition must define a name');
 
-		if (this.definitions.has(definition.name)) throw new IllegalStateError('A VariableDefinition with this name is already defined');
-
-		// if no default, and undefined throw an error
+		// if variable not in bento, and no default defined. Throw an error
 		if (!this.bento.hasVariable(definition.name) && definition.default === undefined) {
-			throw new IllegalStateError(`Can not attach variable "${definition.name}", not in Bento, and no default`);
+			throw new IllegalStateError(`Cannot inject undefined variable "${definition.name}"`);
 		}
 
 		// attach property to component
 		Object.defineProperty(this.component, definition.name, {
 			configurable: true,
 			enumerable: false,
+			writable: false,
 			get: () => {
-				return this.processValue(definition);
+				return this.getValue(definition);
 			},
 			set: function () {
 				// TODO Change to IllegalAccessError
-				throw new Error(`Cannot set Bento variable "${definition.name}" on Component "${this.component.name}"`);
+				throw new Error(`Cannot set injected variable "${definition.name}"`);
 			}
 		});
-
-		this.definitions.set(definition.name, definition);
 	}
 
 	/**
-	 * Undefines and detaches a variable from component
-	 * @param name - Name of variable to remove
-	 */
-	public undefineVariable(name: string) {
-		if (typeof name !== 'string') throw new IllegalArgumentError('name must be a string');
-		if (!this.definitions.has(name)) throw new IllegalStateError('There is no VariableDefinition with that name defined');
-
-		if (this.component.hasOwnProperty(name)) delete (this.component as any)[name];
-
-		this.definitions.delete(name);
-	}
-
-	/**
-	 * Check if bento has a variable loaded
-	 * @param name - name of variable to check
+	 * Check if bento has a variable or not
+	 * @param name - name of variable
 	 */
 	public hasVariable(name: string) {
 		return this.bento.hasVariable(name);
@@ -121,18 +99,28 @@ export class ComponentAPI {
 
 	/**
 	 * Gets the value of a variable
-	 * @param name - Variable name
+	 * @param definition - Variable name or definition
 	 */
-	public getVariable(name: string): any {
-		// check if we have the variable defined in definitions, if so use processValue
-		if (this.definitions.has(name)) return this.processValue(this.definitions.get(name));
+	public getVariable(definition: ComponentVariableDefinition | string): any {
+		// if string, convert to basic definition
+		if (typeof definition === 'string') {
+			definition = {
+				name: definition,
+				type: VariableType.STRING,
+			};
+		}
 
-		// else pull directly from Bento
-		if (!this.hasVariable(name)) throw new IllegalStateError(`Variable "${name}" does not exist in Bento`);
-		return this.bento.getVariable(name);
+		// validate definition
+		if (!definition.name) throw new IllegalArgumentError('VariableDefinition must define a name');
+		const value = this.getValue(definition);
+
+		// if undefined. then is a required variable that is not in bento
+		if (value === undefined) throw new IllegalStateError(`Failed to find a value for "${definition.name}" variable`);
+
+		return value;
 	}
 
-	private processValue(definition: VariableDefinition) {
+	private getValue(definition: ComponentVariableDefinition) {
 		let value = undefined;
 
 		// get latest
@@ -142,6 +130,32 @@ export class ComponentAPI {
 
 		// if undefined and have default set now
 		if (value === undefined && definition.default !== undefined) value = definition.default;
+		if (value === undefined) return value;
+
+		// Verifies that value matches definition type
+		switch (definition.type) {
+			case VariableType.NUMBER:
+			case VariableType.STRING:
+			case VariableType.BOOLEAN: {
+				if (typeof value !== definition.type) throw new IllegalStateError('Found value does not match definition type');
+				break;
+			}
+
+			case VariableType.ARRAY: {
+				if (!Array.isArray) throw new IllegalStateError('Found value does not match definition type');
+				break;
+			}
+
+			case VariableType.OBJECT: {
+				if (typeof value === 'object' && Array.isArray(value)) throw new IllegalStateError('Found value does not match definition type');
+				break;
+			}
+
+			default: {
+				throw new IllegalStateError('VariableDefinition specified an unknown type');
+				break;
+			}
+		}
 
 		// TODO: validators
 

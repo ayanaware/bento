@@ -1,6 +1,4 @@
 'use strict';
 
-export * from './ConfigLoader';
-
-export * from './ComponentLoader';
-export * from './FSComponentLoader';
+export * from './cfg';
+export * from './components';

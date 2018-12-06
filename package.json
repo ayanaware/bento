@@ -1,6 +1,6 @@
 {
 	"name": "@ayana/bento",
-	"version": "1.0.0-alpha8",
+	"version": "1.0.0-alpha9",
 	"description": "Modular runtime framework designed to solve complex tasks",
 	"repository": "https://gitlab.com/ayana/bento",
 	"author": "Ayana Developers <devs@ayana.io>",

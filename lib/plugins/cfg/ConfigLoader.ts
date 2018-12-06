@@ -6,7 +6,6 @@ import { Bento } from '../../Bento';
 export interface ConfigLoaderDefinition {
 	name: string;
 	env?: string;
-	file?: string;
 	value?: any;
 }
 
@@ -17,7 +16,7 @@ export class ConfigLoader {
 	private definitions: Map<string, ConfigLoaderDefinition> = new Map();
 
 	public async onLoad() {
-		await this.reloadValues();
+		return this.reloadValues();
 	}
 
 	public async onUnload() {

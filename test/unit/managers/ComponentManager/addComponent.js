@@ -2,50 +2,50 @@
 
 const assert = require('assert');
 
-const { Bento } = require('../../../build');
+const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
 describe('#addComponent', function () {
-	const getCleanBento = () => {
-		const bento = new Bento();
+	const getCleanComponentManager = () => {
+		const manager = new ComponentManager({});
 
-		bento.getMissingDependencies = function () {
+		manager.getMissingDependencies = function () {
 			return [];
 		};
 
-		bento.registerComponent = async function () {
+		manager.loadComponent = async function () {
 			return true;
 		};
 
-		bento.handlePendingComponents = async function () {
+		manager.handlePendingComponents = async function () {
 			// Do nothing
 		};
 
-		return bento;
+		return manager;
 	};
 
 	it('should throw an error if the component is not an object', async function () {
 		await assert.rejects(
-			getCleanBento().addComponent('totallyAComponent'),
+			getCleanComponentManager().addComponent('totallyAComponent'),
 			{ message: 'Component must be a object' },
 		);
 	});
 
 	it('should throw an error if name is not a string', async function () {
 		await assert.rejects(
-			getCleanBento().addComponent({ name: null }),
+			getCleanComponentManager().addComponent({ name: null }),
 			{ message: 'Component name must be a string' },
 		);
 	});
 
 	it('should throw an error if the component does not specify a name', async function () {
 		await assert.rejects(
-			getCleanBento().addComponent({ name: '' }),
+			getCleanComponentManager().addComponent({ name: '' }),
 			{ message: 'Components must specify a name' },
 		);
 	});
 
 	it('should throw an error if a component with the same name already exists', async function () {
-		const bento = getCleanBento();
+		const bento = getCleanComponentManager();
 
 		bento.components.set('TestPrimary', {});
 
@@ -57,13 +57,13 @@ describe('#addComponent', function () {
 
 	it('should throw an error if dependencies is set but not an array', async function () {
 		await assert.rejects(
-			getCleanBento().addComponent({ name: 'TestPrimary', dependencies: '' }),
+			getCleanComponentManager().addComponent({ name: 'TestPrimary', dependencies: '' }),
 			{ message: '"TestPrimary" Component dependencies is not an array' },
 		);
 	});
 
 	it('should attempt to load the component if it has no missing dependencies', async function () {
-		const bento = getCleanBento();
+		const bento = getCleanComponentManager();
 
 		let attempted = false;
 		bento.loadComponent = async function () {
@@ -76,7 +76,7 @@ describe('#addComponent', function () {
 	});
 
 	it('should not handle pending components if the registration fails', async function () {
-		const bento = getCleanBento();
+		const bento = getCleanComponentManager();
 
 		await bento.addComponent({ name: 'TestPrimaryAdded', dependencies: ['TestDependency'] });
 
@@ -92,7 +92,7 @@ describe('#addComponent', function () {
 	});
 
 	it('should not handle pending components if no components are pending', async function () {
-		const bento = getCleanBento();
+		const bento = getCleanComponentManager();
 
 		bento.handlePendingComponents = async function () {
 			throw new Error('Pending components were handled');
@@ -102,7 +102,7 @@ describe('#addComponent', function () {
 	});
 
 	it('should handle pending components if the registration succeded and there are pending components', async function () {
-		const bento = getCleanBento();
+		const bento = getCleanComponentManager();
 
 		let handleCalled = false;
 		bento.handlePendingComponents = async function () {
@@ -117,7 +117,7 @@ describe('#addComponent', function () {
 	});
 
 	it('should add the component to pending if dependencies are missing', async function () {
-		const bento = getCleanBento();
+		const bento = getCleanComponentManager();
 
 		bento.getMissingDependencies = function () {
 			return ['TestDependency'];
@@ -129,7 +129,7 @@ describe('#addComponent', function () {
 	});
 
 	it('should return the component name', async function () {
-		const name = await getCleanBento().addComponent({ name: 'TestPrimary' });
+		const name = await getCleanComponentManager().addComponent({ name: 'TestPrimary' });
 		assert.strictEqual(name, 'TestPrimary');
 	});
 });

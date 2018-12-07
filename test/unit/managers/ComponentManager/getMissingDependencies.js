@@ -2,25 +2,25 @@
 
 const assert = require('assert');
 
-const { Bento } = require('../../../build');
+const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
 describe('#getMissingDependencies', function () {
 	it('should return an array', function () {
-		const bento = new Bento();
+		const manager = new ComponentManager();
 
 		assert.strictEqual(
-			Array.isArray(bento.getMissingDependencies([])),
+			Array.isArray(manager.getMissingDependencies([])),
 			true, 'Did not return an array'
 		);
 	});
 
 	it('should return a list of components not currently loaded, requested by provided component', function () {
-		const bento = new Bento();
+		const manager = new ComponentManager();
 
-		bento.components.set('A', {});
-		bento.components.set('B', {});
+		manager.components.set('A', {});
+		manager.components.set('B', {});
 
-		const missing = bento.getMissingDependencies(['A', 'B', 'C', 'D']);
+		const missing = manager.getMissingDependencies(['A', 'B', 'C', 'D']);
 
 		assert.strictEqual(
 			missing.length === 2 && missing.indexOf('C') > -1 && missing.indexOf('D') > -1,

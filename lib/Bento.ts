@@ -359,12 +359,11 @@ export class Bento {
 		}
 
 		// run dependencies through the resolver
-		component.dependencies = this.resolveDependencies(component.dependencies);
 		Object.defineProperty(component, 'dependencies', {
 			configurable: true,
 			writable: false,
 			enumerable: true,
-			value: component.dependencies,
+			value: this.resolveDependencies(component.dependencies),
 		});
 
 		// Create components' api
@@ -372,7 +371,7 @@ export class Bento {
 
 		// Define api
 		Object.defineProperty(component, 'api', {
-			configurable: false,
+			configurable: true,
 			writable: false,
 			enumerable: true,
 			value: api,
@@ -473,6 +472,11 @@ export class Bento {
 		if (component.constructor && this.componentConstructors.has(component.constructor)) {
 			this.componentConstructors.delete(component.constructor);
 		}
+
+		// delete component
+		if (this.components.has(component.name)) {
+			this.components.delete(component.name);
+		}
 	}
 
 	private async loadComponent(component: Component) {
@@ -485,7 +489,7 @@ export class Bento {
 		}
 
 		// if child. lets modify name a bit
-		if (parent != null) {
+		if (parent != null && !component.name.startsWith(`${parent.name}.`)) {
 			Object.defineProperty(component, 'name', {
 				configurable: true,
 				writable: false,

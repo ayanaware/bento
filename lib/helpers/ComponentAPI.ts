@@ -8,7 +8,6 @@ import { Logger } from '@ayana/logger';
 import { Bento } from '../Bento';
 
 import { SubscriptionType } from '../constants';
-import { VariableProcessError } from '../errors';
 import { Component, VariableDefinition, VariableDefinitionType, VariableDefinitionValidator } from '../interfaces';
 
 /**
@@ -70,7 +69,7 @@ export class ComponentAPI {
 		if (!definition.name) throw new IllegalArgumentError('A VariableDefinition must define a name');
 
 		// if variable not in bento, and no default defined. Throw an error
-		if (!this.bento.hasVariable(definition.name) && definition.default === undefined) {
+		if (!this.bento.variables.has(definition.name) && definition.default === undefined) {
 			throw new IllegalStateError(`Cannot inject undefined variable "${definition.name}"`);
 		}
 
@@ -93,7 +92,7 @@ export class ComponentAPI {
 	 * @param name - name of variable
 	 */
 	public hasVariable(name: string) {
-		return this.bento.hasVariable(name);
+		return this.bento.variables.has(name);
 	}
 
 	/**
@@ -123,7 +122,7 @@ export class ComponentAPI {
 		let value = undefined;
 
 		// get latest
-		if (this.bento.hasVariable(definition.name)) {
+		if (this.bento.variables.has(definition.name)) {
 			value = this.bento.getVariable(definition.name);
 		}
 
@@ -167,9 +166,7 @@ export class ComponentAPI {
 	 * @param referece - Component name or reference
 	 */
 	public getComponent<T extends Component>(reference: Component | string): T {
-		const name = this.bento.resolveComponentName(reference);
-
-		const component = this.bento.components.get(name);
+		const component = this.bento.components.getComponent(reference);
 		if (!component) return null;
 
 		return component as T;
@@ -206,7 +203,7 @@ export class ComponentAPI {
 	 * @throws IllegalArgumentError if fromEmitter is not an EventEmitter or events is not an array
 	 */
 	public forwardEvents(fromEmitter: EventEmitter, events: string[]) {
-		const emitter = this.bento.events.get(this.component.name);
+		const emitter = this.bento.components.getComponentEvents(this.component.name);
 		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component emitter does not exist?');
 
 		if (events != null && !Array.isArray(events)) {
@@ -230,7 +227,7 @@ export class ComponentAPI {
 	 * @param args - Ordered Array of args to emit
 	 */
 	public async emit(eventName: string, ...args: any[]) {
-		const emitter = this.bento.events.get(this.component.name);
+		const emitter = this.bento.components.getComponentEvents(this.component.name);
 		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component emitter does not exist?');
 
 		emitter.emit(eventName, ...args);
@@ -245,10 +242,10 @@ export class ComponentAPI {
 	 * @param context - Optional `this` context for above handler function
 	 */
 	public subscribe(type: SubscriptionType, namespace: Component | string, name: string, handler: (...args: any[]) => void, context?: any) {
-		const componentName = this.bento.resolveComponentName(namespace);
+		const componentName = this.bento.components.resolveName(namespace);
 
 		// Get the namespace
-		const events = this.bento.events.get(componentName);
+		const events = this.bento.components.getComponentEvents(componentName);
 		if (events == null) throw new IllegalArgumentError(`Component Events "${componentName}" does not exist`);
 
 		const subID = events.subscribe(type, name, handler, context);
@@ -289,10 +286,10 @@ export class ComponentAPI {
 	 * @param subID - subscription id provided by subscribe
 	 */
 	public unsubscribe(namespace: Component | string, subID: string) {
-		const componentName = this.bento.resolveComponentName(namespace);
+		const componentName = this.bento.components.resolveName(namespace);
 
 		// Check if the component events exists
-		const events = this.bento.events.get(componentName);
+		const events = this.bento.components.getComponentEvents(componentName);
 		if (events == null) {
 			log.warn(`Could not find events for namespace "${componentName}" while trying to unsubscribe`, this.component.name);
 			return;
@@ -317,9 +314,9 @@ export class ComponentAPI {
 	 */
 	public unsubscribeAll(namespace?: Component | string) {
 		if (namespace != null) {
-			const componentName = this.bento.resolveComponentName(namespace);
+			const componentName = this.bento.components.resolveName(namespace);
 			// Get the namespace events
-			const events = this.bento.events.get(componentName);
+			const events = this.bento.components.getComponentEvents(componentName);
 			if (events == null) {
 				log.warn(`Could not find events for namespace "${componentName}" while trying to unsubscribe`, this.component.name);
 				return;

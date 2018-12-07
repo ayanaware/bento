@@ -12,7 +12,7 @@ class Test {
 	}
 
 	async onLoad() {
-		this.api.defineVariables([
+		this.api.injectVariables([
 			{
 				type: 'string',
 				name: 'someVal',

@@ -1,6 +1,6 @@
 'use strict';
 
-const { Bento, ConfigLoader } = require('../build');
+const { Bento } = require('../../build');
 
 const bento = new Bento();
 

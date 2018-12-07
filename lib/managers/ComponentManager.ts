@@ -49,9 +49,10 @@ export class ComponentManager {
 		if (this.components.has(component.name)) throw new ComponentRegistrationError(component, `Component name "${component.name}" must be unique`);
 
 		// Check dependencies
+		if (component.dependencies == null) component.dependencies = [];
 		if (component.dependencies != null && !Array.isArray(component.dependencies)) {
 			throw new ComponentRegistrationError(component, `"${component.name}" Component dependencies is not an array`);
-		} else if (component.dependencies == null) component.dependencies = [];
+		}
 
 		// prepare component
 		this.prepareComponent(component);

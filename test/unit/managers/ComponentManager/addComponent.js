@@ -1,6 +1,7 @@
 'use strict';
 
-const assert = require('assert');
+const expect = require('unexpected');
+const sinon = require('sinon');
 
 const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
@@ -8,128 +9,148 @@ describe('#addComponent', function () {
 	const getCleanComponentManager = () => {
 		const manager = new ComponentManager({});
 
-		manager.getMissingDependencies = function () {
-			return [];
-		};
-
-		manager.loadComponent = async function () {
-			return true;
-		};
-
-		manager.handlePendingComponents = async function () {
-			// Do nothing
-		};
+		manager.prepareComponent = sinon.fake.resolves();
+		manager.getMissingDependencies = sinon.fake.returns([]);
+		manager.loadComponent = sinon.fake.resolves();
+		manager.handlePendingComponents = sinon.fake.resolves();
 
 		return manager;
 	};
 
-	it('should throw an error if the component is not an object', async function () {
-		await assert.rejects(
+	it('should throw an error if the component is not an object or null', async function () {
+		await expect(
 			getCleanComponentManager().addComponent('totallyAComponent'),
-			{ message: 'Component must be a object' },
+			'to be rejected with',
+			'Component must be a object'
+		);
+
+		await expect(
+			getCleanComponentManager().addComponent(null),
+			'to be rejected with',
+			'Component must be a object'
 		);
 	});
 
-	it('should throw an error if name is not a string', async function () {
-		await assert.rejects(
+	it('should throw an error if component name is not a string', async function () {
+		await expect(
 			getCleanComponentManager().addComponent({ name: null }),
-			{ message: 'Component name must be a string' },
-		);
-	});
-
-	it('should throw an error if the component does not specify a name', async function () {
-		await assert.rejects(
-			getCleanComponentManager().addComponent({ name: '' }),
-			{ message: 'Components must specify a name' },
+			'to be rejected with',
+			'Component name must be a string'
 		);
 	});
 
 	it('should throw an error if a component with the same name already exists', async function () {
-		const bento = getCleanComponentManager();
+		const manager = getCleanComponentManager();
 
-		bento.components.set('TestPrimary', {});
+		manager.components.set('TestComponent', {});
 
-		await assert.rejects(
-			bento.addComponent({ name: 'TestPrimary' }),
-			{ message: `Component name "TestPrimary" must be unique` },
+		await expect(
+			manager.addComponent({ name: 'TestComponent' }),
+			'to be rejected with',
+			`Component name "TestComponent" must be unique`
+		);
+	});
+
+	it('should set dependencies to an empty array if they are not defined', async function () {
+		const component = { name: 'TestComponent' };
+
+		await getCleanComponentManager().addComponent(component);
+
+		expect(
+			component,
+			'to have property',
+			'dependencies',
+			[]
 		);
 	});
 
 	it('should throw an error if dependencies is set but not an array', async function () {
-		await assert.rejects(
-			getCleanComponentManager().addComponent({ name: 'TestPrimary', dependencies: '' }),
-			{ message: '"TestPrimary" Component dependencies is not an array' },
+		await expect(
+			getCleanComponentManager().addComponent({ name: 'TestComponent', dependencies: '' }),
+			'to be rejected with',
+			'"TestComponent" Component dependencies is not an array'
+		);
+	});
+
+	it('should attempt to prepare the component', async function () {
+		const manager = getCleanComponentManager();
+
+		manager.prepareComponent = sinon.fake.resolves();
+
+		await manager.addComponent({ name: 'TestComponent' });
+
+		expect(
+			manager.prepareComponent.callCount,
+			'to be',
+			1,
 		);
 	});
 
 	it('should attempt to load the component if it has no missing dependencies', async function () {
-		const bento = getCleanComponentManager();
+		const manager = getCleanComponentManager();
 
-		let attempted = false;
-		bento.loadComponent = async function () {
-			attempted = true;
-		};
+		manager.loadComponent = sinon.fake.resolves();
 
-		await bento.addComponent({ name: 'TestPrimary' });
+		await manager.addComponent({ name: 'TestComponent' });
 
-		assert.strictEqual(attempted, true, 'no load attempt made');
-	});
-
-	it('should not handle pending components if the registration fails', async function () {
-		const bento = getCleanComponentManager();
-
-		await bento.addComponent({ name: 'TestPrimaryAdded', dependencies: ['TestDependency'] });
-
-		bento.registerPrimaryComponent = async function () {
-			return false;
-		};
-
-		bento.handlePendingComponents = async function () {
-			throw new Error('Pending components were handled');
-		};
-
-		await bento.addComponent({ name: 'TestPrimary' });
+		expect(
+			manager.loadComponent.callCount,
+			'to be',
+			1
+		);
 	});
 
 	it('should not handle pending components if no components are pending', async function () {
-		const bento = getCleanComponentManager();
+		const manager = getCleanComponentManager();
 
-		bento.handlePendingComponents = async function () {
-			throw new Error('Pending components were handled');
-		};
+		manager.handlePendingComponents = sinon.fake.resolves();
 
-		await bento.addComponent({ name: 'TestPrimary' });
+		await manager.addComponent({ name: 'TestPrimary' });
+
+		expect(
+			manager.handlePendingComponents.callCount,
+			'to be',
+			0
+		);
 	});
 
-	it('should handle pending components if the registration succeded and there are pending components', async function () {
-		const bento = getCleanComponentManager();
+	it('should handle pending components if there are pending components', async function () {
+		const manager = getCleanComponentManager();
 
-		let handleCalled = false;
-		bento.handlePendingComponents = async function () {
-			handleCalled = true;
-		};
+		manager.handlePendingComponents = sinon.fake.resolves();
 
-		bento.pending.set('TestPending', {});
+		manager.pending.set('TestPending', {});
 
-		await bento.addComponent({ name: 'TestPrimary' });
+		await manager.addComponent({ name: 'TestPrimary' });
 
-		assert.strictEqual(handleCalled, true, 'Pending components were not handled');
+		expect(
+			manager.handlePendingComponents.callCount,
+			'to be',
+			1
+		);
 	});
 
 	it('should add the component to pending if dependencies are missing', async function () {
-		const bento = getCleanComponentManager();
+		const manager = getCleanComponentManager();
 
-		bento.getMissingDependencies = function () {
-			return ['TestDependency'];
-		};
+		manager.getMissingDependencies = sinon.fake.returns(['TestDependency']);
 
-		await bento.addComponent({ name: 'TestPrimary' });
+		await manager.addComponent({ name: 'TestPrimary' });
 
-		assert.strictEqual(bento.pending.size, 1, 'Component wasn\'t added to the pending map');
+		expect(
+			manager.pending.size,
+			'to be',
+			1
+		);
 	});
 
 	it('should return the component name', async function () {
-		const name = await getCleanComponentManager().addComponent({ name: 'TestPrimary' });
-		assert.strictEqual(name, 'TestPrimary');
+		const name = await getCleanComponentManager().addComponent({ name: 'TestComponent' });
+
+		expect(
+			name,
+			'to be',
+			'TestComponent'
+		);
 	});
 });

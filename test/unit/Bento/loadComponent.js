@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 
-const { Bento } = require('../../build');
+const { Bento } = require('../../../build');
 
 describe('#loadComponent', async function () {
 	it('should attempt to call component onLoad', async function () {

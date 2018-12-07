@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 
-const { Bento } = require('../../build');
+const { Bento } = require('../../../build');
 
 describe('#removeComponent', async function () {
 	it('should throw an error if name is not a string', async function () {

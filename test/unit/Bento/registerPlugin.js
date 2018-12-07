@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 
-const { Bento } = require('../../build');
+const { Bento } = require('../../../build');
 
 describe('#registerPlugin', async function () {
 	it('should define bento property on plugin', async function () {

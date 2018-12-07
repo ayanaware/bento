@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 
-const { Bento } = require('../../build');
+const { Bento } = require('../../../build');
 
 describe('#prepareComponent', async function () {
 	it('should define component api', async function () {

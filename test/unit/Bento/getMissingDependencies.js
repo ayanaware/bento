@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 
-const { Bento } = require('../../build');
+const { Bento } = require('../../../build');
 
 describe('#getMissingDependencies', function () {
 	it('should return an array', function () {

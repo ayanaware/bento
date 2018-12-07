@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 
-const { Bento } = require('../../build');
+const { Bento } = require('../../../build');
 
 describe('#resolveDependencies', function () {
 	it('should resolve any component references down to their name', function () {

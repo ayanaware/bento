@@ -2,7 +2,7 @@
 
 import * as crypto from 'crypto';
 
-import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
+import { IllegalArgumentError, IllegalStateError, ProcessingError } from '@ayana/errors';
 
 import { Symbols } from './constants/internal';
 import { ComponentRegistrationError, PluginRegistrationError, ValidatorRegistrationError } from './errors';
@@ -277,6 +277,54 @@ export class Bento {
 		return name;
 	}
 
+	public resolveDependencies(dependencies: Array<Component | string>) {
+		if (dependencies !== null && !Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
+		else if (dependencies == null) dependencies = [];
+
+		const resolved = [];
+		for (const dependency of dependencies) {
+			try {
+				const name = this.resolveComponentName(dependency);
+				resolved.push(name);
+			} catch (e) {
+				throw new IllegalStateError('Unable to resolve dependency').setCause(e);
+			}
+		}
+
+		return resolved;
+	}
+
+	private getMissingDependencies(dependencies: Array<Component | string>) {
+		if (!Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
+
+		// run dependencies through the resolver
+		dependencies = this.resolveDependencies(dependencies);
+
+		return (dependencies as string[]).reduce((a, dependency) => {
+			if (!this.components.has(dependency)) a.push(dependency);
+
+			return a;
+		}, []);
+	}
+
+	/**
+	 * Fetches all child components of a given parent component
+	 * @param parent - parent component name or reference
+	 */
+	public getComponentChildren(parent: Component | string) {
+		const name = this.resolveComponentName(parent);
+		if (!this.components.has(name)) throw new IllegalStateError(`Parent "${name}" is not loaded`);
+
+		const children: Component[] = [];
+		for (const component of this.components.values()) {
+			if (component.parent != null && name === this.resolveComponentName(component.parent)) {
+				children.push(component);
+			}
+		}
+
+		return children;
+	}
+
 	/**
 	 * Enforces Bento API and prepares component to be loaded
 	 * @param component - Component to be prepared
@@ -301,8 +349,17 @@ export class Bento {
 			this.events.set(component.name, events);
 		}
 
+		// handle child component depending on a parent
+		if (component.parent != null) {
+			// attempt to resolve
+			component.parent = this.resolveComponentName(component.parent);
+
+			// make sure dependencies are loaded right
+			component.dependencies.push(component.parent);
+		}
+
 		// run dependencies through the resolver
-		component.dependencies = this.resolveDependencies(component.dependencies || []);
+		component.dependencies = this.resolveDependencies(component.dependencies);
 		Object.defineProperty(component, 'dependencies', {
 			configurable: true,
 			writable: false,
@@ -377,6 +434,14 @@ export class Bento {
 
 		// TODO: check if required, required components can't be unloaded
 
+		// if we have any children lets unload them first
+		const children = this.getComponentChildren(component);
+		if (children.length > 0) {
+			for (const child of children) {
+				await this.removeComponent(child.name);
+			}
+		}
+
 		// call unMount
 		if (component.onUnload) {
 			try {
@@ -386,58 +451,49 @@ export class Bento {
 			}
 		}
 
+		// if we were a child, inform parent of our unloading
+		if (component.parent) {
+			component.parent = this.resolveComponentName(component.parent);
+
+			if (this.components.has(component.parent)) {
+				const parent = this.components.get(component.parent);
+
+				if (parent.onChildUnload) {
+					try {
+						await parent.onChildUnload(component);
+					} catch (e) {
+						// throw new ComponentRegistrationError(component, `Parent "${component.parent}" failed to unload child`).setCause(e);
+						// what do we do here?
+					}
+				}
+			}
+		}
+
 		// remove componentConstructor
 		if (component.constructor && this.componentConstructors.has(component.constructor)) {
 			this.componentConstructors.delete(component.constructor);
 		}
 	}
 
-	public resolveDependencies(dependencies: Component[] | string[]) {
-		if (!Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
-
-		const resolved = [];
-		for (const dependency of dependencies) {
-			try {
-				const name = this.resolveComponentName(dependency);
-				resolved.push(name);
-			} catch (e) {
-				throw new IllegalStateError('Unable to resolve dependency').setCause(e);
-			}
-		}
-
-		return resolved;
-	}
-
-	private getMissingDependencies(dependencies: Component[] | string[]) {
-		if (!Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
-
-		// run dependencies through the resolver
-		dependencies = this.resolveDependencies(dependencies);
-
-		return (dependencies as string[]).reduce((a, dependency) => {
-			if (!this.components.has(dependency)) a.push(dependency);
-
-			return a;
-		}, []);
-	}
-
-	private async handlePendingComponents(): Promise<void> {
-		let loaded = 0;
-
-		for (const component of this.pending.values()) {
-			const missing = await this.getMissingDependencies(component.dependencies);
-			if (missing.length === 0) {
-				this.pending.delete(component.name);
-
-				await this.loadComponent(component);
-				loaded++;
-			}
-		}
-
-		if (loaded > 0) await this.handlePendingComponents();
-	}
-
 	private async loadComponent(component: Component) {
+		let parent = null;
+		if (component.parent) {
+			component.parent = this.resolveComponentName(component.parent);
+			if (!this.components.has(component.parent)) throw new IllegalStateError(`Somehow a child component loaded before their parent!`); // aka, universe bork
+
+			parent = this.components.get(component.parent);
+		}
+
+		// if child. lets modify name a bit
+		if (parent != null) {
+			Object.defineProperty(component, 'name', {
+				configurable: true,
+				writable: false,
+				enumerable: true,
+				value: `${parent.name}.${component.name}`,
+			});
+		}
+
 		// Subscribe to all the events from the decorator subscriptions
 		const subscriptions: DecoratorSubscription[] = (component.constructor as any)[Symbols.subscriptions];
 		if (Array.isArray(subscriptions)) {
@@ -455,6 +511,33 @@ export class Bento {
 			}
 		}
 
+		// if we just loaded a child component, lets inform the parent
+		if (parent != null) {
+			if (parent.onChildLoad) {
+				try {
+					await parent.onChildLoad(component);
+				} catch (e) {
+					throw new ComponentRegistrationError(component, `Parent "${component.parent}" failed to load child`).setCause(e);
+				}
+			}
+		}
+
 		this.components.set(component.name, component);
+	}
+
+	private async handlePendingComponents(): Promise<void> {
+		let loaded = 0;
+
+		for (const component of this.pending.values()) {
+			const missing = await this.getMissingDependencies(component.dependencies);
+			if (missing.length === 0) {
+				this.pending.delete(component.name);
+
+				await this.loadComponent(component);
+				loaded++;
+			}
+		}
+
+		if (loaded > 0) await this.handlePendingComponents();
 	}
 }

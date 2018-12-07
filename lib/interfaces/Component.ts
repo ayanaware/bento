@@ -8,9 +8,16 @@ export interface Component {
 
 	name: string;
 	version?: string;
-	dependencies?: Component[] | string[];
+
+	parent?: Component | string;
+	dependencies?: Array<Component | string>;
 	variables?: VariableDefinition[];
 
+	// General lifecycle events
 	onLoad?(): Promise<void>;
 	onUnload?(): Promise<void>;
+
+	// Parent lifecycle events
+	onChildLoad?(child: Component): Promise<void>;
+	onChildUnload?(child: Component): Promise<void>;
 }

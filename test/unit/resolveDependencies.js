@@ -5,15 +5,6 @@ const assert = require('assert');
 const { Bento } = require('../../build');
 
 describe('#resolveDependencies', function () {
-	it('should throw an error if dependencies is not an array', function () {
-		const bento = new Bento();
-
-		assert.throws(
-			() => bento.resolveDependencies(null),
-			{ message: 'Dependencies is not an array' }
-		);
-	});
-
 	it('should resolve any component references down to their name', function () {
 		const bento = new Bento();
 

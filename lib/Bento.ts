@@ -278,7 +278,7 @@ export class Bento {
 	}
 
 	public resolveDependencies(dependencies: Array<Component | string>) {
-		if (dependencies !== null && !Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
+		if (dependencies != null && !Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
 		else if (dependencies == null) dependencies = [];
 
 		const resolved = [];

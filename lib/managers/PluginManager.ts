@@ -12,13 +12,33 @@ export class PluginManager {
 
 	private plugins: Map<string, Plugin> = new Map();
 
+	private constructors: Map<any, string> = new Map();
+
 	constructor(bento: Bento) {
 		this.bento = bento;
 	}
 
-	// public getPlugin(reference: Plugin | string) {
+	public getPlugin(reference: Plugin | string) {
+		const name = this.resolveName(reference);
+		if (!this.plugins.has(name)) return null;
 
-	// }
+		return this.plugins.get(name);
+	}
+
+	public resolveName(reference: Plugin | string) {
+		let name = null;
+		if (typeof reference === 'string') name = reference;
+		else if (reference != null) {
+			// check if we have the constructor
+			if (this.constructors.has(reference)) name = this.constructors.get(reference);
+
+			// check if .name exists on the object
+			else if (Object.prototype.hasOwnProperty.call(reference, 'name')) name = reference.name;
+		}
+
+		if (name == null) throw new Error('Could not determine component name');
+		return name;
+	}
 
 	/**
 	 * Add a Plugin to Bento
@@ -30,7 +50,7 @@ export class PluginManager {
 		if (!plugin.name) throw new PluginRegistrationError(plugin, 'Plugin must specify a name');
 		if (this.plugins.has(plugin.name)) throw new PluginRegistrationError(plugin, 'Plugin names must be unique');
 
-		await this.registerPlugin(plugin);
+		await this.loadPlugin(plugin);
 
 		return plugin.name;
 	}
@@ -54,6 +74,10 @@ export class PluginManager {
 				// force unload
 			}
 		}
+
+		if (plugin.constructor && this.constructors.has(plugin.constructor)) {
+			this.constructors.delete(plugin.constructor);
+		}
 	}
 
 	/**
@@ -72,13 +96,18 @@ export class PluginManager {
 		return results;
 	}
 
-	private async registerPlugin(plugin: Plugin) {
+	private async loadPlugin(plugin: Plugin) {
 		Object.defineProperty(plugin, 'name', {
 			configurable: true,
 			writable: false,
 			enumerable: true,
 			value: plugin.name,
 		});
+
+		// track any constructors
+		if (plugin.constructor) {
+			this.constructors.set(plugin.constructor, plugin.name);
+		}
 
 		// Define bento instance
 		Object.defineProperty(plugin, 'bento', {

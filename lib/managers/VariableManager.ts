@@ -19,7 +19,7 @@ export class VariableManager {
 	 * Check if a given variable exists
 	 * @param name - name of variable to get
 	 */
-	public has(name: string) {
+	public hasVariable(name: string) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
 		if (this.variables.has(name)) return true;
 		return false;
@@ -29,7 +29,7 @@ export class VariableManager {
 	 * Fetch a value for given variable name
 	 * @param name - name of variable to get
 	 */
-	public get(name: string) {
+	public getVariable(name: string) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
 		if (!this.variables.has(name)) return null;
 		return this.variables.get(name);
@@ -40,7 +40,7 @@ export class VariableManager {
 	 * @param name - name of variable to update
 	 * @param value - new value
 	 */
-	public set(name: string, value: any) {
+	public setVariable(name: string, value: any) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
 		if (value === undefined) return;
 
@@ -51,7 +51,7 @@ export class VariableManager {
 	 * Fully removes all traces of a variable from bento
 	 * @param name - name of variable
 	 */
-	public delete(name: string) {
+	public deleteVariable(name: string) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
 		if (this.variables.has(name)) this.variables.delete(name);
 	}

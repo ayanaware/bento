@@ -8,7 +8,7 @@ import { Logger } from '@ayana/logger';
 import { Bento } from '../Bento';
 
 import { SubscriptionType } from '../constants';
-import { Component, VariableDefinition, VariableDefinitionType, VariableDefinitionValidator } from '../interfaces';
+import { Component, VariableDefinition, VariableDefinitionType, VariableDefinitionValidator, Plugin } from '../interfaces';
 
 /**
  * Logger instance for the ComponentAPI class
@@ -42,6 +42,46 @@ export class ComponentAPI {
 	}
 
 	/**
+	 * Fetch the provided component instance
+	 *
+	 * @param referece - Component name or reference
+	 */
+	public getComponent<T extends Component>(reference: Component | string): T {
+		const name = this.bento.components.resolveName(reference);
+		const component = this.bento.components.getComponent(name);
+		if (!component) throw new IllegalStateError(`Component "${name}" does not exist`);
+
+		return component as T;
+	}
+
+	/**
+	 * Inject component dependency into invoking component
+	 * @param reference - Component name or reference
+	 * @param name - name to inject into
+	 */
+	public injectComponent(reference: Component | string, injectName: string) {
+		if (this.component.hasOwnProperty(injectName)) throw new IllegalStateError(`Component already has property "${injectName}" defined.`);
+
+		const component = this.getComponent(reference);
+		if (!component) throw new IllegalStateError('Component not found');
+
+		Object.defineProperty(this.component, injectName, {
+			configurable: false,
+			enumerable: true,
+			writable: false,
+			value: component,
+		});
+	}
+
+	public getPlugin<T extends Plugin>(reference: Plugin | string): T {
+		const name = this.bento.plugins.resolveName(reference);
+		const plugin = this.bento.plugins.getPlugin(name);
+		if (!plugin) throw new IllegalStateError(`Plugin "${name}" does not exist`);
+
+		return plugin as T;
+	}
+
+	/**
 	 * Fetch the value of given application property
 	 * @param name - name of application property
 	 */
@@ -50,49 +90,11 @@ export class ComponentAPI {
 	}
 
 	/**
-	 * Define multiple variables at once
-	 * @param definitions - Array of definitions
-	 */
-	public injectVariables(definitions: VariableDefinition[]) {
-		if (!Array.isArray(definitions)) throw new IllegalArgumentError('Definitions must be an array');
-
-		for (const definition of definitions) {
-			this.injectVariable(definition);
-		}
-	}
-
-	/**
-	 * Defines and attaches a variable to component
-	 * @param definition - The definition of the variable to define
-	 */
-	public injectVariable(definition: VariableDefinition) {
-		if (!definition.name) throw new IllegalArgumentError('A VariableDefinition must define a name');
-
-		// if variable not in bento, and no default defined. Throw an error
-		if (!this.bento.variables.has(definition.name) && definition.default === undefined) {
-			throw new IllegalStateError(`Cannot inject undefined variable "${definition.name}"`);
-		}
-
-		// attach property to component
-		Object.defineProperty(this.component, definition.property || definition.name, {
-			configurable: true,
-			enumerable: false,
-			get: () => {
-				return this.getValue(definition);
-			},
-			set: function () {
-				// TODO Change to IllegalAccessError
-				throw new Error(`Cannot set injected variable "${definition.name}"`);
-			}
-		});
-	}
-
-	/**
 	 * Check if bento has a variable or not
 	 * @param name - name of variable
 	 */
 	public hasVariable(name: string) {
-		return this.bento.variables.has(name);
+		return this.bento.variables.hasVariable(name);
 	}
 
 	/**
@@ -118,12 +120,50 @@ export class ComponentAPI {
 		return value;
 	}
 
+	/**
+	 * Define multiple variables at once
+	 * @param definitions - Array of definitions
+	 */
+	public injectVariables(definitions: VariableDefinition[]) {
+		if (!Array.isArray(definitions)) throw new IllegalArgumentError('Definitions must be an array');
+
+		for (const definition of definitions) {
+			this.injectVariable(definition);
+		}
+	}
+
+	/**
+	 * Defines and attaches a variable to component
+	 * @param definition - The definition of the variable to define
+	 */
+	public injectVariable(definition: VariableDefinition) {
+		if (!definition.name) throw new IllegalArgumentError('A VariableDefinition must define a name');
+
+		// if variable not in bento, and no default defined. Throw an error
+		if (!this.bento.variables.hasVariable(definition.name) && definition.default === undefined) {
+			throw new IllegalStateError(`Cannot inject undefined variable "${definition.name}"`);
+		}
+
+		// attach property to component
+		Object.defineProperty(this.component, definition.property || definition.name, {
+			configurable: true,
+			enumerable: false,
+			get: () => {
+				return this.getValue(definition);
+			},
+			set: function () {
+				// TODO Change to IllegalAccessError
+				throw new Error(`Cannot set injected variable "${definition.name}"`);
+			}
+		});
+	}
+
 	private getValue(definition: VariableDefinition) {
 		let value = undefined;
 
 		// get latest
-		if (this.bento.variables.has(definition.name)) {
-			value = this.bento.getVariable(definition.name);
+		if (this.bento.variables.hasVariable(definition.name)) {
+			value = this.bento.variables.getVariable(definition.name);
 		}
 
 		// if undefined and have default set now
@@ -151,7 +191,6 @@ export class ComponentAPI {
 
 			default: {
 				throw new IllegalStateError('VariableDefinition specified an unknown type');
-				break;
 			}
 		}
 
@@ -161,34 +200,15 @@ export class ComponentAPI {
 	}
 
 	/**
-	 * Fetch the provided component instance
-	 *
-	 * @param referece - Component name or reference
+	 * Emit a event on Component Events
+	 * @param eventName - Name of event
+	 * @param args - Ordered Array of args to emit
 	 */
-	public getComponent<T extends Component>(reference: Component | string): T {
-		const component = this.bento.components.getComponent(reference);
-		if (!component) return null;
+	public async emit(eventName: string, ...args: any[]) {
+		const emitter = this.bento.components.getComponentEvents(this.component.name);
+		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component emitter does not exist?');
 
-		return component as T;
-	}
-
-	/**
-	 * Inject component dependency into invoking component
-	 * @param reference - Component name or reference
-	 * @param name - name to inject into
-	 */
-	public injectComponent(reference: Component | string, injectName: string) {
-		if (this.component.hasOwnProperty(injectName)) throw new IllegalStateError(`Component already has property "${injectName}" defined.`);
-
-		const component = this.getComponent(reference);
-		if (!component) throw new IllegalStateError('Component not found');
-
-		Object.defineProperty(this.component, injectName, {
-			configurable: false,
-			enumerable: true,
-			writable: false,
-			value: component,
-		});
+		emitter.emit(eventName, ...args);
 	}
 
 	// TODO: Add a error handler
@@ -219,18 +239,6 @@ export class ComponentAPI {
 				}
 			});
 		});
-	}
-
-	/**
-	 * Emit a event on Component Events
-	 * @param eventName - Name of event
-	 * @param args - Ordered Array of args to emit
-	 */
-	public async emit(eventName: string, ...args: any[]) {
-		const emitter = this.bento.components.getComponentEvents(this.component.name);
-		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component emitter does not exist?');
-
-		emitter.emit(eventName, ...args);
 	}
 
 	/**

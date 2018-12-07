@@ -10,17 +10,17 @@ const fsloader = new FSComponentLoader({
 });
 
 bento.addPlugin(fsloader).then(async () => {
-	console.log(bento.componentConstructors);
+	console.log(bento.components.constructors);
 
 	const ClassModule = require('./components/ClassModule');
-	const name = bento.resolveComponentName(ClassModule);
+	const name = bento.components.resolveName(ClassModule);
 	console.log(name);
 
-	console.log('object resolveName', bento.resolveComponentName({ name: 'ClassModule' }));
+	console.log('object resolveName', bento.components.resolveName({ name: 'ClassModule' }));
 
 	await bento.removeComponent(name);
 
-	console.log(bento.componentConstructors);
+	console.log(bento.components.constructors);
 }).catch(e => {
 	console.log(e);
 });

@@ -2,11 +2,17 @@
 
 const assert = require('assert');
 
-const { Bento } = require('../../../build');
+const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
-describe('#prepareComponent', async function () {
+describe('#prepareComponent', function () {
+	const getCleanComponentManager = () => {
+		const manager = new ComponentManager({});
+
+		return manager;
+	};
+
 	it('should define component api', async function () {
-		const bento = new Bento();
+		const bento = getCleanComponentManager();
 
 		const testComponent = { name: 'TestComponent' };
 
@@ -19,7 +25,7 @@ describe('#prepareComponent', async function () {
 	});
 
 	it('should create component event helper', async function () {
-		const bento = new Bento();
+		const bento = getCleanComponentManager();
 
 		await bento.prepareComponent({ name: 'TestComponent' });
 

@@ -2,11 +2,17 @@
 
 const assert = require('assert');
 
-const { Bento } = require('../../../build');
+const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
-describe('#loadComponent', async function () {
+describe('#loadComponent', function () {
+	const getCleanComponentManager = () => {
+		const manager = new ComponentManager({});
+
+		return manager;
+	};
+
 	it('should attempt to call component onLoad', async function () {
-		const bento = new Bento();
+		const bento = getCleanComponentManager();
 
 		let attempted = false;
 		await bento.loadComponent({
@@ -20,7 +26,7 @@ describe('#loadComponent', async function () {
 	});
 
 	it('should throw an error if component onLoad throws an error', async function () {
-		const bento = new Bento();
+		const bento = getCleanComponentManager();
 
 		const testComponent = {
 			name: 'TestComponent',

@@ -2,6 +2,9 @@
 
 const assert = require('assert');
 
+require('./assertions');
+require('./runTests');
+
 // 👌
 // If this does not pass. God help you!
 it('assert sanity of current universe', function () {

@@ -1,5 +1,3 @@
 'use strict';
 
-describe('decorators', function () {
-	require('./Subscribe');
-});
+describe('decorators', () => runTests());

@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 
-const { Bento } = require('../../../build');
+const { Bento } = require('../../../../build');
 
 describe('#removeValidator', function () {
 	it('should throw an error if validator name is not a string', function () {

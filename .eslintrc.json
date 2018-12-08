@@ -2,6 +2,7 @@
 	"extends": "@ayana/eslint-config",
 	"globals": {
 		"describe": true,
-		"it": true
+		"it": true,
+		"runTests": true
 	}
 }

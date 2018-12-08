@@ -79,11 +79,7 @@ describe('#addComponent', function () {
 
 		await manager.addComponent({ name: 'TestComponent' });
 
-		expect(
-			manager.prepareComponent.callCount,
-			'to be',
-			1,
-		);
+		sinon.assert.calledOnce(manager.prepareComponent);
 	});
 
 	it('should attempt to load the component if it has no missing dependencies', async function () {
@@ -93,11 +89,7 @@ describe('#addComponent', function () {
 
 		await manager.addComponent({ name: 'TestComponent' });
 
-		expect(
-			manager.loadComponent.callCount,
-			'to be',
-			1
-		);
+		sinon.assert.calledOnce(manager.loadComponent);
 	});
 
 	it('should not handle pending components if no components are pending', async function () {
@@ -107,11 +99,7 @@ describe('#addComponent', function () {
 
 		await manager.addComponent({ name: 'TestPrimary' });
 
-		expect(
-			manager.handlePendingComponents.callCount,
-			'to be',
-			0
-		);
+		sinon.assert.notCalled(manager.handlePendingComponents);
 	});
 
 	it('should handle pending components if there are pending components', async function () {
@@ -123,11 +111,7 @@ describe('#addComponent', function () {
 
 		await manager.addComponent({ name: 'TestPrimary' });
 
-		expect(
-			manager.handlePendingComponents.callCount,
-			'to be',
-			1
-		);
+		sinon.assert.calledOnce(manager.handlePendingComponents);
 	});
 
 	it('should add the component to pending if dependencies are missing', async function () {

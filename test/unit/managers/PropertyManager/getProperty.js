@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 
-const { Bento } = require('../../../build');
+const { Bento } = require('../../../../build');
 
 describe('#getProperty', function () {
 	it('should get a property', function () {

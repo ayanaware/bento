@@ -1,21 +1,23 @@
 'use strict';
 
-const assert = require('assert');
+const expect = require('unexpected');
+const sinon = require('sinon');
 
-const { Bento } = require('../../../build');
+const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
-describe('#resolveComponentName', async function () {
-	it('should throw an error when no name could be determined', function () {
-		const bento = new Bento();
+describe('#resolveComponentName', function () {
+	const getCleanComponentManager = () => {
+		const manager = new ComponentManager({});
 
-		assert.throws(
-			() => bento.resolveComponentName(null),
-			{ message: 'Could not determine component name' },
-		);
+		return manager;
+	};
+
+	it('should return the given string', function () {
+
 	});
 
 	it('should return resolved name of passed constructor', function () {
-		const bento = new Bento();
+		const manager = getCleanComponentManager();
 
 		class Test {
 			constructor() {
@@ -25,12 +27,26 @@ describe('#resolveComponentName', async function () {
 
 		const instance = new Test();
 
-		bento.componentConstructors.set(instance.constructor, 'TestComponent');
+		manager.constructors.set(instance.constructor, 'TestComponent');
 
-		assert.strictEqual(
-			bento.resolveComponentName(instance.constructor),
-			'TestComponent',
-			'Resolved name was not TestComponent'
+		expect(
+			manager.resolveName(instance.constructor),
+			'to be',
+			'TestComponent'
+		);
+	});
+
+	it('should use the name property on the component if no constructor is registered', function () {
+
+	});
+
+	it('should throw an error when no name could be determined', function () {
+		const manager = getCleanComponentManager();
+
+		expect(
+			() => manager.resolveName(null),
+			'to throw',
+			'Could not determine component name'
 		);
 	});
 });

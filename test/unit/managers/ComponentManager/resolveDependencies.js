@@ -2,11 +2,17 @@
 
 const assert = require('assert');
 
-const { Bento } = require('../../../build');
+const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
 describe('#resolveDependencies', function () {
+	const getCleanComponentManager = () => {
+		const manager = new ComponentManager({});
+
+		return manager;
+	};
+
 	it('should resolve any component references down to their name', function () {
-		const bento = new Bento();
+		const bento = getCleanComponentManager();
 
 		assert.deepStrictEqual(
 			bento.resolveDependencies([{ name: 'TestComponent' }]),

@@ -110,6 +110,8 @@ export class ComponentAPI {
 			};
 		}
 
+		if (!definition.type) definition.type = VariableDefinitionType.STRING;
+
 		// validate definition
 		if (!definition.name) throw new IllegalArgumentError('VariableDefinition must define a name');
 		const value = this.getValue(definition);
@@ -175,7 +177,7 @@ export class ComponentAPI {
 			case VariableDefinitionType.NUMBER:
 			case VariableDefinitionType.STRING:
 			case VariableDefinitionType.BOOLEAN: {
-				if (typeof value !== definition.type) throw new IllegalStateError('Found value does not match definition type');
+				if (value !== null && typeof value !== definition.type) throw new IllegalStateError('Found value does not match definition type');
 				break;
 			}
 

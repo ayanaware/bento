@@ -58,6 +58,10 @@ export class Bento {
 		return this.plugins.removePlugin(name);
 	}
 
+	public async addPlugins(plugins: Plugin[]) {
+		return this.plugins.addPlugins(plugins);
+	}
+
 	// PROPERTIES Proxy
 
 	public hasProperty(name: string) {

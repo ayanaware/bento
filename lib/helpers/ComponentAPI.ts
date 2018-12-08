@@ -140,6 +140,7 @@ export class ComponentAPI {
 	 */
 	public injectVariable(definition: VariableDefinition) {
 		if (!definition.name) throw new IllegalArgumentError('A VariableDefinition must define a name');
+		if (!definition.type) definition.type = VariableDefinitionType.STRING;
 
 		// if variable not in bento, and no default defined. Throw an error
 		if (!this.bento.variables.hasVariable(definition.name) && definition.default === undefined) {
@@ -173,6 +174,7 @@ export class ComponentAPI {
 		if (value === undefined) return value;
 
 		// Verifies that value matches definition type
+		if (!definition.type) definition.type = VariableDefinitionType.STRING;
 		switch (definition.type) {
 			case VariableDefinitionType.NUMBER:
 			case VariableDefinitionType.STRING:

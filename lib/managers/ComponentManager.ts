@@ -296,7 +296,7 @@ export class ComponentManager {
 		// Call onLoad if present
 		if (component.onLoad) {
 			try {
-				await component.onLoad();
+				await component.onLoad(this.bento);
 			} catch (e) {
 				throw new ComponentRegistrationError(component, `Component "${component.name}" failed loading`).setCause(e);
 			}

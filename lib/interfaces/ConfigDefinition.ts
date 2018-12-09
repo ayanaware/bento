@@ -1,6 +1,11 @@
 'use strict';
 
-import { ConfigDefinitionType } from './ConfigDefinitionType';
+export enum ConfigDefinitionType {
+	STRING = 'string',
+	NUMBER = 'number',
+	BOOLEAN = 'boolean',
+	LIST = 'list',
+}
 
 export interface ConfigDefinition {
 	type: ConfigDefinitionType;

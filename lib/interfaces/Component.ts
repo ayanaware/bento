@@ -1,5 +1,6 @@
 'use strict';
 
+import { Bento } from '../Bento';
 import { ComponentAPI } from '../helpers';
 import { VariableDefinition } from './VariableDefinition';
 
@@ -14,7 +15,7 @@ export interface Component {
 	variables?: VariableDefinition[];
 
 	// General lifecycle events
-	onLoad?(): Promise<void>;
+	onLoad?(bento?: Bento): Promise<void>;
 	onUnload?(): Promise<void>;
 
 	// Parent lifecycle events

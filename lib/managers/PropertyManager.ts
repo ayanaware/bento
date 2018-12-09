@@ -9,9 +9,9 @@ export interface SetProperties {
 }
 
 export class PropertyManager {
-	private bento: Bento;
+	private readonly bento: Bento;
 
-	private properties: Map<string, any> = new Map();
+	private readonly properties: Map<string, any> = new Map();
 
 	constructor(bento: Bento) {
 		this.bento = bento;

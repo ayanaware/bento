@@ -8,7 +8,12 @@ import { Logger } from '@ayana/logger';
 import { Bento } from '../Bento';
 
 import { SubscriptionType } from '../constants';
-import { Component, VariableDefinition, VariableDefinitionType, VariableDefinitionValidator, Plugin } from '../interfaces';
+import {
+	Component,
+	Plugin,
+	VariableDefinition,
+	VariableDefinitionType
+} from '../interfaces';
 
 /**
  * Logger instance for the ComponentAPI class

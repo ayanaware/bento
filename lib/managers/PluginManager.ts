@@ -8,11 +8,10 @@ import { Plugin } from '../interfaces';
 import { PluginRegistrationError } from '../errors';
 
 export class PluginManager {
-	private bento: Bento;
+	private readonly bento: Bento;
 
-	private plugins: Map<string, Plugin> = new Map();
-
-	private constructors: Map<any, string> = new Map();
+	private readonly plugins: Map<string, Plugin> = new Map();
+	private readonly constructors: Map<any, string> = new Map();
 
 	constructor(bento: Bento) {
 		this.bento = bento;
@@ -119,7 +118,7 @@ export class PluginManager {
 
 		// call onLoad
 		if (plugin.onLoad) {
-			await plugin.onLoad();
+			await plugin.onLoad(this.bento);
 		}
 
 		this.plugins.set(plugin.name, plugin);

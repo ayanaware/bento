@@ -2,6 +2,7 @@
 
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 import { Bento } from '../../Bento';
+import { VariableSource, VariableSourceType } from '../../interfaces';
 
 export interface ConfigLoaderDefinition {
 	name: string;
@@ -74,7 +75,24 @@ export class ConfigLoader {
 
 		for (const definition of this.definitions.values()) {
 			const value = await this.getValue(definition);
-			this.bento.setVariable(definition.name, value);
+			this.bento.variables.setVariable(definition.name, value);
+
+			// set source
+			const sources: VariableSource[] = [];
+			if (definition.value !== undefined) {
+				sources.push({
+					type: VariableSourceType.INLINE,
+				});
+			}
+
+			if (definition.env != null) {
+				sources.push({
+					type: VariableSourceType.ENV,
+					source: definition.env,
+				});
+			}
+
+			this.bento.variables.setSources(definition.name, sources);
 		}
 	}
 

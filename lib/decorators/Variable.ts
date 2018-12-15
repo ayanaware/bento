@@ -4,7 +4,7 @@ import { Symbols } from '../constants/internal';
 import { VariableDefinition } from '../interfaces';
 import { DecoratorVariable } from '../interfaces/internal';
 
-export function Variable(definition: VariableDefinition): PropertyDecorator {
+export function Variable(definition: VariableDefinition & { property?: never }): PropertyDecorator {
 	return function (target: any, propertyKey: string) {
 		if(target.prototype !== undefined) {
 			throw new Error(`The variable decorator can only be applied to non-static class properties ("${propertyKey}" in class "${target.name}")`);

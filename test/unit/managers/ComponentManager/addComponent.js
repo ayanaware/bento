@@ -10,7 +10,7 @@ describe('#addComponent', function () {
 		const manager = new ComponentManager({});
 
 		manager.prepareComponent = sinon.fake.resolves();
-		manager.getMissingDependencies = sinon.fake.returns([]);
+		manager.dependencies.getMissingDependencies = sinon.fake.returns([]);
 		manager.loadComponent = sinon.fake.resolves();
 		manager.handlePendingComponents = sinon.fake.resolves();
 
@@ -117,7 +117,7 @@ describe('#addComponent', function () {
 	it('should add the component to pending if dependencies are missing', async function () {
 		const manager = getCleanComponentManager();
 
-		manager.getMissingDependencies = sinon.fake.returns(['TestDependency']);
+		manager.dependencies.getMissingDependencies = sinon.fake.returns(['TestDependency']);
 
 		await manager.addComponent({ name: 'TestPrimary' });
 

@@ -3,25 +3,37 @@
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 
 import { Bento } from '../Bento';
-import { Symbols } from '../constants/internal';
-import { ComponentAPI, ComponentEvents } from '../helpers';
-import { Component } from '../interfaces';
-import { DecoratorSubscription, DecoratorVariable } from '../interfaces/internal';
-
 import { ComponentRegistrationError } from '../errors';
+import { ComponentAPI, ComponentEvents } from '../helpers';
+import { Decorators } from '../helpers/internal';
+import { Component } from '../interfaces';
+
+import { DependencyManager } from './DependencyManager';
 
 export class ComponentManager {
-	private bento: Bento;
+
+	private readonly bento: Bento;
+
+	private readonly dependencies: DependencyManager = new DependencyManager();
 
 	private readonly components: Map<string, Component> = new Map();
 	private readonly pending: Map<string, Component> = new Map();
-
-	private readonly constructors: Map<any, string> = new Map();
 
 	private readonly events: Map<string, ComponentEvents> = new Map();
 
 	constructor(bento: Bento) {
 		this.bento = bento;
+	}
+
+	/**
+	 * Delegate for the resolveName function
+	 *
+	 * @param reference Component instance, name or reference
+	 *
+	 * @see DependencyManager#resolveName
+	 */
+	public resolveName(reference: Component | string | any) {
+		return this.dependencies.resolveName(reference);
 	}
 
 	/**
@@ -65,24 +77,6 @@ export class ComponentManager {
 	}
 
 	/**
-	 * @param reference - Component name or reference
-	 */
-	public resolveName(reference: Component | string) {
-		let name = null;
-		if (typeof reference === 'string') name = reference;
-		else if (reference != null) {
-			// check if we have the constructor
-			if (this.constructors.has(reference)) name = this.constructors.get(reference);
-
-			// check if .name exists on the object
-			else if (Object.prototype.hasOwnProperty.call(reference, 'name')) name = reference.name;
-		}
-
-		if (name == null) throw new Error('Could not determine component name');
-		return name;
-	}
-
-	/**
 	 * Add a Component to Bento
 	 * @param component - Component
 	 */
@@ -102,7 +96,7 @@ export class ComponentManager {
 		this.prepareComponent(component);
 
 		// determine dependencies
-		const missing = this.getMissingDependencies(component.dependencies);
+		const missing = this.dependencies.getMissingDependencies(component.dependencies, this.components);
 		if (missing.length === 0) {
 			// All dependencies are already loaded, go ahead and load the component
 			await this.loadComponent(component);
@@ -166,44 +160,12 @@ export class ComponentManager {
 		}
 
 		// remove componentConstructor
-		if (component.constructor && this.constructors.has(component.constructor)) {
-			this.constructors.delete(component.constructor);
-		}
+		this.dependencies.removeReference(component);
 
 		// delete component
 		if (this.components.has(component.name)) {
 			this.components.delete(component.name);
 		}
-	}
-
-	private resolveDependencies(dependencies: Array<Component | string>) {
-		if (dependencies != null && !Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
-		else if (dependencies == null) dependencies = [];
-
-		const resolved = [];
-		for (const dependency of dependencies) {
-			try {
-				const name = this.resolveName(dependency);
-				resolved.push(name);
-			} catch (e) {
-				throw new IllegalStateError('Unable to resolve dependency').setCause(e);
-			}
-		}
-
-		return resolved;
-	}
-
-	private getMissingDependencies(dependencies: Array<Component | string>) {
-		if (!Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
-
-		// run dependencies through the resolver
-		dependencies = this.resolveDependencies(dependencies);
-
-		return (dependencies as string[]).reduce((a, dependency) => {
-			if (!this.components.has(dependency)) a.push(dependency);
-
-			return a;
-		}, []);
 	}
 
 	/**
@@ -220,9 +182,7 @@ export class ComponentManager {
 		});
 
 		// if component has constructor lets track it
-		if (component.constructor) {
-			this.constructors.set(component.constructor, component.name);
-		}
+		this.dependencies.addReference(component);
 
 		// Create component events if it does not already exist
 		if (!this.events.has(component.name)) {
@@ -239,12 +199,15 @@ export class ComponentManager {
 			component.dependencies.push(component.parent);
 		}
 
-		// run dependencies through the resolver
+		// Add all dependencies that come from decorator injections
+		Decorators.getInjections(component).forEach(i => component.dependencies.push(i.component));
+
+		// Run dependencies through the resolver
 		Object.defineProperty(component, 'dependencies', {
 			configurable: true,
 			writable: false,
 			enumerable: true,
-			value: this.resolveDependencies(component.dependencies),
+			value: this.dependencies.resolveDependencies(component.dependencies),
 		});
 
 		// Create components' api
@@ -259,12 +222,7 @@ export class ComponentManager {
 		});
 
 		// Add property descriptors for all the decorated variables
-		const variables: DecoratorVariable[] = (component.constructor as any)[Symbols.variables];
-		if (Array.isArray(variables)) {
-			for (const variable of variables) {
-				component.api.injectVariable(Object.assign({}, variable.definition, { property: variable.propertyKey }));
-			}
-		}
+		Decorators.handleVariables(component, api);
 	}
 
 	private async loadComponent(component: Component) {
@@ -286,13 +244,11 @@ export class ComponentManager {
 			});
 		}
 
-		// Subscribe to all the events from the decorator subscriptions
-		const subscriptions: DecoratorSubscription[] = (component.constructor as any)[Symbols.subscriptions];
-		if (Array.isArray(subscriptions)) {
-			for (const subscription of subscriptions) {
-				component.api.subscribe(subscription.type, subscription.namespace, subscription.name, subscription.handler, component);
-			}
-		}
+		// Inject all components from decorator subscriptions
+		Decorators.handleInjections(component, component.api);
+
+		// Subscribe to all events from decorator subscriptions
+		Decorators.handleSubscriptions(component, component.api);
 
 		// Call onLoad if present
 		if (component.onLoad) {
@@ -321,7 +277,7 @@ export class ComponentManager {
 		let loaded = 0;
 
 		for (const component of this.pending.values()) {
-			const missing = await this.getMissingDependencies(component.dependencies);
+			const missing = await this.dependencies.getMissingDependencies(component.dependencies, this.components);
 			if (missing.length === 0) {
 				this.pending.delete(component.name);
 

@@ -5,10 +5,13 @@ const sinon = require('sinon');
 
 const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
-describe.skip('#removeComponent', function () {
+describe('#removeComponent', function () {
 	const getCleanComponentManager = () => {
 		const manager = new ComponentManager({});
 
+		manager.references = {};
+
+		manager.references.removeReference = sinon.fake();
 		manager.getComponentChildren = sinon.fake.returns([]);
 
 		return manager;

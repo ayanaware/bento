@@ -3,40 +3,39 @@
 import { IllegalArgumentError } from '@ayana/errors';
 
 import { Bento } from '../Bento';
+import { PluginRegistrationError } from '../errors';
 import { Plugin } from '../interfaces';
 
-import { PluginRegistrationError } from '../errors';
+import { ReferenceManager } from './ReferenceManager';
 
 export class PluginManager {
+
 	private readonly bento: Bento;
 
+	private readonly references: ReferenceManager<Plugin> = new ReferenceManager();
+
 	private readonly plugins: Map<string, Plugin> = new Map();
-	private readonly constructors: Map<any, string> = new Map();
 
 	constructor(bento: Bento) {
 		this.bento = bento;
 	}
 
-	public getPlugin(reference: Plugin | string) {
+	/**
+	 * Delegate for the resolveName function
+	 *
+	 * @param reference Plugin instance, name or reference
+	 *
+	 * @see ReferenceManager#resolveName
+	 */
+	public resolveName(reference: Plugin | string | any) {
+		return this.references.resolveName(reference);
+	}
+
+	public getPlugin(reference: Plugin | string | any) {
 		const name = this.resolveName(reference);
 		if (!this.plugins.has(name)) return null;
 
 		return this.plugins.get(name);
-	}
-
-	public resolveName(reference: Plugin | string) {
-		let name = null;
-		if (typeof reference === 'string') name = reference;
-		else if (reference != null) {
-			// check if we have the constructor
-			if (this.constructors.has(reference)) name = this.constructors.get(reference);
-
-			// check if .name exists on the object
-			else if (Object.prototype.hasOwnProperty.call(reference, 'name')) name = reference.name;
-		}
-
-		if (name == null) throw new Error('Could not determine component name');
-		return name;
 	}
 
 	/**
@@ -74,9 +73,7 @@ export class PluginManager {
 			}
 		}
 
-		if (plugin.constructor && this.constructors.has(plugin.constructor)) {
-			this.constructors.delete(plugin.constructor);
-		}
+		this.references.removeReference(plugin);
 	}
 
 	/**
@@ -104,9 +101,7 @@ export class PluginManager {
 		});
 
 		// track any constructors
-		if (plugin.constructor) {
-			this.constructors.set(plugin.constructor, plugin.name);
-		}
+		this.references.addReference(plugin);
 
 		// Define bento instance
 		Object.defineProperty(plugin, 'bento', {

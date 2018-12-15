@@ -1,6 +1,6 @@
 'use strict';
 
-import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
+import { IllegalArgumentError, IllegalStateError, ProcessingError } from '@ayana/errors';
 
 import { Bento } from '../Bento';
 import { ComponentRegistrationError } from '../errors';
@@ -8,13 +8,13 @@ import { ComponentAPI, ComponentEvents } from '../helpers';
 import { Decorators } from '../helpers/internal';
 import { Component } from '../interfaces';
 
-import { DependencyManager } from './DependencyManager';
+import { ReferenceManager } from './ReferenceManager';
 
 export class ComponentManager {
 
 	private readonly bento: Bento;
 
-	private readonly dependencies: DependencyManager = new DependencyManager();
+	private readonly references: ReferenceManager<Component> = new ReferenceManager();
 
 	private readonly components: Map<string, Component> = new Map();
 	private readonly pending: Map<string, Component> = new Map();
@@ -30,10 +30,10 @@ export class ComponentManager {
 	 *
 	 * @param reference Component instance, name or reference
 	 *
-	 * @see DependencyManager#resolveName
+	 * @see ReferenceManager#resolveName
 	 */
 	public resolveName(reference: Component | string | any) {
-		return this.dependencies.resolveName(reference);
+		return this.references.resolveName(reference);
 	}
 
 	/**
@@ -96,7 +96,7 @@ export class ComponentManager {
 		this.prepareComponent(component);
 
 		// determine dependencies
-		const missing = this.dependencies.getMissingDependencies(component.dependencies, this.components);
+		const missing = this.getMissingDependencies(component.dependencies);
 		if (missing.length === 0) {
 			// All dependencies are already loaded, go ahead and load the component
 			await this.loadComponent(component);
@@ -160,7 +160,7 @@ export class ComponentManager {
 		}
 
 		// remove componentConstructor
-		this.dependencies.removeReference(component);
+		this.references.removeReference(component);
 
 		// delete component
 		if (this.components.has(component.name)) {
@@ -182,7 +182,7 @@ export class ComponentManager {
 		});
 
 		// if component has constructor lets track it
-		this.dependencies.addReference(component);
+		this.references.addReference(component);
 
 		// Create component events if it does not already exist
 		if (!this.events.has(component.name)) {
@@ -207,7 +207,7 @@ export class ComponentManager {
 			configurable: true,
 			writable: false,
 			enumerable: true,
-			value: this.dependencies.resolveDependencies(component.dependencies),
+			value: this.resolveDependencies(component.dependencies),
 		});
 
 		// Create components' api
@@ -277,7 +277,7 @@ export class ComponentManager {
 		let loaded = 0;
 
 		for (const component of this.pending.values()) {
-			const missing = await this.dependencies.getMissingDependencies(component.dependencies, this.components);
+			const missing = await this.getMissingDependencies(component.dependencies);
 			if (missing.length === 0) {
 				this.pending.delete(component.name);
 
@@ -288,4 +288,51 @@ export class ComponentManager {
 
 		if (loaded > 0) await this.handlePendingComponents();
 	}
+
+	/**
+	 * Resolves an array of components to their name.
+	 *
+	 * @param dependencies The array of dependencies to be resolved
+	 *
+	 * @returns An array with names of the given components
+	 *
+	 * @see ReferenceManager#resolveName
+	 */
+	private resolveDependencies(dependencies: Array<Component | string | any>): string[] {
+		if (dependencies != null && !Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
+		else if (dependencies == null) dependencies = [];
+
+		const resolved: string[] = [];
+		for (const dependency of dependencies) {
+			try {
+				const name = this.resolveName(dependency);
+				resolved.push(name);
+			} catch (e) {
+				throw new ProcessingError('Failed to resolve dependency').setCause(e);
+			}
+		}
+
+		return resolved;
+	}
+
+	/**
+	 * Returns an array of dependencies requested but not loaded yet.
+	 *
+	 * @param dependencies The requested dependencies
+	 *
+	 * @returns An array of dependencies requested but not loaded
+	 */
+	private getMissingDependencies(dependencies: Array<Component | string | any>): string[] {
+		if (!Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
+
+		// Run dependencies through the resolver
+		dependencies = this.resolveDependencies(dependencies);
+
+		return (dependencies as string[]).reduce((a, dependency) => {
+			if (!this.components.has(dependency)) a.push(dependency);
+
+			return a;
+		}, []);
+	}
+
 }

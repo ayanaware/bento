@@ -1,70 +1,72 @@
 'use strict';
 
 const assert = require('assert');
+const sinon = require('sinon');
 
-const { Bento } = require('../../../../build');
+const { PluginManager } = require('../../../../build/managers/PluginManager');
 
-describe('#addPlugin', async function () {
+describe('#addPlugin', function () {
+	const getClean = () => {
+		const tested = new PluginManager({});
+
+		tested.references = {};
+
+		tested.loadPlugin = sinon.fake.resolves();
+
+		return tested;
+	};
+
 	it('should throw an error if plugin is not an object', async function () {
-		const bento = new Bento();
+		const tested = getClean();
 
 		await assert.rejects(
-			async () => bento.addPlugin(null),
+			async () => tested.addPlugin(null),
 			{ message: 'Plugin must be a object' },
 		);
 	});
 
 	it('should throw an error if plugin name is not a string', async function () {
-		const bento = new Bento();
+		const tested = getClean();
 
 		await assert.rejects(
-			async () => bento.addPlugin({ name: null }),
+			async () => tested.addPlugin({ name: null }),
 			{ message: 'Plugin name must be a string' },
 		);
 	});
 
 	it('should throw an error if plugin does not specify a name', async function () {
-		const bento = new Bento();
+		const tested = getClean();
 
 		await assert.rejects(
-			async () => bento.addPlugin({ name: '' }),
+			async () => tested.addPlugin({ name: '' }),
 			{ message: 'Plugin must specify a name' },
 		);
 	});
 
 	it('should throw an error if a plugin with the same name already exists', async function () {
-		const bento = new Bento();
+		const tested = getClean();
 
-		bento.plugins.set('TestPlugin', {});
+		tested.plugins.set('TestPlugin', {});
 
 		await assert.rejects(
-			async () => bento.addPlugin({ name: 'TestPlugin' }),
+			async () => tested.addPlugin({ name: 'TestPlugin' }),
 			{ message: 'Plugin names must be unique' },
 		);
 	});
 
-	it('should attempt to register the plugin', async function () {
-		const bento = new Bento();
+	it('should attempt to load the plugin', async function () {
+		const tested = getClean();
 
-		let attempted = false;
-		bento.registerPlugin = async () => {
-			attempted = true;
-		};
+		await tested.addPlugin({ name: 'TestPlugin' });
 
-		await bento.addPlugin({ name: 'TestPlugin' });
-
-		assert.strictEqual(attempted, true, 'Plugin registration was not attempted');
+		sinon.assert.calledOnce(tested.loadPlugin);
 	});
 
 	it('should return the plugin name', async function () {
-		const bento = new Bento();
-
-		bento.registerPlugin = async function () {
-			// Disabled for this test
-		};
+		const tested = getClean();
 
 		assert.strictEqual(
-			await bento.addPlugin({ name: 'TestPlugin' }),
+			await tested.addPlugin({ name: 'TestPlugin' }),
 			'TestPlugin',
 		);
 	});

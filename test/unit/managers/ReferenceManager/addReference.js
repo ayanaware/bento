@@ -2,11 +2,11 @@
 
 const expect = require('unexpected');
 
-const { DependencyManager } = require('../../../../build/managers/DependencyManager');
+const { ReferenceManager } = require('../../../../build/managers/ReferenceManager');
 
 describe('#addReference', function () {
 	const getClean = () => {
-		const tested = new DependencyManager();
+		const tested = new ReferenceManager();
 
 		return tested;
 	};

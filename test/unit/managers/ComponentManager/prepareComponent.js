@@ -1,12 +1,18 @@
 'use strict';
 
 const assert = require('assert');
+const sinon = require('sinon');
 
 const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
-describe.skip('#prepareComponent', function () {
+describe('#prepareComponent', function () {
 	const getCleanComponentManager = () => {
 		const manager = new ComponentManager({});
+
+		manager.references = {};
+
+		manager.references.addReference = sinon.fake();
+		manager.resolveDependencies = sinon.fake.returns([]);
 
 		return manager;
 	};

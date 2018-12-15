@@ -3,11 +3,13 @@
 const expect = require('unexpected');
 const sinon = require('sinon');
 
-const { DependencyManager } = require('../../../../build/managers/DependencyManager');
+const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
 describe('#resolveDependencies', function () {
 	const getClean = () => {
-		const tested = new DependencyManager();
+		const tested = new ComponentManager({});
+
+		tested.references = {};
 
 		tested.resolveName = sinon.fake();
 

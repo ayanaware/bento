@@ -3,11 +3,13 @@
 const expect = require('unexpected');
 const sinon = require('sinon');
 
-const { DependencyManager } = require('../../../../build/managers/DependencyManager');
+const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
 describe('#getMissingDependencies', function () {
 	const getClean = () => {
-		const tested = new DependencyManager();
+		const tested = new ComponentManager({});
+
+		tested.references = {};
 
 		tested.resolveDependencies = sinon.fake.returns([]);
 
@@ -24,8 +26,6 @@ describe('#getMissingDependencies', function () {
 
 	it('should attempt to resolve the dependencies', function () {
 		const tested = getClean();
-
-		tested.resolveDependencies = sinon.fake.returns([]);
 
 		tested.getMissingDependencies([]);
 
@@ -44,13 +44,12 @@ describe('#getMissingDependencies', function () {
 	it('should return a list of components not currently loaded, requested by provided component', function () {
 		const tested = getClean();
 
-		const loadedComponents = new Map();
-		loadedComponents.set('A', {});
-		loadedComponents.set('B', {});
+		tested.components.set('A', {});
+		tested.components.set('B', {});
 
 		tested.resolveDependencies = sinon.fake.returns(['A', 'B', 'C', 'D']);
 
-		const missing = tested.getMissingDependencies([], loadedComponents); // Dependencies are returned by resolveDependencies
+		const missing = tested.getMissingDependencies([]); // Dependencies are returned by resolveDependencies
 
 		expect(
 			missing,

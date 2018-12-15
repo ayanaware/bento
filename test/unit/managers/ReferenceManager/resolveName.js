@@ -2,11 +2,11 @@
 
 const expect = require('unexpected');
 
-const { DependencyManager } = require('../../../../build/managers/DependencyManager');
+const { ReferenceManager } = require('../../../../build/managers/ReferenceManager');
 
 describe('#resolveName', function () {
 	const getClean = () => {
-		const tested = new DependencyManager();
+		const tested = new ReferenceManager();
 
 		return tested;
 	};
@@ -59,7 +59,7 @@ describe('#resolveName', function () {
 		expect(
 			() => tested.resolveName({}),
 			'to throw',
-			'Given component or reference is invalid, not registered or does not have a name'
+			'Given entity or reference is invalid, not registered or does not have a name'
 		);
 	});
 
@@ -69,13 +69,13 @@ describe('#resolveName', function () {
 		expect(
 			() => tested.resolveName(null),
 			'to throw',
-			'Given component or reference is invalid, not registered or does not have a name'
+			'Given entity or reference is invalid, not registered or does not have a name'
 		);
 
 		expect(
 			() => tested.resolveName(undefined),
 			'to throw',
-			'Given component or reference is invalid, not registered or does not have a name'
+			'Given entity or reference is invalid, not registered or does not have a name'
 		);
 	});
 });

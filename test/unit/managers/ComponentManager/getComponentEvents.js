@@ -9,6 +9,8 @@ describe('#getComponentEvents', function () {
 	const getCleanComponentManager = () => {
 		const manager = new ComponentManager({});
 
+		manager.references = {};
+
 		manager.resolveName = sinon.fake();
 
 		return manager;

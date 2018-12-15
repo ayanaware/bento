@@ -1,25 +1,35 @@
 'use strict';
 
 const assert = require('assert');
+const sinon = require('sinon');
 
-const { Bento } = require('../../../../build');
+const { PluginManager } = require('../../../../build/managers/PluginManager');
 
-describe('#registerPlugin', async function () {
+describe('#loadPlugin', function () {
+	const getClean = () => {
+		const tested = new PluginManager({});
+
+		tested.references = {};
+		tested.references.addReference = sinon.fake();
+
+		return tested;
+	};
+
 	it('should define bento property on plugin', async function () {
-		const bento = new Bento();
+		const tested = getClean();
 
 		const testPlugin = { name: 'TestPlugin' };
 
-		await bento.registerPlugin(testPlugin);
+		await tested.loadPlugin(testPlugin);
 
 		assert.strictEqual(Object.prototype.hasOwnProperty.call(testPlugin, 'bento'), true, 'Bento property was not defined');
 	});
 
 	it('should attempt to call plugin onLoad method', async function () {
-		const bento = new Bento();
+		const tested = getClean();
 
 		let attempted = false;
-		await bento.addPlugin({
+		await tested.addPlugin({
 			name: 'TestPlugin',
 			async onLoad() {
 				attempted = true;

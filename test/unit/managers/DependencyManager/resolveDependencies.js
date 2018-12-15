@@ -1,22 +1,75 @@
 'use strict';
 
-const assert = require('assert');
+const expect = require('unexpected');
+const sinon = require('sinon');
 
-const { ComponentManager } = require('../../../../build/managers/ComponentManager');
+const { DependencyManager } = require('../../../../build/managers/DependencyManager');
 
 describe('#resolveDependencies', function () {
-	const getCleanComponentManager = () => {
-		const manager = new ComponentManager({});
+	const getClean = () => {
+		const tested = new DependencyManager();
 
-		return manager;
+		tested.resolveName = sinon.fake();
+
+		return tested;
 	};
 
-	it('should resolve any component references down to their name', function () {
-		const bento = getCleanComponentManager();
+	it('should throw an error if dependencies is set but not an array', function () {
+		const tested = getClean();
 
-		assert.deepStrictEqual(
-			bento.resolveDependencies([{ name: 'TestComponent' }]),
-			['TestComponent'], 'Failed to resolve object component name'
+		expect(
+			() => tested.resolveDependencies(''),
+			'to throw',
+			'Dependencies is not an array'
+		);
+	});
+
+	it('should accept null and undefined, and return an empty array', function () {
+		const tested = getClean();
+
+		expect(
+			tested.resolveDependencies(null),
+			'to be an array'
+		);
+
+		expect(
+			tested.resolveDependencies(undefined),
+			'to be an array'
+		);
+	});
+
+	it('should call the resolve function for each array item and return an array of the return values', function () {
+		const tested = getClean();
+
+		tested.resolveName = sinon.fake.returns('TestComponent');
+
+		const result = tested.resolveDependencies(['A', {}, function () {}]);
+
+		sinon.assert.calledThrice(tested.resolveName);
+
+		expect(
+			result,
+			'to have length',
+			3
+		);
+
+		expect(
+			result,
+			'to have items satisfying',
+			'to be',
+			'TestComponent'
+		);
+	});
+
+	it('should throw an error if a resolve fails', function () {
+		const tested = getClean();
+
+		tested.resolveName = sinon.fake.throws(new Error('Oops'));
+
+		expect(
+			() => tested.resolveDependencies(['A']),
+			'to throw',
+			'Failed to resolve dependency',
 		);
 	});
 });

@@ -19,7 +19,7 @@ export class DependencyManager {
 	 */
 	public addReference(component: Component) {
 		// TODO Use Symbols.runtimeIdentifier so when a component is reloaded old references won't break
-		if (component.constructor != null) {
+		if (component.constructor != null && component.constructor !== Object) {
 			this.references.set(component.constructor, component.name);
 		}
 	}
@@ -32,9 +32,7 @@ export class DependencyManager {
 	 */
 	public removeReference(component: Component) {
 		// TODO Use Symbols.runtimeIdentifier so when a component is reloaded old references won't break
-		if (component.constructor != null) {
-			this.references.delete(component.constructor);
-		}
+		this.references.delete(component.constructor);
 	}
 
 	/**

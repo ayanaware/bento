@@ -4,7 +4,7 @@ const assert = require('assert');
 
 const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
-describe('#loadComponent', function () {
+describe.skip('#loadComponent', function () {
 	const getCleanComponentManager = () => {
 		const manager = new ComponentManager({});
 

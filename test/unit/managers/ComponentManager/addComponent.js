@@ -10,6 +10,7 @@ describe('#addComponent', function () {
 		const manager = new ComponentManager({});
 
 		manager.prepareComponent = sinon.fake.resolves();
+		manager.dependencies = {};
 		manager.dependencies.getMissingDependencies = sinon.fake.returns([]);
 		manager.loadComponent = sinon.fake.resolves();
 		manager.handlePendingComponents = sinon.fake.resolves();

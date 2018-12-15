@@ -1,23 +1,42 @@
 'use strict';
 
 const expect = require('unexpected');
-const sinon = require('sinon');
 
-const { ComponentManager } = require('../../../../build/managers/ComponentManager');
+const { DependencyManager } = require('../../../../build/managers/DependencyManager');
 
-describe('#resolveComponentName', function () {
-	const getCleanComponentManager = () => {
-		const manager = new ComponentManager({});
+describe('#resolveName', function () {
+	const getClean = () => {
+		const tested = new DependencyManager();
 
-		return manager;
+		return tested;
 	};
 
 	it('should return the given string', function () {
+		const tested = getClean();
 
+		expect(
+			tested.resolveName('TestComponent'),
+			'to be',
+			'TestComponent'
+		);
 	});
 
-	it('should return resolved name of passed constructor', function () {
-		const manager = getCleanComponentManager();
+	it('should return the resolved name of the passed constructor', function () {
+		const tested = getClean();
+
+		class Test {}
+
+		tested.references.set(Test, 'TestComponent');
+
+		expect(
+			tested.resolveName(Test),
+			'to be',
+			'TestComponent'
+		);
+	});
+
+	it('should return the name of a passed component', function () {
+		const tested = getClean();
 
 		class Test {
 			constructor() {
@@ -25,28 +44,38 @@ describe('#resolveComponentName', function () {
 			}
 		}
 
-		const instance = new Test();
-
-		manager.constructors.set(instance.constructor, 'TestComponent');
+		const test = new Test();
 
 		expect(
-			manager.resolveName(instance.constructor),
+			tested.resolveName(test),
 			'to be',
 			'TestComponent'
 		);
 	});
 
-	it('should use the name property on the component if no constructor is registered', function () {
-
-	});
-
 	it('should throw an error when no name could be determined', function () {
-		const manager = getCleanComponentManager();
+		const tested = getClean();
 
 		expect(
-			() => manager.resolveName(null),
+			() => tested.resolveName({}),
 			'to throw',
-			'Could not determine component name'
+			'Given component or reference is invalid, not registered or does not have a name'
+		);
+	});
+
+	it('should throw an error when null or undefined is passed', function () {
+		const tested = getClean();
+
+		expect(
+			() => tested.resolveName(null),
+			'to throw',
+			'Given component or reference is invalid, not registered or does not have a name'
+		);
+
+		expect(
+			() => tested.resolveName(undefined),
+			'to throw',
+			'Given component or reference is invalid, not registered or does not have a name'
 		);
 	});
 });

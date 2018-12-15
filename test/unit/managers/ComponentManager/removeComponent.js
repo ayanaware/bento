@@ -5,7 +5,7 @@ const sinon = require('sinon');
 
 const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
-describe('#removeComponent', function () {
+describe.skip('#removeComponent', function () {
 	const getCleanComponentManager = () => {
 		const manager = new ComponentManager({});
 

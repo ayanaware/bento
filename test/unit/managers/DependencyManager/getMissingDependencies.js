@@ -3,53 +3,54 @@
 const expect = require('unexpected');
 const sinon = require('sinon');
 
-const { ComponentManager } = require('../../../../build/managers/ComponentManager');
+const { DependencyManager } = require('../../../../build/managers/DependencyManager');
 
 describe('#getMissingDependencies', function () {
-	const getCleanComponentManager = () => {
-		const manager = new ComponentManager({});
+	const getClean = () => {
+		const tested = new DependencyManager();
 
-		manager.resolveDependencies = sinon.fake.returns([]);
+		tested.resolveDependencies = sinon.fake.returns([]);
 
-		return manager;
+		return tested;
 	};
 
 	it('should throw an error if no array is passed', function () {
 		expect(
-			() => getCleanComponentManager().getMissingDependencies('Totally an array'),
+			() => getClean().getMissingDependencies('Totally an array'),
 			'to throw',
 			'Dependencies is not an array',
 		);
 	});
 
 	it('should attempt to resolve the dependencies', function () {
-		const manager = getCleanComponentManager();
+		const tested = getClean();
 
-		manager.resolveDependencies = sinon.fake.returns([]);
+		tested.resolveDependencies = sinon.fake.returns([]);
 
-		manager.getMissingDependencies([]);
+		tested.getMissingDependencies([]);
 
-		sinon.assert.calledOnce(manager.resolveDependencies);
+		sinon.assert.calledOnce(tested.resolveDependencies);
 	});
 
 	it('should return an array', function () {
-		const manager = getCleanComponentManager();
+		const tested = getClean();
 
 		expect(
-			manager.getMissingDependencies([]),
+			tested.getMissingDependencies([]),
 			'to be an array'
 		);
 	});
 
 	it('should return a list of components not currently loaded, requested by provided component', function () {
-		const manager = getCleanComponentManager();
+		const tested = getClean();
 
-		manager.components.set('A', {});
-		manager.components.set('B', {});
+		const loadedComponents = new Map();
+		loadedComponents.set('A', {});
+		loadedComponents.set('B', {});
 
-		manager.resolveDependencies = sinon.fake.returns(['A', 'B', 'C', 'D']);
+		tested.resolveDependencies = sinon.fake.returns(['A', 'B', 'C', 'D']);
 
-		const missing = manager.getMissingDependencies([]); // Dependencies are returned by resolveDependencies
+		const missing = tested.getMissingDependencies([], loadedComponents); // Dependencies are returned by resolveDependencies
 
 		expect(
 			missing,

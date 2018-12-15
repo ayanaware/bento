@@ -5,11 +5,11 @@ import * as crypto from 'crypto';
 import { Component, Plugin } from './interfaces';
 
 import { ComponentManager, PluginManager, PropertyManager, VariableManager } from './managers';
-import { SetProperties } from './managers';
 
 export interface BentoOptions {}
 
 export class Bento {
+
 	public readonly components: ComponentManager = new ComponentManager(this);
 
 	public readonly plugins: PluginManager = new PluginManager(this);
@@ -76,7 +76,7 @@ export class Bento {
 		return this.properties.getProperty(name);
 	}
 
-	public setProperties(properties: SetProperties) {
+	public setProperties(properties: { [key: string]: any }) {
 		return this.properties.setProperties(properties);
 	}
 
@@ -97,4 +97,5 @@ export class Bento {
 	public deleteVariable(name: string) {
 		return this.variables.deleteVariable(name);
 	}
+
 }

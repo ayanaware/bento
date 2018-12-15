@@ -1,23 +1,35 @@
 'use strict';
 
-const assert = require('assert');
+const expect = require('unexpected');
 
-const { Bento } = require('../../../../build');
+const { PropertyManager } = require('../../../../build/managers/PropertyManager');
 
 describe('#getProperty', function () {
-	it('should get a property', function () {
-		const bento = new Bento();
+	const getClean = () => {
+		const tested = new PropertyManager({});
 
-		bento.properties.set('test', 'stuff');
+		return tested;
+	};
 
-		assert.strictEqual(bento.getProperty('test'), 'stuff');
+	it('should throw an error when property name is not a string', function () {
+		const tested = getClean();
+
+		expect(
+			() => tested.getProperty(null),
+			'to throw',
+			'Property name must be a string'
+		);
 	});
 
-	it('should fail when property name is not a string', function () {
-		const bento = new Bento();
-		assert.throws(
-			() => bento.getProperty(null),
-			{ message: 'Property name must be a string' },
+	it('should get a property', function () {
+		const tested = getClean();
+
+		tested.properties.set('test', 'stuff');
+
+		expect(
+			tested.getProperty('test'),
+			'to be',
+			'stuff'
 		);
 	});
 });

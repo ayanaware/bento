@@ -1,23 +1,47 @@
 'use strict';
 
-const assert = require('assert');
+const expect = require('unexpected');
+const sinon = require('sinon');
 
-const { Bento } = require('../../../../build');
+const { PropertyManager } = require('../../../../build/managers/PropertyManager');
 
-describe('#setProperties', function () {
+describe('#setProperty', function () {
+	const getClean = () => {
+		const tested = new PropertyManager({});
+
+		return tested;
+	};
+
 	it('should add all properties given', function () {
-		const bento = new Bento();
+		const tested = getClean();
+
+		tested.setProperty = sinon.fake();
 
 		const properties = {
-			test: 'stuff',
-			such: 'wow',
-			very: 'weather',
+			A: 'B',
+			C: true,
+			D: function () {},
 		};
 
-		bento.setProperty = function (name, value) {
-			assert.strictEqual(properties[name], value);
-		};
+		tested.setProperties(properties);
 
-		bento.setProperties(properties);
+		sinon.assert.calledThrice(tested.setProperty);
+
+		let index = 0;
+		for (const [name, value] of Object.entries(properties)) {
+			expect(
+				tested.setProperty.args[index][0],
+				'to be',
+				name
+			);
+
+			expect(
+				tested.setProperty.args[index][1],
+				'to be',
+				value
+			);
+
+			index++;
+		}
 	});
 });

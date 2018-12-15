@@ -4,11 +4,8 @@ import { IllegalArgumentError } from '@ayana/errors';
 
 import { Bento } from '../Bento';
 
-export interface SetProperties {
-	[key: string]: any;
-}
-
 export class PropertyManager {
+
 	private readonly bento: Bento;
 
 	private readonly properties: Map<string, any> = new Map();
@@ -19,8 +16,8 @@ export class PropertyManager {
 
 	public hasProperty(name: string) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Property name must be a string');
-		if (this.properties.has(name)) return true;
-		return false;
+
+		return this.properties.has(name);
 	}
 
 	/**
@@ -29,7 +26,7 @@ export class PropertyManager {
 	 */
 	public getProperty(name: string) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Property name must be a string');
-		if (!this.properties.has(name)) return null;
+
 		return this.properties.get(name);
 	}
 
@@ -40,6 +37,7 @@ export class PropertyManager {
 	 */
 	public setProperty(name: string, value: any) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Property name must be a string');
+
 		this.properties.set(name, value);
 	}
 
@@ -47,9 +45,10 @@ export class PropertyManager {
 	 * Define multiple application properties at once
 	 * @param properties - SetProperties object
 	 */
-	public setProperties(properties: SetProperties) {
+	public setProperties(properties: { [key: string]: any }) {
 		for (const [name, value] of Object.entries(properties)) {
 			this.setProperty(name, value);
 		}
 	}
+
 }

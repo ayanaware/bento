@@ -4,7 +4,7 @@ const expect = require('unexpected');
 
 const { PropertyManager } = require('../../../../build/managers/PropertyManager');
 
-describe('#setProperty', function () {
+describe('#hasProperty', function () {
 	const getClean = () => {
 		const tested = new PropertyManager({});
 
@@ -15,21 +15,29 @@ describe('#setProperty', function () {
 		const tested = getClean();
 
 		expect(
-			() => tested.setProperty(null, 'something'),
+			() => tested.hasProperty(null),
 			'to throw',
 			'Property name must be a string'
 		);
 	});
 
-	it('should add a property', function () {
+	it('should return true if the property exists', function () {
 		const tested = getClean();
 
-		tested.setProperty('test', 'stuff');
+		tested.properties.set('test', 'stuff');
 
 		expect(
-			tested.properties.get('test'),
-			'to be',
-			'stuff'
+			tested.hasProperty('test'),
+			'to be true'
+		);
+	});
+
+	it('should return false if the property does not exist', function () {
+		const tested = getClean();
+
+		expect(
+			tested.hasProperty('test'),
+			'to be false'
 		);
 	});
 });

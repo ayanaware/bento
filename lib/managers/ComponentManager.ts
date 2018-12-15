@@ -24,18 +24,62 @@ export class ComponentManager {
 		this.bento = bento;
 	}
 
-	public getComponent(component: Component | string) {
-		const name = this.resolveName(component);
+	/**
+	 * Get component instance
+	 * @param component - Component name or reference
+	 */
+	public getComponent(reference: Component | string) {
+		const name = this.resolveName(reference);
 		if (!this.components.has(name)) return null;
 
 		return this.components.get(name);
 	}
 
+	/**
+	 * Get component events instance
+	 * @param component - Component name or reference
+	 */
 	public getComponentEvents(component: Component | string) {
 		const name = this.resolveName(component);
 		if (!this.events.has(name)) return null;
 
 		return this.events.get(name);
+	}
+
+	/**
+	 * Fetches all child components of a given parent component
+	 * @param parent - parent component name or reference
+	 */
+	public getComponentChildren(parent: Component | string) {
+		const name = this.resolveName(parent);
+		if (!this.components.has(name)) throw new IllegalStateError(`Parent "${name}" is not loaded`);
+
+		const children: Component[] = [];
+		for (const component of this.components.values()) {
+			if (component.parent != null && name === this.resolveName(component.parent)) {
+				children.push(component);
+			}
+		}
+
+		return children;
+	}
+
+	/**
+	 * @param reference - Component name or reference
+	 */
+	public resolveName(reference: Component | string) {
+		let name = null;
+		if (typeof reference === 'string') name = reference;
+		else if (reference != null) {
+			// check if we have the constructor
+			if (this.constructors.has(reference)) name = this.constructors.get(reference);
+
+			// check if .name exists on the object
+			else if (Object.prototype.hasOwnProperty.call(reference, 'name')) name = reference.name;
+		}
+
+		if (name == null) throw new Error('Could not determine component name');
+		return name;
 	}
 
 	/**
@@ -132,22 +176,7 @@ export class ComponentManager {
 		}
 	}
 
-	public resolveName(component: Component | string) {
-		let name = null;
-		if (typeof component === 'string') name = component;
-		else if (component != null) {
-			// check if we have the constructor
-			if (this.constructors.has(component)) name = this.constructors.get(component);
-
-			// check if .name exists on the object
-			else if (Object.prototype.hasOwnProperty.call(component, 'name')) name = component.name;
-		}
-
-		if (name == null) throw new Error('Could not determine component name');
-		return name;
-	}
-
-	public resolveDependencies(dependencies: Array<Component | string>) {
+	private resolveDependencies(dependencies: Array<Component | string>) {
 		if (dependencies != null && !Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
 		else if (dependencies == null) dependencies = [];
 
@@ -175,24 +204,6 @@ export class ComponentManager {
 
 			return a;
 		}, []);
-	}
-
-	/**
-	 * Fetches all child components of a given parent component
-	 * @param parent - parent component name or reference
-	 */
-	public getComponentChildren(parent: Component | string) {
-		const name = this.resolveName(parent);
-		if (!this.components.has(name)) throw new IllegalStateError(`Parent "${name}" is not loaded`);
-
-		const children: Component[] = [];
-		for (const component of this.components.values()) {
-			if (component.parent != null && name === this.resolveName(component.parent)) {
-				children.push(component);
-			}
-		}
-
-		return children;
 	}
 
 	/**
@@ -286,7 +297,7 @@ export class ComponentManager {
 		// Call onLoad if present
 		if (component.onLoad) {
 			try {
-				await component.onLoad();
+				await component.onLoad(component.api);
 			} catch (e) {
 				throw new ComponentRegistrationError(component, `Component "${component.name}" failed loading`).setCause(e);
 			}

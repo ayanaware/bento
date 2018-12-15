@@ -1,12 +1,17 @@
 'use strict';
 
-import { VariableDefinitionType } from './VariableDefinitionType';
-import { VariableDefinitionValidator } from './VariableDefinitionValidator';
+export enum VariableDefinitionType {
+	STRING = 'string',
+	NUMBER = 'number',
+	BOOLEAN = 'boolean',
+	ARRAY = 'array',
+	OBJECT = 'object',
+}
 
 export interface VariableDefinition {
+	type?: VariableDefinitionType;
 	name: string;
 	property?: string;
-	type?: VariableDefinitionType;
 	default?: any;
-	validator?: VariableDefinitionValidator;
+	validator?: string;
 }

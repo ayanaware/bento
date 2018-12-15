@@ -58,13 +58,22 @@ export class Bento {
 		return this.plugins.removePlugin(name);
 	}
 
+	public async addPlugins(plugins: Plugin[]) {
+		return this.plugins.addPlugins(plugins);
+	}
+
 	// PROPERTIES Proxy
+
+	public hasProperty(name: string) {
+		return this.properties.hasProperty(name);
+	}
+
 	public setProperty(name: string, value: any) {
-		return this.properties.set(name, value);
+		return this.properties.setProperty(name, value);
 	}
 
 	public getProperty(name: string) {
-		return this.properties.get(name);
+		return this.properties.getProperty(name);
 	}
 
 	public setProperties(properties: SetProperties) {
@@ -73,15 +82,19 @@ export class Bento {
 
 	// VARIABLES Proxy
 
+	public hasVariable(name: string) {
+		return this.variables.hasVariable(name);
+	}
+
 	public getVariable(name: string) {
-		return this.variables.get(name);
+		return this.variables.getVariable(name);
 	}
 
 	public setVariable(name: string, value: any) {
-		return this.variables.set(name, value);
+		return this.variables.setVariable(name, value);
 	}
 
 	public deleteVariable(name: string) {
-		return this.variables.delete(name);
+		return this.variables.deleteVariable(name);
 	}
 }

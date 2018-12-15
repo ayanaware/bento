@@ -14,7 +14,7 @@ export interface Component {
 	variables?: VariableDefinition[];
 
 	// General lifecycle events
-	onLoad?(): Promise<void>;
+	onLoad?(api?: ComponentAPI): Promise<void>;
 	onUnload?(): Promise<void>;
 
 	// Parent lifecycle events

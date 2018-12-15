@@ -11,6 +11,6 @@ export interface Plugin {
 	name: string;
 	version?: string;
 
-	onLoad?(): Promise<void>;
+	onLoad?(bento?: Bento): Promise<void>;
 	onUnload?(): Promise<void>;
 }

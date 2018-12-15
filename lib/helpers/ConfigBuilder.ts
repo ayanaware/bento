@@ -2,9 +2,10 @@
 
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 
-import { ConfigDefinition, ConfigDefinitionType } from '../interfaces';
+import { ConfigDefinition, ConfigDefinitionType, VariableSource, VariableSourceType } from '../interfaces';
 
-export interface ConfigValueSource {
+export interface ConfigBuilderDefinition {
+	type: ConfigDefinitionType;
 	env?: string;
 	file?: string;
 	value?: any;
@@ -13,26 +14,30 @@ export interface ConfigValueSource {
 export class ConfigBuilder {
 	private definitions: Map<string, ConfigDefinition> = new Map();
 
-	public add(type: ConfigDefinitionType, name: string, values: ConfigValueSource) {
-		if (Object.values(ConfigDefinitionType).indexOf(type) === -1) throw new IllegalArgumentError(`Unknown type "${type}"`);
-		if (typeof name !== 'string' || name == null) throw new IllegalArgumentError(`Name must be a string`);
+	public add(name: string, item: ConfigBuilderDefinition) {
+		if (typeof name !== 'string' || name === '') throw new IllegalArgumentError(`Name must be a string`);
 
-		const hasOne = ['env', 'file', 'value'].reduce((a, item) => {
-			if (Object.prototype.hasOwnProperty.call(values, item)) a.push(item);
+		if (item == null || typeof item !== 'object') throw new IllegalArgumentError(`Item must be a object`);
+		if (item.type == null && Object.values(ConfigDefinitionType).indexOf(item.type) === -1) throw new IllegalArgumentError(`Invalid type "${item.type}"`);
+
+		const hasOne = ['env', 'file', 'value'].reduce((a, i) => {
+			if (Object.prototype.hasOwnProperty.call(item, i)) a.push(item);
 			return a;
 		}, []).length >= 1;
+		if (!hasOne) throw new IllegalArgumentError('Definition must specify one or more sources: env, file, or value');
 
-		if (!hasOne) throw new IllegalArgumentError('ConfigValueSource must define at least one source. env, file, or value');
-
-		const definition: ConfigDefinition = Object.assign({}, { type, name }, values);
+		const definition: ConfigDefinition = Object.assign({}, { name }, item);
 		this.definitions.set(name, definition);
+
+		return this;
 	}
 
 	public delete(name: string) {
-		if (typeof name !== 'string' || name == null) throw new IllegalArgumentError(`Name must be a string`);
-		if (!this.definitions.has(name)) throw new IllegalStateError(`ConfigDefition "${name}" does not exist`);
+		if (typeof name !== 'string' || name === '') throw new IllegalArgumentError(`Name must be a string`);
+		if (!this.definitions.has(name)) throw new IllegalStateError(`Definition "${name}" does not exist`);
 
 		this.definitions.delete(name);
+		return this;
 	}
 
 	public build(): ConfigDefinition[] {

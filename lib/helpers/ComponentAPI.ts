@@ -8,7 +8,12 @@ import { Logger } from '@ayana/logger';
 import { Bento } from '../Bento';
 
 import { SubscriptionType } from '../constants';
-import { Component, VariableDefinition, VariableDefinitionType, VariableDefinitionValidator } from '../interfaces';
+import {
+	Component,
+	Plugin,
+	VariableDefinition,
+	VariableDefinitionType
+} from '../interfaces';
 
 /**
  * Logger instance for the ComponentAPI class
@@ -42,132 +47,14 @@ export class ComponentAPI {
 	}
 
 	/**
-	 * Fetch the value of given application property
-	 * @param name - name of application property
-	 */
-	public getProperty(name: string) {
-		return this.bento.getProperty(name);
-	}
-
-	/**
-	 * Define multiple variables at once
-	 * @param definitions - Array of definitions
-	 */
-	public injectVariables(definitions: VariableDefinition[]) {
-		if (!Array.isArray(definitions)) throw new IllegalArgumentError('Definitions must be an array');
-
-		for (const definition of definitions) {
-			this.injectVariable(definition);
-		}
-	}
-
-	/**
-	 * Defines and attaches a variable to component
-	 * @param definition - The definition of the variable to define
-	 */
-	public injectVariable(definition: VariableDefinition) {
-		if (!definition.name) throw new IllegalArgumentError('A VariableDefinition must define a name');
-
-		// if variable not in bento, and no default defined. Throw an error
-		if (!this.bento.variables.has(definition.name) && definition.default === undefined) {
-			throw new IllegalStateError(`Cannot inject undefined variable "${definition.name}"`);
-		}
-
-		// attach property to component
-		Object.defineProperty(this.component, definition.property || definition.name, {
-			configurable: true,
-			enumerable: false,
-			get: () => {
-				return this.getValue(definition);
-			},
-			set: function () {
-				// TODO Change to IllegalAccessError
-				throw new Error(`Cannot set injected variable "${definition.name}"`);
-			}
-		});
-	}
-
-	/**
-	 * Check if bento has a variable or not
-	 * @param name - name of variable
-	 */
-	public hasVariable(name: string) {
-		return this.bento.variables.has(name);
-	}
-
-	/**
-	 * Gets the value of a variable
-	 * @param definition - Variable name or definition
-	 */
-	public getVariable(definition: VariableDefinition | string): any {
-		// if string, convert to basic definition
-		if (typeof definition === 'string') {
-			definition = {
-				name: definition,
-				type: VariableDefinitionType.STRING,
-			};
-		}
-
-		// validate definition
-		if (!definition.name) throw new IllegalArgumentError('VariableDefinition must define a name');
-		const value = this.getValue(definition);
-
-		// if undefined. then is a required variable that is not in bento
-		if (value === undefined) throw new IllegalStateError(`Failed to find a value for "${definition.name}" variable`);
-
-		return value;
-	}
-
-	private getValue(definition: VariableDefinition) {
-		let value = undefined;
-
-		// get latest
-		if (this.bento.variables.has(definition.name)) {
-			value = this.bento.getVariable(definition.name);
-		}
-
-		// if undefined and have default set now
-		if (value === undefined && definition.default !== undefined) value = definition.default;
-		if (value === undefined) return value;
-
-		// Verifies that value matches definition type
-		switch (definition.type) {
-			case VariableDefinitionType.NUMBER:
-			case VariableDefinitionType.STRING:
-			case VariableDefinitionType.BOOLEAN: {
-				if (typeof value !== definition.type) throw new IllegalStateError('Found value does not match definition type');
-				break;
-			}
-
-			case VariableDefinitionType.ARRAY: {
-				if (!Array.isArray) throw new IllegalStateError('Found value does not match definition type');
-				break;
-			}
-
-			case VariableDefinitionType.OBJECT: {
-				if (typeof value === 'object' && Array.isArray(value)) throw new IllegalStateError('Found value does not match definition type');
-				break;
-			}
-
-			default: {
-				throw new IllegalStateError('VariableDefinition specified an unknown type');
-				break;
-			}
-		}
-
-		// TODO: validators
-
-		return value;
-	}
-
-	/**
 	 * Fetch the provided component instance
 	 *
 	 * @param referece - Component name or reference
 	 */
 	public getComponent<T extends Component>(reference: Component | string): T {
-		const component = this.bento.components.getComponent(reference);
-		if (!component) return null;
+		const name = this.bento.components.resolveName(reference);
+		const component = this.bento.components.getComponent(name);
+		if (!component) throw new IllegalStateError(`Component "${name}" does not exist`);
 
 		return component as T;
 	}
@@ -189,6 +76,148 @@ export class ComponentAPI {
 			writable: false,
 			value: component,
 		});
+	}
+
+	public getPlugin<T extends Plugin>(reference: Plugin | string): T {
+		const name = this.bento.plugins.resolveName(reference);
+		const plugin = this.bento.plugins.getPlugin(name);
+		if (!plugin) throw new IllegalStateError(`Plugin "${name}" does not exist`);
+
+		return plugin as T;
+	}
+
+	/**
+	 * Fetch the value of given application property
+	 * @param name - name of application property
+	 */
+	public getProperty(name: string) {
+		return this.bento.getProperty(name);
+	}
+
+	/**
+	 * Check if bento has a variable or not
+	 * @param name - name of variable
+	 */
+	public hasVariable(name: string) {
+		return this.bento.variables.hasVariable(name);
+	}
+
+	/**
+	 * Gets the value of a variable
+	 * @param definition - Variable name or definition
+	 */
+	public getVariable(definition: VariableDefinition | string): any {
+		// if string, convert to basic definition
+		if (typeof definition === 'string') {
+			definition = {
+				name: definition,
+				type: VariableDefinitionType.STRING,
+			};
+		}
+
+		if (!definition.type) definition.type = VariableDefinitionType.STRING;
+
+		// validate definition
+		if (!definition.name) throw new IllegalArgumentError('VariableDefinition must define a name');
+		const value = this.getValue(definition);
+
+		// if undefined. then is a required variable that is not in bento
+		if (value === undefined) throw new IllegalStateError(`Failed to find a value for "${definition.name}" variable`);
+
+		return value;
+	}
+
+	/**
+	 * Define multiple variables at once
+	 * @param definitions - Array of definitions
+	 */
+	public injectVariables(definitions: VariableDefinition[]) {
+		if (!Array.isArray(definitions)) throw new IllegalArgumentError('Definitions must be an array');
+
+		for (const definition of definitions) {
+			this.injectVariable(definition);
+		}
+	}
+
+	/**
+	 * Defines and attaches a variable to component
+	 * @param definition - The definition of the variable to define
+	 */
+	public injectVariable(definition: VariableDefinition) {
+		if (!definition.name) throw new IllegalArgumentError('A VariableDefinition must define a name');
+		if (!definition.type) definition.type = VariableDefinitionType.STRING;
+
+		// if variable not in bento, and no default defined. Throw an error
+		if (!this.bento.variables.hasVariable(definition.name) && definition.default === undefined) {
+			throw new IllegalStateError(`Cannot inject undefined variable "${definition.name}"`);
+		}
+
+		// attach property to component
+		Object.defineProperty(this.component, definition.property || definition.name, {
+			configurable: true,
+			enumerable: false,
+			get: () => {
+				return this.getValue(definition);
+			},
+			set: function () {
+				// TODO Change to IllegalAccessError
+				throw new Error(`Cannot set injected variable "${definition.name}"`);
+			}
+		});
+	}
+
+	private getValue(definition: VariableDefinition) {
+		let value = undefined;
+
+		// get latest
+		if (this.bento.variables.hasVariable(definition.name)) {
+			value = this.bento.variables.getVariable(definition.name);
+		}
+
+		// if undefined and have default set now
+		if (value === undefined && definition.default !== undefined) value = definition.default;
+		if (value === undefined) return value;
+
+		// Verifies that value matches definition type
+		if (!definition.type) definition.type = VariableDefinitionType.STRING;
+		switch (definition.type) {
+			case VariableDefinitionType.NUMBER:
+			case VariableDefinitionType.STRING:
+			case VariableDefinitionType.BOOLEAN: {
+				if (value !== null && typeof value !== definition.type) throw new IllegalStateError('Found value does not match definition type');
+				break;
+			}
+
+			case VariableDefinitionType.ARRAY: {
+				if (!Array.isArray) throw new IllegalStateError('Found value does not match definition type');
+				break;
+			}
+
+			case VariableDefinitionType.OBJECT: {
+				if (typeof value === 'object' && Array.isArray(value)) throw new IllegalStateError('Found value does not match definition type');
+				break;
+			}
+
+			default: {
+				throw new IllegalStateError('VariableDefinition specified an unknown type');
+			}
+		}
+
+		// TODO: validators
+
+		return value;
+	}
+
+	/**
+	 * Emit a event on Component Events
+	 * @param eventName - Name of event
+	 * @param args - Ordered Array of args to emit
+	 */
+	public async emit(eventName: string, ...args: any[]) {
+		const emitter = this.bento.components.getComponentEvents(this.component.name);
+		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component emitter does not exist?');
+
+		emitter.emit(eventName, ...args);
 	}
 
 	// TODO: Add a error handler
@@ -219,18 +248,6 @@ export class ComponentAPI {
 				}
 			});
 		});
-	}
-
-	/**
-	 * Emit a event on Component Events
-	 * @param eventName - Name of event
-	 * @param args - Ordered Array of args to emit
-	 */
-	public async emit(eventName: string, ...args: any[]) {
-		const emitter = this.bento.components.getComponentEvents(this.component.name);
-		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component emitter does not exist?');
-
-		emitter.emit(eventName, ...args);
 	}
 
 	/**

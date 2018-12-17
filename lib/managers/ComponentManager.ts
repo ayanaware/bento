@@ -192,9 +192,6 @@ export class ComponentManager {
 
 		// handle child component depending on a parent
 		if (component.parent != null) {
-			// attempt to resolve
-			component.parent = this.resolveName(component.parent);
-
 			// make sure dependencies are loaded right
 			component.dependencies.push(component.parent);
 		}
@@ -202,12 +199,15 @@ export class ComponentManager {
 		// Add all dependencies that come from decorator injections
 		Decorators.getInjections(component).forEach(i => component.dependencies.push(i.component));
 
-		// Run dependencies through the resolver
+		// remove any duplicates from dependencies
+		// fast method
+
+		// take control and redeine dependencies
 		Object.defineProperty(component, 'dependencies', {
 			configurable: true,
 			writable: false,
 			enumerable: true,
-			value: this.resolveDependencies(component.dependencies),
+			value: component.dependencies,
 		});
 
 		// Create components' api
@@ -290,32 +290,6 @@ export class ComponentManager {
 	}
 
 	/**
-	 * Resolves an array of components to their name.
-	 *
-	 * @param dependencies The array of dependencies to be resolved
-	 *
-	 * @returns An array with names of the given components
-	 *
-	 * @see ReferenceManager#resolveName
-	 */
-	private resolveDependencies(dependencies: Array<Component | string | any>): string[] {
-		if (dependencies != null && !Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
-		else if (dependencies == null) dependencies = [];
-
-		const resolved: string[] = [];
-		for (const dependency of dependencies) {
-			try {
-				const name = this.resolveName(dependency);
-				resolved.push(name);
-			} catch (e) {
-				throw new ProcessingError('Failed to resolve dependency').setCause(e);
-			}
-		}
-
-		return resolved;
-	}
-
-	/**
 	 * Returns an array of dependencies requested but not loaded yet.
 	 *
 	 * @param dependencies The requested dependencies
@@ -323,16 +297,20 @@ export class ComponentManager {
 	 * @returns An array of dependencies requested but not loaded
 	 */
 	private getMissingDependencies(dependencies: Array<Component | string | any>): string[] {
-		if (!Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
+		if (dependencies !== null && !Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
+		else if (dependencies === null) dependencies = [];
 
-		// Run dependencies through the resolver
-		dependencies = this.resolveDependencies(dependencies);
-
-		return (dependencies as string[]).reduce((a, dependency) => {
-			if (!this.components.has(dependency)) a.push(dependency);
+		return dependencies.reduce((a, dependency) => {
+			try {
+				// attempt to resolve down to name
+				const name = this.resolveName(dependency);
+				if (!this.components.has(name)) a.push(name);
+			} catch (e) {
+				// failed to resolve, pass through
+				a.push(dependency);
+			}
 
 			return a;
 		}, []);
 	}
-
 }

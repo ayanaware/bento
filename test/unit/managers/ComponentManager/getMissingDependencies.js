@@ -11,7 +11,7 @@ describe('#getMissingDependencies', function () {
 
 		tested.references = {};
 
-		tested.resolveDependencies = sinon.fake.returns([]);
+		tested.resolveName = sinon.fake.returns(null);
 
 		return tested;
 	};
@@ -22,14 +22,6 @@ describe('#getMissingDependencies', function () {
 			'to throw',
 			'Dependencies is not an array',
 		);
-	});
-
-	it('should attempt to resolve the dependencies', function () {
-		const tested = getClean();
-
-		tested.getMissingDependencies([]);
-
-		sinon.assert.calledOnce(tested.resolveDependencies);
 	});
 
 	it('should return an array', function () {
@@ -47,9 +39,10 @@ describe('#getMissingDependencies', function () {
 		tested.components.set('A', {});
 		tested.components.set('B', {});
 
-		tested.resolveDependencies = sinon.fake.returns(['A', 'B', 'C', 'D']);
+		// figure out how to use sinon for this
+		tested.resolveName = name => name;
 
-		const missing = tested.getMissingDependencies([]); // Dependencies are returned by resolveDependencies
+		const missing = tested.getMissingDependencies(['A', 'B', 'C', 'D']); // Dependencies are returned by resolveDependencies
 
 		expect(
 			missing,

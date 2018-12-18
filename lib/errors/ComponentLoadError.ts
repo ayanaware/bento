@@ -4,7 +4,7 @@ import { GlobalInstanceOf } from '@ayana/errors';
 
 import { ComponentError } from './ComponentError';
 
-@GlobalInstanceOf('@ayana/components', '1')
+@GlobalInstanceOf('@ayana/bento', '1')
 export class ComponentLoadError extends ComponentError {
 
 	public readonly componentLocation: string;

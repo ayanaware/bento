@@ -4,8 +4,8 @@ import { AyanaError, GlobalInstanceOf } from '@ayana/errors';
 
 import { Plugin, VariableDefinition } from '../interfaces';
 
-@GlobalInstanceOf('@ayana/components', '1')
-export class VariableProcessError extends AyanaError {
+@GlobalInstanceOf('@ayana/bento', '1')
+export class VariableProcessingError extends AyanaError {
 	public readonly plugin: Plugin;
 
 	constructor(componentName: string, definition: VariableDefinition, msg: string) {

@@ -203,11 +203,7 @@ export class ComponentManager {
 		// remove any duplicates or self from dependencies
 		component.dependencies = component.dependencies.reduce((a, d) => {
 			// prevent any dependencies to self
-			try {
-				if (this.resolveName(d) === component.name) return a;
-			} catch (e) {
-				// resolveName was unable to get a name. Meaning this is not a self dependency
-			}
+			if (this.references.resolveNameSafe(d) === component.name) return a;
 
 			// ensure zero duplicates
 			if (!Array.prototype.includes.call(a, d)) a.push(d);

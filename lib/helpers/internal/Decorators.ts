@@ -11,6 +11,21 @@ import { DecoratorInjection, DecoratorSubscription, DecoratorVariable } from '..
 export class Decorators {
 
 	/**
+	 * Returns all decorator subscriptions of a component
+	 *
+	 * @param component The component that should be checked
+	 */
+	public static getSubscriptions(component: Component): DecoratorSubscription[] {
+		// Check if there is a constructor, if there isn't then there can't be any decorators
+		if (component.constructor == null) return [];
+
+		const subscriptions: DecoratorSubscription[] = (component.constructor as any)[Symbols.subscriptions];
+		if (Array.isArray(subscriptions)) return subscriptions;
+
+		return [];
+	}
+
+	/**
 	 * Handles all decorator subscriptions of a component
 	 *
 	 * @param component The component that should be handled

@@ -196,18 +196,22 @@ export class ComponentManager {
 			component.dependencies.push(component.parent);
 		}
 
-		// Add all dependencies that come from decorator injections
+		// Add all dependencies that come from decorators
 		Decorators.getInjections(component).forEach(i => component.dependencies.push(i.component));
+		Decorators.getSubscriptions(component).forEach(s => component.dependencies.push(s.namespace));
 
 		// remove any duplicates from dependencies
-		// fast method
+		const dependencies: Array<Component | string> = [];
+		for (const dependency of component.dependencies) {
+			if (dependencies.indexOf(dependency) === -1) dependencies.push(dependency);
+		}
 
 		// take control and redeine dependencies
 		Object.defineProperty(component, 'dependencies', {
 			configurable: true,
 			writable: false,
 			enumerable: true,
-			value: component.dependencies,
+			value: dependencies,
 		});
 
 		// Create components' api

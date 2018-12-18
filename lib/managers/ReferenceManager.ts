@@ -36,12 +36,29 @@ export class ReferenceManager<T extends { name: string }> {
 	/**
 	 * Resolves the name of the given entity.
 	 * If the given entity is already a string, the same string will be returned.
+	 * If the component cannot be found this method throws an error
 	 *
 	 * @param reference Entity instance, name or reference
 	 *
 	 * @returns The entitys name
 	 */
-	public resolveName(reference: T | string | any): string {
+	public resolveName(reference: T | string | Function): string {
+		const name = this.resolveNameSafe(reference);
+
+		if (name == null) throw new IllegalArgumentError('Given entity or reference is invalid, not registered or does not have a name');
+		return name;
+	}
+
+	/**
+	 * Resolves the name of the given entity.
+	 * If the given entity is already a string, the same string will be returned.
+	 * If the component cannot be resolved this method returns null.
+	 *
+	 * @param reference Entity instance, name or reference
+	 *
+	 * @returns The entitys name
+	 */
+	public resolveNameSafe(reference: T | string | Function): string {
 		let name: string = null;
 		if (typeof reference === 'string') name = reference;
 		else if (reference != null) {
@@ -52,7 +69,6 @@ export class ReferenceManager<T extends { name: string }> {
 			else if (Object.prototype.hasOwnProperty.call(reference, 'name')) name = reference.name;
 		}
 
-		if (name == null) throw new IllegalArgumentError('Given entity or reference is invalid, not registered or does not have a name');
 		return name;
 	}
 

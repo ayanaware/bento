@@ -2,7 +2,7 @@
 
 const assert = require('assert');
 
-const { Bento } = require('../../../../build');
+const { Bento } = require('../../../../build/Bento');
 
 describe('#setVariable', function () {
 	it('should set a variable', function () {

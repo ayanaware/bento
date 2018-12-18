@@ -200,18 +200,27 @@ export class ComponentManager {
 		Decorators.getInjections(component).forEach(i => component.dependencies.push(i.component));
 		Decorators.getSubscriptions(component).forEach(s => component.dependencies.push(s.namespace));
 
-		// remove any duplicates from dependencies
-		const dependencies: Array<Component | string> = [];
-		for (const dependency of component.dependencies) {
-			if (dependencies.indexOf(dependency) === -1) dependencies.push(dependency);
-		}
+		// remove any duplicates or self from dependencies
+		component.dependencies = component.dependencies.reduce((a, d) => {
+			// prevent any dependencies to self
+			try {
+				if (this.resolveName(d) === component.name) return a;
+			} catch (e) {
+				// resolveName was unable to get a name. Meaning this is not a self dependency
+			}
+
+			// ensure zero duplicates
+			if (!Array.prototype.includes.call(a, d)) a.push(d);
+
+			return a;
+		}, []);
 
 		// take control and redeine dependencies
 		Object.defineProperty(component, 'dependencies', {
 			configurable: true,
 			writable: false,
 			enumerable: true,
-			value: dependencies,
+			value: component.dependencies,
 		});
 
 		// Create components' api

@@ -9,10 +9,10 @@ describe('#prepareComponent', function () {
 	const getCleanComponentManager = () => {
 		const manager = new ComponentManager({});
 
-		manager.references = {};
+		manager.resolveName = sinon.fake.returns(null);
 
+		manager.references = {};
 		manager.references.addReference = sinon.fake();
-		manager.resolveDependencies = sinon.fake.returns([]);
 
 		return manager;
 	};
@@ -20,7 +20,9 @@ describe('#prepareComponent', function () {
 	it('should define component api', async function () {
 		const bento = getCleanComponentManager();
 
-		const testComponent = { name: 'TestComponent' };
+		bento.resolveName = sinon.fake.returns('TestComponent');
+
+		const testComponent = { name: 'TestComponent', dependencies: [] };
 
 		await bento.prepareComponent(testComponent);
 
@@ -33,7 +35,9 @@ describe('#prepareComponent', function () {
 	it('should create component event helper', async function () {
 		const bento = getCleanComponentManager();
 
-		await bento.prepareComponent({ name: 'TestComponent' });
+		bento.resolveName = sinon.fake.returns('TestComponent');
+
+		await bento.prepareComponent({ name: 'TestComponent', dependencies: [] });
 
 		assert.strictEqual(bento.events.has('TestComponent'), true, 'Component event helper does not exist');
 	});

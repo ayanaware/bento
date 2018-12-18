@@ -12,4 +12,7 @@ it('assert sanity of current universe', function () {
 	assert.strictEqual(0, 1 - 1);
 });
 
+// Require everything for proper test coverage
+require('../build');
+
 require('./unit');

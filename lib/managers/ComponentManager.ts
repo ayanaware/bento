@@ -197,7 +197,9 @@ export class ComponentManager {
 		}
 
 		// Add all dependencies that come from decorators
-		Decorators.getInjections(component).forEach(i => component.dependencies.push(i.component));
+		Decorators.getInjections(component).forEach(i => {
+			if (typeof i.component !== 'symbol') component.dependencies.push(i.component);
+		});
 		Decorators.getSubscriptions(component).forEach(s => component.dependencies.push(s.namespace));
 
 		// remove any duplicates or self from dependencies

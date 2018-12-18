@@ -2,5 +2,5 @@
 
 export interface DecoratorInjection {
 	propertyKey: string;
-	component: string | any;
+	component: string | Function | symbol;
 }

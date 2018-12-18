@@ -66,7 +66,11 @@ export class Decorators {
 	 */
 	public static handleInjections(component: Component, api: ComponentAPI) {
 		for (const injection of Decorators.getInjections(component)) {
-			api.injectComponent(injection.component, injection.propertyKey);
+			if (typeof injection.component === 'symbol') {
+				// TODO Handle special symbol injections
+			} else {
+				api.injectComponent(injection.component, injection.propertyKey);
+			}
 		}
 	}
 

@@ -288,7 +288,7 @@ export class ComponentManager {
 		let loaded = 0;
 
 		for (const component of this.pending.values()) {
-			const missing = await this.getMissingDependencies(component.dependencies);
+			const missing = this.getMissingDependencies(component.dependencies);
 			if (missing.length === 0) {
 				this.pending.delete(component.name);
 

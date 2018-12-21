@@ -4,8 +4,8 @@ import { Symbols } from '../constants/internal';
 
 export function ChildOf(component: string | Function): ClassDecorator {
 	return function (target: any) {
-		if (target.constructor[Symbols.childOf] == null) {
-			Object.defineProperty(target.constructor, Symbols.childOf, {
+		if (target[Symbols.childOf] == null) {
+			Object.defineProperty(target, Symbols.childOf, {
 				configurable: false,
 				enumerable: false,
 				writable: false,

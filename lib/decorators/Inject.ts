@@ -6,7 +6,7 @@ import { DecoratorInjection } from '../interfaces/internal';
 export function Inject(component: string | Function | symbol): PropertyDecorator {
 	return function (target: any, propertyKey: string) {
 		if(target.prototype !== undefined) {
-			throw new Error(`The inject decorator can only be applied to non-static class methods ("${propertyKey}" in class "${target.name}")`);
+			throw new Error(`The inject decorator can only be applied to non-static class properties ("${propertyKey}" in class "${target.name}")`);
 		}
 
 		if (target.constructor[Symbols.injections] == null) {

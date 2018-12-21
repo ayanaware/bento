@@ -9,21 +9,21 @@ const {
 	Parent: parent,
 } = require('../../../build/decorators/Inject');
 
-describe('Subscribe', function () {
-	it('should throw an error if the target has no prototype', function () {
+describe('Inject', function () {
+	it('should throw an error if the target has a prototype', function () {
 		class SomeClass {}
 
 		expect(
 			() => inject()(SomeClass, 'somePropertyKey'),
 			'to throw',
-			'The inject decorator can only be applied to non-static class methods ("somePropertyKey" in class "SomeClass")'
+			'The inject decorator can only be applied to non-static class properties ("somePropertyKey" in class "SomeClass")'
 		);
 	});
 
-	it('should define a new array on the injection symbol if it does not exist', function () {
+	it('should define a new array on the injections symbol if it does not exist', function () {
 		const object = new class SomeClass {}();
 
-		inject()(object, null, {});
+		inject()(object);
 
 		expect(
 			object.constructor[Symbols.injections],
@@ -34,11 +34,11 @@ describe('Subscribe', function () {
 	it('should not redefine the injections array', function () {
 		const object = new class SomeClass {}();
 
-		inject()(object, null, {});
+		inject()(object);
 
 		const definedArray = object.constructor[Symbols.injections];
 
-		inject()(object, null, {});
+		inject()(object);
 
 		expect(
 			object.constructor[Symbols.injections],

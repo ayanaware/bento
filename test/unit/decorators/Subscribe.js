@@ -12,7 +12,7 @@ const {
 } = require('../../../build/decorators/Subscribe');
 
 describe('Subscribe', function () {
-	it('should throw an error if the target has no prototype', function () {
+	it('should throw an error if the target has a prototype', function () {
 		class SomeClass {}
 
 		expect(

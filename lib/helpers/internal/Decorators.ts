@@ -15,7 +15,7 @@ export class Decorators {
 	 *
 	 * @param component The component that should be checked
 	 */
-	public static getSubscriptions(component: Component): DecoratorSubscription[] {
+	public getSubscriptions(component: Component): DecoratorSubscription[] {
 		// Check if there is a constructor, if there isn't then there can't be any decorators
 		if (component.constructor == null) return [];
 
@@ -31,7 +31,7 @@ export class Decorators {
 	 * @param component The component that should be handled
 	 * @param api The components API instance
 	 */
-	public static handleSubscriptions(component: Component, api: ComponentAPI) {
+	public handleSubscriptions(component: Component, api: ComponentAPI) {
 		// Check if there is a constructor, if there isn't then there can't be any decorators
 		if (component.constructor == null) return;
 
@@ -48,7 +48,7 @@ export class Decorators {
 	 *
 	 * @param component The component that should be checked
 	 */
-	public static getInjections(component: Component): DecoratorInjection[] {
+	public getInjections(component: Component): DecoratorInjection[] {
 		// Check if there is a constructor, if there isn't then there can't be any decorators
 		if (component.constructor == null) return [];
 
@@ -58,11 +58,11 @@ export class Decorators {
 		return [];
 	}
 
-	public static getSymbolInjections(component: Component): DecoratorSymbolInjection[] {
+	public getSymbolInjections(component: Component): DecoratorSymbolInjection[] {
 		return this.getInjections(component).filter(i => typeof i === 'symbol') as DecoratorSymbolInjection[];
 	}
 
-	public static getComponentInjections(component: Component): DecoratorComponentInjection[] {
+	public getComponentInjections(component: Component): DecoratorComponentInjection[] {
 		return this.getInjections(component).filter(i => typeof i !== 'symbol') as DecoratorComponentInjection[];
 	}
 
@@ -72,8 +72,8 @@ export class Decorators {
 	 * @param component The component that should be handled
 	 * @param api The components API instance
 	 */
-	public static handleInjections(component: Component, api: ComponentAPI) {
-		for (const injection of Decorators.getInjections(component)) {
+	public handleInjections(component: Component, api: ComponentAPI) {
+		for (const injection of this.getInjections(component)) {
 			if (injection.symbol != null) {
 				// Handle parent injection
 				if (injection.symbol === Symbols.parent) {
@@ -91,7 +91,7 @@ export class Decorators {
 	 * @param component The component that should be handled
 	 * @param api The components API instance
 	 */
-	public static handleVariables(component: Component, api: ComponentAPI) {
+	public handleVariables(component: Component, api: ComponentAPI) {
 		// Check if there is a constructor, if there isn't then there can't be any decorators
 		if (component.constructor == null) return;
 
@@ -103,7 +103,7 @@ export class Decorators {
 		}
 	}
 
-	public static getDecoratorParent(component: Component): Function {
+	public getDecoratorParent(component: Component): Function {
 		// Check if there is a constructor, if there isn't then there can't be any decorators
 		if (component.constructor == null) return null;
 

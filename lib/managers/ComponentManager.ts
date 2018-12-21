@@ -3,7 +3,7 @@
 import { IllegalArgumentError, IllegalStateError, ProcessingError } from '@ayana/errors';
 
 import { Bento } from '../Bento';
-import { ComponentRegistrationError, ComponentLoadError } from '../errors';
+import { ComponentRegistrationError } from '../errors';
 import { ComponentAPI, ComponentEvents } from '../helpers';
 import { Decorators } from '../helpers/internal';
 import { Component } from '../interfaces';
@@ -20,6 +20,8 @@ export class ComponentManager {
 	private readonly pending: Map<string, Component> = new Map();
 
 	private readonly events: Map<string, ComponentEvents> = new Map();
+
+	private readonly decorators: Decorators = new Decorators();
 
 	constructor(bento: Bento) {
 		this.bento = bento;
@@ -177,7 +179,7 @@ export class ComponentManager {
 	private handleParent(component: Component) {
 		// Handle child component depending on a parent
 		const componentParent = component.parent;
-		const decoratorParent = Decorators.getDecoratorParent(component);
+		const decoratorParent = this.decorators.getDecoratorParent(component);
 
 		// Throw an error if a user defines parent twice
 		if (componentParent != null && decoratorParent != null) throw new ComponentRegistrationError(component, 'Cannot define parent with both property and decorator');
@@ -216,8 +218,8 @@ export class ComponentManager {
 		this.handleParent(component);
 
 		// Add all dependencies that come from decorators
-		Decorators.getComponentInjections(component).forEach(i => component.dependencies.push(i.component));
-		Decorators.getSubscriptions(component).forEach(s => component.dependencies.push(s.namespace));
+		this.decorators.getComponentInjections(component).forEach(i => component.dependencies.push(i.component));
+		this.decorators.getSubscriptions(component).forEach(s => component.dependencies.push(s.namespace));
 
 		// remove any duplicates or self from dependencies
 		component.dependencies = component.dependencies.reduce((a, d) => {
@@ -250,7 +252,7 @@ export class ComponentManager {
 		});
 
 		// Add property descriptors for all the decorated variables
-		Decorators.handleVariables(component, api);
+		this.decorators.handleVariables(component, api);
 	}
 
 	private async loadComponent(component: Component) {
@@ -273,10 +275,10 @@ export class ComponentManager {
 		}
 
 		// Inject all components from decorator subscriptions
-		Decorators.handleInjections(component, component.api);
+		this.decorators.handleInjections(component, component.api);
 
 		// Subscribe to all events from decorator subscriptions
-		Decorators.handleSubscriptions(component, component.api);
+		this.decorators.handleSubscriptions(component, component.api);
 
 		// Call onLoad if present
 		if (component.onLoad) {

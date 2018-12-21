@@ -3,7 +3,7 @@
 import { IllegalArgumentError, IllegalStateError, ProcessingError } from '@ayana/errors';
 
 import { Bento } from '../Bento';
-import { ComponentRegistrationError } from '../errors';
+import { ComponentRegistrationError, ComponentLoadError } from '../errors';
 import { ComponentAPI, ComponentEvents } from '../helpers';
 import { Decorators } from '../helpers/internal';
 import { Component } from '../interfaces';
@@ -169,6 +169,29 @@ export class ComponentManager {
 	}
 
 	/**
+	 * Handles the parent of a component if it exists.
+	 * This includes setting the parent as a dependency
+	 *
+	 * @param component The component to be handled
+	 */
+	private handleParent(component: Component) {
+		// Handle child component depending on a parent
+		const componentParent = component.parent;
+		const decoratorParent = Decorators.getDecoratorParent(component);
+
+		// Throw an error if a user defines parent twice
+		if (componentParent != null && decoratorParent != null) throw new ComponentRegistrationError(component, 'Cannot define parent with both property and decorator');
+
+		const parent = componentParent || decoratorParent || null;
+
+		// Abort here if there is no parent
+		if (parent == null) return;
+
+		// Make sure dependencies are loaded right
+		component.dependencies.push(component.parent);
+	}
+
+	/**
 	 * Enforces Bento API and prepares component to be loaded
 	 * @param component - Component to be prepared
 	 */
@@ -190,16 +213,10 @@ export class ComponentManager {
 			this.events.set(component.name, events);
 		}
 
-		// handle child component depending on a parent
-		if (component.parent != null) {
-			// make sure dependencies are loaded right
-			component.dependencies.push(component.parent);
-		}
+		this.handleParent(component);
 
 		// Add all dependencies that come from decorators
-		Decorators.getInjections(component).forEach(i => {
-			if (typeof i.component !== 'symbol') component.dependencies.push(i.component);
-		});
+		Decorators.getComponentInjections(component).forEach(i => component.dependencies.push(i.component));
 		Decorators.getSubscriptions(component).forEach(s => component.dependencies.push(s.namespace));
 
 		// remove any duplicates or self from dependencies

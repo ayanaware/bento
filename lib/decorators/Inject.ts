@@ -3,7 +3,7 @@
 import { Symbols } from '../constants/internal';
 import { DecoratorInjection } from '../interfaces/internal';
 
-export function Inject(component: string | Function): PropertyDecorator {
+export function Inject(component: string | Function | symbol): PropertyDecorator {
 	return function (target: any, propertyKey: string) {
 		if(target.prototype !== undefined) {
 			throw new Error(`The inject decorator can only be applied to non-static class methods ("${propertyKey}" in class "${target.name}")`);
@@ -18,10 +18,17 @@ export function Inject(component: string | Function): PropertyDecorator {
 			});
 		}
 
-		target.constructor[Symbols.injections].push({
-			propertyKey,
-			component,
-		} as DecoratorInjection);
+		if (typeof component === 'symbol') {
+			target.constructor[Symbols.injections].push({
+				propertyKey,
+				symbol: component,
+			} as DecoratorInjection);
+		} else {
+			target.constructor[Symbols.injections].push({
+				propertyKey,
+				component,
+			} as DecoratorInjection);
+		}
 	};
 }
 

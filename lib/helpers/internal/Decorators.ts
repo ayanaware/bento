@@ -3,7 +3,7 @@
 import { ComponentAPI } from '..';
 import { Symbols } from '../../constants/internal';
 import { Component } from '../../interfaces';
-import { DecoratorInjection, DecoratorSubscription, DecoratorVariable } from '../../interfaces/internal';
+import { DecoratorComponentInjection, DecoratorInjection, DecoratorSubscription, DecoratorSymbolInjection, DecoratorVariable } from '../../interfaces/internal';
 
 /**
  * Utility class for handling decorators on components
@@ -58,6 +58,14 @@ export class Decorators {
 		return [];
 	}
 
+	public static getSymbolInjections(component: Component): DecoratorSymbolInjection[] {
+		return this.getInjections(component).filter(i => typeof i === 'symbol') as DecoratorSymbolInjection[];
+	}
+
+	public static getComponentInjections(component: Component): DecoratorComponentInjection[] {
+		return this.getInjections(component).filter(i => typeof i !== 'symbol') as DecoratorComponentInjection[];
+	}
+
 	/**
 	 * Handles all decorator injections of a component
 	 *
@@ -66,8 +74,11 @@ export class Decorators {
 	 */
 	public static handleInjections(component: Component, api: ComponentAPI) {
 		for (const injection of Decorators.getInjections(component)) {
-			if (typeof injection.component === 'symbol') {
-				// TODO Handle special symbol injections
+			if (injection.symbol != null) {
+				// Handle parent injection
+				if (injection.symbol === Symbols.parent) {
+					api.injectComponent(component.parent, injection.propertyKey);
+				}
 			} else {
 				api.injectComponent(injection.component, injection.propertyKey);
 			}
@@ -90,6 +101,15 @@ export class Decorators {
 				api.injectVariable(Object.assign({}, variable.definition, { property: variable.propertyKey }));
 			}
 		}
+	}
+
+	public static getDecoratorParent(component: Component): Function {
+		// Check if there is a constructor, if there isn't then there can't be any decorators
+		if (component.constructor == null) return null;
+
+		const parent: Function = (component.constructor as any)[Symbols.childOf];
+
+		return parent || null;
 	}
 
 }

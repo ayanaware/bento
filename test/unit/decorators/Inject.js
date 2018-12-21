@@ -20,7 +20,7 @@ describe('Subscribe', function () {
 		);
 	});
 
-	it('should define a new array on the ubhectuibs symbol if it does not exist', function () {
+	it('should define a new array on the injection symbol if it does not exist', function () {
 		const object = new class SomeClass {}();
 
 		inject()(object, null, {});
@@ -47,7 +47,7 @@ describe('Subscribe', function () {
 		);
 	});
 
-	it('should push the given data into the array', function () {
+	it('should push the given component injection into the array', function () {
 		const properties = {
 			propertyKey: 'somePropertyKey',
 			component: function () {},
@@ -56,6 +56,23 @@ describe('Subscribe', function () {
 		const object = new class SomeClass {}();
 
 		inject(properties.component)(object, properties.propertyKey);
+
+		expect(
+			object.constructor[Symbols.injections][0],
+			'to have own properties',
+			properties
+		);
+	});
+
+	it('should push the given symbol injection into the array', function () {
+		const properties = {
+			propertyKey: 'somePropertyKey',
+			symbol: Symbol('TestSymbol'),
+		};
+
+		const object = new class SomeClass {}();
+
+		inject(properties.symbol)(object, properties.propertyKey);
 
 		expect(
 			object.constructor[Symbols.injections][0],
@@ -82,7 +99,7 @@ describe('Parent', function () {
 		parent()(object, null, {});
 
 		expect(
-			object.constructor[Symbols.injections][0].component,
+			object.constructor[Symbols.injections][0].symbol,
 			'to be',
 			Symbols.parent
 		);

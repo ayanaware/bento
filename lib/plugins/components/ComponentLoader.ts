@@ -19,6 +19,7 @@ export abstract class ComponentLoader {
 	 * Loads the components. This only works if a Bento is attached
 	 */
 	public abstract async onLoad(): Promise<void>;
+	public abstract async onUnload(): Promise<void>;
 
 	/**
 	 * Detects if a value is component-like.

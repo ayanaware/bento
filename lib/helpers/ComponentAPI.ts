@@ -14,6 +14,7 @@ import {
 	VariableDefinition,
 	VariableDefinitionType
 } from '../interfaces';
+import { FSComponentLoader, ComponentLoader } from '../plugins';
 
 /**
  * Logger instance for the ComponentAPI class
@@ -76,6 +77,17 @@ export class ComponentAPI {
 			writable: false,
 			value: component,
 		});
+	}
+
+	public loadChildren(arg: string, reference?: Plugin | string) {
+		if (reference == null) reference = FSComponentLoader;
+
+		// verify that the plugin exists in bento
+		const name = this.bento.plugins.resolveName(reference);
+		const plugin = this.bento.plugins.getPlugin(name);
+		if (!plugin) throw new IllegalStateError(`Plugin "${name}" does not exist`);
+
+		
 	}
 
 	public getPlugin<T extends Plugin>(reference: Plugin | string): T {
@@ -159,7 +171,7 @@ export class ComponentAPI {
 			get: () => {
 				return this.getValue(definition);
 			},
-			set: function () {
+			set: function() {
 				// TODO Change to IllegalAccessError
 				throw new Error(`Cannot set injected variable "${definition.name}"`);
 			}

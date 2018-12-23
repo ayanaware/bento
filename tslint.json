@@ -31,6 +31,10 @@
 			true,
 			"always"
 		],
-		"prefer-const": true
+		"prefer-const": true,
+		"space-before-function-paren": [
+			true,
+			"never"
+		]
 	}
 }

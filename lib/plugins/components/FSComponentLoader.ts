@@ -70,6 +70,17 @@ export class FSComponentLoader extends ComponentLoader implements Plugin {
 		}
 	}
 
+	public async onUnload() {
+		// meh
+	}
+
+	// THIS IS A TEMP solution until we have a better solution
+	public async loadChildren(directory: string) {
+		const absolute = path.resolve(directory);
+		const components = await this.getComponentFiles(absolute);
+		return this.createComponents(components);
+	}
+
 	public addDirectory(directory: string) {
 		const absolute = path.resolve(directory);
 		if (this.directories.indexOf(absolute) > -1) throw new IllegalStateError('This directory is already defined');

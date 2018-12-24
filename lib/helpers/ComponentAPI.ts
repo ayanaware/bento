@@ -14,7 +14,7 @@ import {
 	VariableDefinition,
 	VariableDefinitionType
 } from '../interfaces';
-import { FSComponentLoader, ComponentLoader } from '../plugins';
+import { FSComponentLoader } from '../plugins';
 
 /**
  * Logger instance for the ComponentAPI class
@@ -79,15 +79,14 @@ export class ComponentAPI {
 		});
 	}
 
-	public loadChildren(arg: string, reference?: Plugin | string) {
+	public async loadChildren(arg: string, reference?: Plugin | string) {
 		if (reference == null) reference = FSComponentLoader;
 
 		// verify that the plugin exists in bento
-		const name = this.bento.plugins.resolveName(reference);
-		const plugin = this.bento.plugins.getPlugin(name);
-		if (!plugin) throw new IllegalStateError(`Plugin "${name}" does not exist`);
+		const plugin = this.getPlugin<any>(reference);
 
-		
+		if (typeof plugin.loadChildren !== 'function') throw new IllegalStateError(`Plugin "${plugin.name}" does not define loadChildren method`);
+		return plugin.loadChildren(arg);
 	}
 
 	public getPlugin<T extends Plugin>(reference: Plugin | string): T {

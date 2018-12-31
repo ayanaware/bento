@@ -1,6 +1,8 @@
 'use strict';
 
 import { ComponentAPI } from '../helpers';
+
+import { Plugin } from './Plugin';
 import { VariableDefinition } from './VariableDefinition';
 
 export interface Component {
@@ -10,8 +12,10 @@ export interface Component {
 	version?: string;
 
 	parent?: Component | string;
+
+	plugins: Array<Plugin | string>;
 	dependencies?: Array<Component | string>;
-	variables?: VariableDefinition[];
+	variables?: Array<VariableDefinition>;
 
 	// General lifecycle events
 	onLoad?(api?: ComponentAPI): Promise<void>;

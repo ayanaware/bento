@@ -42,6 +42,9 @@ bento.addPlugin(config).then(async () => {
 		},
 	]);
 
+	console.log(bento.variables.getVariable('someVal'));
+	console.log(bento.variables.getSource('someVal'));
+
 	try {
 		await bento.addComponent(instance);
 	} catch (e) {

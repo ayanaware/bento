@@ -52,7 +52,7 @@ export class ComponentAPI {
 	 *
 	 * @param referece - Component name or reference
 	 */
-	public getComponent<T extends Component>(reference: Component | string): T {
+	public getComponent<T extends Component>(reference: Component | Function | string): T {
 		const name = this.bento.components.resolveName(reference);
 		const component = this.bento.components.getComponent(name);
 		if (!component) throw new IllegalStateError(`Component "${name}" does not exist`);
@@ -65,7 +65,7 @@ export class ComponentAPI {
 	 * @param reference - Component name or reference
 	 * @param name - name to inject into
 	 */
-	public injectComponent(reference: Component | string, injectName: string) {
+	public injectComponent(reference: Component | Function | string, injectName: string) {
 		if (this.component.hasOwnProperty(injectName)) throw new IllegalStateError(`Component already has property "${injectName}" defined.`);
 
 		const component = this.getComponent(reference);
@@ -79,7 +79,7 @@ export class ComponentAPI {
 		});
 	}
 
-	public async loadChildren(arg: string, reference?: Plugin | string) {
+	public async loadChildren(arg: string, reference?: Plugin | Function | string) {
 		if (reference == null) reference = FSComponentLoader;
 
 		// verify that the plugin exists in bento
@@ -89,7 +89,7 @@ export class ComponentAPI {
 		return plugin.loadChildren(arg);
 	}
 
-	public getPlugin<T extends Plugin>(reference: Plugin | string): T {
+	public getPlugin<T extends Plugin>(reference: Plugin | Function | string): T {
 		const name = this.bento.plugins.resolveName(reference);
 		const plugin = this.bento.plugins.getPlugin(name);
 		if (!plugin) throw new IllegalStateError(`Plugin "${name}" does not exist`);
@@ -269,7 +269,7 @@ export class ComponentAPI {
 	 * @param handler - The function to be called
 	 * @param context - Optional `this` context for above handler function
 	 */
-	public subscribe(type: SubscriptionType, namespace: Component | string, name: string, handler: (...args: any[]) => void, context?: any) {
+	public subscribe(type: SubscriptionType, namespace: Component | Function | string, name: string, handler: (...args: any[]) => void, context?: any) {
 		const componentName = this.bento.components.resolveName(namespace);
 
 		// Get the namespace

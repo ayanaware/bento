@@ -13,8 +13,8 @@ export interface Component {
 
 	parent?: Component | string;
 
-	plugins: Array<Plugin | string>;
-	dependencies?: Array<Component | string>;
+	plugins?: Array<Function | Plugin | string>;
+	dependencies?: Array<Function | Component | string>;
 	variables?: Array<VariableDefinition>;
 
 	// General lifecycle events

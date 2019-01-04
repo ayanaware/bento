@@ -12,7 +12,7 @@ export class VariableManager {
 	private readonly variables: Map<string, any> = new Map();
 	private readonly validators: Map<string, (value: any, ...args: any[]) => boolean> = new Map();
 
-	private readonly sources: Map<string, VariableSource[]> = new Map();
+	private readonly sources: Map<string, VariableSource> = new Map();
 
 	constructor(bento: Bento) {
 		this.bento = bento;
@@ -43,8 +43,9 @@ export class VariableManager {
 	 * @param name - name of variable to update
 	 * @param value - new value
 	 */
-	public setVariable(name: string, value: any) {
+	public setVariable(name: string, value: any, source?: VariableSource) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
+		if (source) this.setSource(name, source);
 		if (value === undefined) return;
 
 		this.variables.set(name, value);
@@ -59,19 +60,31 @@ export class VariableManager {
 		if (this.variables.has(name)) this.variables.delete(name);
 
 		// purge source
-		if (this.sources.has(name)) this.sources.delete(name);
+		if (this.sources.has(name)) this.deleteSource(name);
 	}
 
 	/**
-	 * Fetches source information for a given variable
+	 * Checks if a given variable source exists
 	 * @param name - Variable name
 	 */
 	// TODO: Needs tests
-	public getSources(name: string) {
-		if (typeof name !== 'string') throw new IllegalArgumentError('Name must be a string');
-		if (!this.sources.has(name)) throw new IllegalStateError(`Variable "${name}" has no defined sources`);
+	public hasSource(name: string) {
+		if (typeof name !== 'string' || name === '') throw new IllegalArgumentError('Variable name must be a string');
+		return this.sources.has(name);
+	}
 
-		return this.sources.get(name);
+	/**
+	 * Fetches a variable source for a given variable name
+	 * @param name - Variable name
+	 */
+	// TODO: Needs tests
+	public getSource(name: string): VariableSource {
+		if (typeof name !== 'string' || name === '') throw new IllegalArgumentError('Variable name must be a string');
+
+		const source = this.sources.get(name);
+		if (!source) return null;
+
+		return source;
 	}
 
 	/**
@@ -80,43 +93,28 @@ export class VariableManager {
 	 * @param source - VariableSource
 	 */
 	// TODO: Needs tests
-	public setSources(name: string, sources: VariableSource[]) {
+	public setSource(name: string, source: VariableSource) {
 		if (typeof name !== 'string' || name === '') throw new IllegalArgumentError('Variable name must be a string');
-		if (!Array.isArray(sources)) throw new IllegalArgumentError('Sources must be an array');
-
-		for (const source of sources) {
-			this.addSource(name, source);
-		}
-	}
-
-	public addSource(name: string, source: VariableSource) {
-		if (typeof name !== 'string' || name === '') throw new IllegalArgumentError('Variable name must be a string');
-		if (!this.variables.has(name)) throw new IllegalStateError(`Source can not be set for undefined variable "${name}"`);
-
 		if (source == null || typeof source !== 'object') throw new IllegalArgumentError('VariableSource must be a object');
 
 		if (['env', 'inline'].indexOf(source.type) === -1) throw new IllegalArgumentError('Invalid VariableSource type');
 
+		// validate source
 		if (source.type === VariableSourceType.ENV) {
 			if (source.source == null) throw new IllegalArgumentError(`VariableSource of type "${source.type}" requires source to be a valid string`);
 		}
 
-		let sources = this.sources.get(name);
-		if (!Array.isArray(sources)) sources = [];
-
-		sources.push(source);
-		this.sources.set(name, sources);
+		this.sources.set(name, source);
 	}
 
 	/**
-	 * Delete source information for a given variable name
+	 * Remove source information for a given variable name
 	 * @param name - Variable name
 	 */
-	public deleteSources(name: string) {
-		if (typeof name !== 'string') throw new IllegalArgumentError('Name must be a string');
-		if (!this.sources.has(name)) throw new IllegalStateError(`No sources found for variable "${name}"`);
-
-		this.sources.delete(name);
+	// TODO: Needs tests
+	private deleteSource(name: string) {
+		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
+		if (this.sources.has(name)) this.sources.delete(name);
 	}
 
 	/**

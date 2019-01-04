@@ -75,24 +75,15 @@ export class ConfigLoader {
 
 		for (const definition of this.definitions.values()) {
 			const value = await this.getValue(definition);
-			this.bento.variables.setVariable(definition.name, value);
 
-			// set source
-			const sources: VariableSource[] = [];
-			if (definition.value !== undefined) {
-				sources.push({
-					type: VariableSourceType.INLINE,
-				});
-			}
-
+			// define source
+			const source: VariableSource = { type: VariableSourceType.INLINE };
 			if (definition.env != null) {
-				sources.push({
-					type: VariableSourceType.ENV,
-					source: definition.env,
-				});
+				source.type = VariableSourceType.ENV;
+				source.source = definition.env;
 			}
 
-			this.bento.variables.setSources(definition.name, sources);
+			this.bento.variables.setVariable(definition.name, value, source);
 		}
 	}
 

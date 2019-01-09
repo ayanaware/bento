@@ -21,7 +21,9 @@ const stat = util.promisify(fs.stat);
 
 interface DirectoryItem {
 	type: 'DIRECTORY' | 'FILE' | null;
+	name: string;
 	path: string;
+	parent: string;
 }
 
 export class FSPlugin {
@@ -36,6 +38,8 @@ export class FSPlugin {
 		// determine component files and directories
 		// instantiate components
 		// add components to bento
+		const files = await this.findComponentFiles(absolute);
+		console.log(absolute, files);
 	}
 
 	public async removeDirectory(...directory: string[]) {
@@ -46,38 +50,53 @@ export class FSPlugin {
 	 * Attempts to resolve a DirectoryItem to a component file
 	 * @param item - DirectoryItem
 	 */
-	private async findComponentFiles(items: Array<DirectoryItem>): Promise<Array<string>> {
+	private async findComponentFiles(directory: string): Promise<Array<string>> {
 		const paths: Array<string> = [];
 
+		// get component directory contents
+		const contents = await this.fetchDirectoryContents(directory);
+
+		// maybe add .bentoignore feature
+
 		// seperate types
-		const { files, directories } = items.reduce((a, c) => {
+		const { files, directories } = contents.reduce((a, c) => {
 			if (c.type === 'DIRECTORY') a.directories.push(c);
-			else {
-				// verify file ends in .js
-				if (c.path.endsWith('.js')) a.files.push(c);
-			}
+			else if (c.path.endsWith('.js') && c.path) a.files.push(c);
 
 			return a;
 		}, { files: [], directories: [] });
 
 		// concat files
-		paths.concat(files.map(c => c.path));
+		// excluding top-level index.js
+		files.filter(c => c.name !== 'index.js').forEach(c => paths.push(c.path));
 
 		const promises: Array<Promise<string>> = directories.reduce((a, c) => {
-			a.push(new Promise(resolve => {
-				// soon
-				resolve();
-			}));
+			a.push(async() => {
+				let items = await this.fetchDirectoryContents(directory);
+				items = items.filter(i => i.type === 'FILE' && i.path.endsWith('.js'));
+
+				// use index.js if it exists
+				const index = items.find(i => i.name === 'index.js');
+				if (index != null) return index.path;
+
+				// single js file
+				if (items.length === 1) return items[0].path;
+
+				return null;
+			});
 
 			return a;
 		}, []);
 
-		(await Promise.all(promises)).filter(v => v !== null).forEach(v => paths.push(v));
+		const resolved = await Promise.all(promises);
+		resolved.filter(p => p != null).forEach(p => paths.push(p));
 
 		return paths;
 	}
 
 	private async fetchDirectoryContents(directory: string): Promise<Array<DirectoryItem>> {
+		directory = path.resolve(directory);
+
 		const contents: Array<DirectoryItem> = [];
 
 		const items = await readdir(directory);
@@ -85,7 +104,12 @@ export class FSPlugin {
 			const absolute = path.resolve(directory, item);
 
 			// add entry to contents
-			contents.push({ type: null, path: absolute });
+			contents.push({
+				type: null,
+				name: item,
+				path: absolute,
+				parent: directory,
+			});
 
 			// push promise to be resolved
 			a.push(stat(absolute));

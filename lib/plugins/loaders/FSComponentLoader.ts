@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
 
-import { IllegalStateError } from '@ayana/errors';
+import { IllegalArgumentError } from '@ayana/errors';
 
 import { Bento } from '../../Bento';
 import { Component } from '../../interfaces';
@@ -39,7 +39,8 @@ export class FSPlugin {
 		// instantiate components
 		// add components to bento
 		const files = await this.findComponentFiles(absolute);
-		console.log(absolute, files);
+		console.log(absolute);
+		console.log(files);
 	}
 
 	public async removeDirectory(...directory: string[]) {
@@ -70,23 +71,7 @@ export class FSPlugin {
 		// excluding top-level index.js
 		files.filter(c => c.name !== 'index.js').forEach(c => paths.push(c.path));
 
-		const promises: Array<Promise<string>> = directories.reduce((a, c) => {
-			a.push(async() => {
-				let items = await this.fetchDirectoryContents(directory);
-				items = items.filter(i => i.type === 'FILE' && i.path.endsWith('.js'));
-
-				// use index.js if it exists
-				const index = items.find(i => i.name === 'index.js');
-				if (index != null) return index.path;
-
-				// single js file
-				if (items.length === 1) return items[0].path;
-
-				return null;
-			});
-
-			return a;
-		}, []);
+		const promises: Array<Promise<string>> = directories.map((i: DirectoryItem) => this.findDirectoryComponent(i.path));
 
 		const resolved = await Promise.all(promises);
 		resolved.filter(p => p != null).forEach(p => paths.push(p));
@@ -94,7 +79,25 @@ export class FSPlugin {
 		return paths;
 	}
 
+	private async findDirectoryComponent(directory: string) {
+		if (typeof directory !== 'string' || directory === '') throw new IllegalArgumentError('Directory must be a string');
+		directory = path.resolve(directory);
+
+		let items = await this.fetchDirectoryContents(directory);
+		items = items.filter(i => i.type === 'FILE' && i.path.endsWith('.js'));
+
+		// use index.js if it exists
+		const index = items.find(i => i.name === 'index.js');
+		if (index != null) return index.path;
+
+		// single js file
+		if (items.length === 1) return items[0].path;
+
+		return null;
+	}
+
 	private async fetchDirectoryContents(directory: string): Promise<Array<DirectoryItem>> {
+		if (typeof directory !== 'string' || directory === '') throw new IllegalArgumentError('Directory must be a string');
 		directory = path.resolve(directory);
 
 		const contents: Array<DirectoryItem> = [];

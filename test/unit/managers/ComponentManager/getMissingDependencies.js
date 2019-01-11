@@ -1,6 +1,6 @@
 'use strict';
 
-const expect = require('unexpected');
+const expect = require('../../../unexpected');
 const sinon = require('sinon');
 
 const { ComponentManager } = require('../../../../build/managers/ComponentManager');
@@ -16,11 +16,19 @@ describe('#getMissingDependencies', function () {
 		return tested;
 	};
 
-	it('should throw an error if no array is passed', function () {
+	it('should throw an error if not an object', function () {
 		expect(
-			() => getClean().getMissingDependencies('Totally an array'),
+			() => getClean().getMissingDependencies('Totally an object'),
 			'to throw',
-			'Dependencies is not an array',
+			'Component must be an object',
+		);
+	});
+
+	it('should throw an error if object has no dependencies property', function () {
+		expect(
+			() => getClean().getMissingDependencies({ name: 'test' }),
+			'to throw',
+			'Component dependencies must be an array',
 		);
 	});
 
@@ -28,7 +36,7 @@ describe('#getMissingDependencies', function () {
 		const tested = getClean();
 
 		expect(
-			tested.getMissingDependencies([]),
+			tested.getMissingDependencies({ dependencies: [] }),
 			'to be an array'
 		);
 	});
@@ -42,7 +50,8 @@ describe('#getMissingDependencies', function () {
 		// figure out how to use sinon for this
 		tested.resolveName = name => name;
 
-		const missing = tested.getMissingDependencies(['A', 'B', 'C', 'D']); // Dependencies are returned by resolveDependencies
+		// Dependencies are returned by resolveDependencies
+		const missing = tested.getMissingDependencies({ dependencies: ['A', 'B', 'C', 'D'] });
 
 		expect(
 			missing,

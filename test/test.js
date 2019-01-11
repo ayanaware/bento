@@ -1,8 +1,6 @@
 'use strict';
 
 const assert = require('assert');
-
-require('./assertions');
 require('./runTests');
 
 // 👌

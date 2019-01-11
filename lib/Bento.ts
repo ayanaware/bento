@@ -2,14 +2,15 @@
 
 import * as crypto from 'crypto';
 
-import { Component, Plugin } from './interfaces';
+import { IllegalStateError } from '@ayana/errors';
+
+import { ApplicationState, Component, Plugin } from './interfaces';
 
 import { ComponentManager, PluginManager, PropertyManager, VariableManager } from './managers';
 
 export interface BentoOptions {}
 
 export class Bento {
-
 	public readonly components: ComponentManager = new ComponentManager(this);
 
 	public readonly plugins: PluginManager = new PluginManager(this);
@@ -30,6 +31,8 @@ export class Bento {
 	/**
 	 * Generates a uniqueID
 	 * @param len - length of id
+	 *
+	 * @returns uniqueID
 	 */
 	public createID(len: number = 16) {
 		return crypto.randomBytes(len)
@@ -98,4 +101,20 @@ export class Bento {
 		return this.variables.deleteVariable(name);
 	}
 
+	public async verify(): Promise<ApplicationState> {
+		// check for any pending components
+		const pending = this.components.getPendingComponents();
+		if (pending.length > 0) {
+			throw new IllegalStateError(`One or more components are still in a pending state: '${pending.map(p => p.name).join('\', \'')}'`);
+		}
+
+		// TODO: later
+		const state: ApplicationState = {
+			components: [],
+			plugins: [],
+			varaibles: [],
+		};
+
+		return state;
+	}
 }

@@ -6,12 +6,10 @@ import { Bento } from '../Bento';
 import { ComponentRegistrationError } from '../errors';
 import { ComponentAPI, ComponentEvents } from '../helpers';
 import { Decorators } from '../helpers/internal';
-import { Component } from '../interfaces';
+import { Component, PendingComponentInfo } from '../interfaces';
 
 import { ReferenceManager } from './ReferenceManager';
-
 export class ComponentManager {
-
 	private readonly bento: Bento;
 
 	private readonly references: ReferenceManager<Component> = new ReferenceManager();
@@ -33,6 +31,7 @@ export class ComponentManager {
 	 * @param reference Component instance, name or reference
 	 *
 	 * @see ReferenceManager#resolveName
+	 * @returns - Resolved component name
 	 */
 	public resolveName(reference: Component | string | any) {
 		return this.references.resolveName(reference);
@@ -40,7 +39,9 @@ export class ComponentManager {
 
 	/**
 	 * Get component instance
-	 * @param component - Component name or reference
+	 * @param reference - Component name or reference
+	 *
+	 * @returns - Component instance
 	 */
 	public getComponent(reference: Component | string) {
 		const name = this.resolveName(reference);
@@ -52,6 +53,8 @@ export class ComponentManager {
 	/**
 	 * Get component events instance
 	 * @param component - Component name or reference
+	 *
+	 * @returns - Component events helper
 	 */
 	public getComponentEvents(component: Component | string) {
 		const name = this.resolveName(component);
@@ -63,6 +66,8 @@ export class ComponentManager {
 	/**
 	 * Fetches all child components of a given parent component
 	 * @param parent - parent component name or reference
+	 *
+	 * @returns - An array of children
 	 */
 	public getComponentChildren(parent: Component | string) {
 		const name = this.resolveName(parent);
@@ -79,8 +84,61 @@ export class ComponentManager {
 	}
 
 	/**
+	 * Returns an array of dependencies requested but not loaded yet.
+	 *
+	 * @param component The requested dependencies
+	 *
+	 * @returns An array of dependencies requested but not loaded
+	 */
+	public getMissingDependencies(component: Component | string): string[] {
+		try {
+			const name = this.resolveName(component);
+			if (this.components.has(name)) component = this.components.get(name);
+		} catch (e) {
+			// 00f
+		}
+
+		if (component == null || typeof component !== 'object') throw new IllegalArgumentError(`Component must be an object`);
+		if (component.dependencies == null || !Array.isArray(component.dependencies)) throw new IllegalArgumentError(`Component dependencies must be an array`);
+
+		return component.dependencies.reduce((a, d) => {
+			try {
+				const name = this.resolveName(d);
+				if (!this.components.has(name)) a.push(name);
+			} catch (e) {
+				a.push(d);
+			}
+
+			return a;
+		}, []);
+	}
+
+	/**
+	 * @see PendingComponentInfo
+	 * @returns - All currently pending bento components and their info
+	 */
+	public getPendingComponents(): Array<PendingComponentInfo> {
+		const pending: Array<PendingComponentInfo> = [];
+
+		for (const [name, component] of this.pending.entries()) {
+			// get pending items
+			const missing = this.getMissingDependencies(component);
+
+			pending.push({
+				name,
+				component,
+				missing,
+			});
+		}
+
+		return pending;
+	}
+
+	/**
 	 * Add a Component to Bento
 	 * @param component - Component
+	 *
+	 * @returns - Component Name
 	 */
 	public async addComponent(component: Component): Promise<string> {
 		if (component == null || typeof component !== 'object') throw new IllegalArgumentError('Component must be a object');
@@ -98,7 +156,7 @@ export class ComponentManager {
 		this.prepareComponent(component);
 
 		// determine dependencies
-		const missing = this.getMissingDependencies(component.dependencies);
+		const missing = this.getMissingDependencies(component);
 		if (missing.length === 0) {
 			// All dependencies are already loaded, go ahead and load the component
 			await this.loadComponent(component);
@@ -307,7 +365,7 @@ export class ComponentManager {
 		let loaded = 0;
 
 		for (const component of this.pending.values()) {
-			const missing = this.getMissingDependencies(component.dependencies);
+			const missing = this.getMissingDependencies(component);
 			if (missing.length === 0) {
 				this.pending.delete(component.name);
 
@@ -317,30 +375,5 @@ export class ComponentManager {
 		}
 
 		if (loaded > 0) await this.handlePendingComponents();
-	}
-
-	/**
-	 * Returns an array of dependencies requested but not loaded yet.
-	 *
-	 * @param dependencies The requested dependencies
-	 *
-	 * @returns An array of dependencies requested but not loaded
-	 */
-	private getMissingDependencies(dependencies: Array<Component | string | any>): string[] {
-		if (dependencies !== null && !Array.isArray(dependencies)) throw new IllegalArgumentError(`Dependencies is not an array`);
-		else if (dependencies === null) dependencies = [];
-
-		return dependencies.reduce((a, dependency) => {
-			try {
-				// attempt to resolve down to name
-				const name = this.resolveName(dependency);
-				if (!this.components.has(name)) a.push(name);
-			} catch (e) {
-				// failed to resolve, pass through
-				a.push(dependency);
-			}
-
-			return a;
-		}, []);
 	}
 }

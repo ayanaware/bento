@@ -1,6 +1,6 @@
 'use strict';
 
-const expect = require('unexpected');
+const expect = require('../../unexpected');
 
 const { Symbols } = require('../../../build/constants/internal/Symbols');
 

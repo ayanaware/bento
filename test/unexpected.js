@@ -1,6 +1,7 @@
 'use strict';
 
-const expect = require('unexpected');
+const unexpected = require('unexpected');
+const expect = unexpected.clone();
 
 expect.addAssertion(
 	'<any> [not] to be an array',
@@ -8,3 +9,5 @@ expect.addAssertion(
 		expect(Array.isArray(subject), '[not] to be true');
 	}
 );
+
+module.exports = expect;

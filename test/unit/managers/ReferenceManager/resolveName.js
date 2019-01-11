@@ -1,6 +1,6 @@
 'use strict';
 
-const expect = require('unexpected');
+const expect = require('../../../unexpected');
 const sinon = require('sinon');
 
 const { ReferenceManager } = require('../../../../build/managers/ReferenceManager');

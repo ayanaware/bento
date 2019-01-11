@@ -1,6 +1,6 @@
 'use strict';
 
-const expect = require('unexpected');
+const expect = require('../../../unexpected');
 
 const { ComponentLoadError } = require('../../../../build/errors/ComponentLoadError');
 

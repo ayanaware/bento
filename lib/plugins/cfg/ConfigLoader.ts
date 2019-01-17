@@ -28,6 +28,8 @@ export class ConfigLoader {
 	 * Add a new definition
 	 * @param definition - definition object
 	 * @param reload - auto reload config values into betno?
+	 *
+	 * @returns Definition name
 	 */
 	public async addDefinition(definition: ConfigLoaderDefinition, reload: boolean = true) {
 		if (definition == null || typeof definition !== 'object') throw new IllegalArgumentError('Definition must be a object');
@@ -89,6 +91,8 @@ export class ConfigLoader {
 
 	private async getValue(definition: ConfigLoaderDefinition) {
 		if (definition == null || typeof definition !== 'object') throw new IllegalArgumentError('Definition must be a object');
+
+		// tslint:disable-next-line:no-unnecessary-initializer
 		let value = undefined;
 
 		// inline value defined

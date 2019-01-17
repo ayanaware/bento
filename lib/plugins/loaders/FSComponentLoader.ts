@@ -4,13 +4,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
 
-import { IllegalArgumentError, IllegalStateError, ProcessingError } from '@ayana/errors';
+import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 
 import { Bento } from '../../Bento';
 import { Component } from '../../interfaces';
 import { ComponentLoader } from './ComponentLoader';
 
-import { ComponentLoadError, ComponentRegistrationError } from '../../errors';
+import { ComponentLoadError } from '../../errors';
 
 /**
  * @ignore

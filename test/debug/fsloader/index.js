@@ -11,6 +11,8 @@ const fsloader = new FSComponentLoader();
 
 	await bento.addPlugin(fsloader);
 
-	console.log(bento.components.components);
+	const state = await bento.verify();
+
+	console.log('Application State:', state);
 })();
 

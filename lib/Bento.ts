@@ -108,13 +108,20 @@ export class Bento {
 			throw new IllegalStateError(`One or more components are still in a pending state: '${pending.map(p => p.name).join('\', \'')}'`);
 		}
 
-		// TODO: later
-		const state: ApplicationState = {
-			components: [],
-			plugins: [],
-			varaibles: [],
-		};
+		const state: ApplicationState = { components: [], plugins: [], variables: [] };
 
+		// add component names
+		const components = this.components.getComponents();
+		components.forEach(c => state.components.push(c.name));
+
+		// add plugin names
+		const plugins = this.plugins.getPlugins();
+		plugins.forEach(p => state.plugins.push(p.name));
+
+		// TODO: variable names
+
+		// freze object
+		Object.freeze(state);
 		return state;
 	}
 }

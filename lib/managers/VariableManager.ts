@@ -18,9 +18,11 @@ export class VariableManager {
 		this.bento = bento;
 	}
 
-		/**
+	/**
 	 * Check if a given variable exists
-	 * @param name - name of variable to get
+	 * @param name name of variable
+	 *
+	 * @returns boolean
 	 */
 	public hasVariable(name: string) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
@@ -29,8 +31,10 @@ export class VariableManager {
 	}
 
 	/**
-	 * Fetch a value for given variable name
-	 * @param name - name of variable to get
+	 * Fetch a value for a given variable name
+	 * @param name name of variable
+	 *
+	 * @returns variable value
 	 */
 	public getVariable(name: string) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
@@ -40,8 +44,9 @@ export class VariableManager {
 
 	/**
 	 * Update a given variables value
-	 * @param name - name of variable to update
-	 * @param value - new value
+	 * @param name name of variable
+	 * @param value new value
+	 * @param source specify variable source (optional)
 	 */
 	public setVariable(name: string, value: any, source?: VariableSource) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
@@ -53,7 +58,7 @@ export class VariableManager {
 
 	/**
 	 * Fully removes all traces of a variable from bento
-	 * @param name - name of variable
+	 * @param name name of variable
 	 */
 	public deleteVariable(name: string) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
@@ -65,7 +70,9 @@ export class VariableManager {
 
 	/**
 	 * Checks if a given variable source exists
-	 * @param name - Variable name
+	 * @param name Variable name
+	 *
+	 * @returns boolean
 	 */
 	// TODO: Needs tests
 	public hasSource(name: string) {
@@ -75,7 +82,9 @@ export class VariableManager {
 
 	/**
 	 * Fetches a variable source for a given variable name
-	 * @param name - Variable name
+	 * @param name Variable name
+	 *
+	 * @returns variable source
 	 */
 	// TODO: Needs tests
 	public getSource(name: string): VariableSource {
@@ -89,8 +98,8 @@ export class VariableManager {
 
 	/**
 	 * Sets source information for a given variable name
-	 * @param name - Variable name
-	 * @param source - VariableSource
+	 * @param name Variable name
+	 * @param source VariableSource
 	 */
 	// TODO: Needs tests
 	public setSource(name: string, source: VariableSource) {
@@ -109,7 +118,7 @@ export class VariableManager {
 
 	/**
 	 * Remove source information for a given variable name
-	 * @param name - Variable name
+	 * @param name Variable name
 	 */
 	// TODO: Needs tests
 	private deleteSource(name: string) {
@@ -119,8 +128,8 @@ export class VariableManager {
 
 	/**
 	 * Add a new validator into Bento
-	 * @param name - validator name
-	 * @param validator - validator function
+	 * @param name validator name
+	 * @param validator validator function
 	 */
 	public addValidator(name: string, validator: (value: any, ...args: any[]) => boolean) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');
@@ -131,7 +140,7 @@ export class VariableManager {
 
 	/**
 	 * Remove validator from Bento
-	 * @param name - validator name
+	 * @param name validator name
 	 */
 	public removeValidator(name: string) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');
@@ -142,8 +151,10 @@ export class VariableManager {
 
 	/**
 	 * Run a validator
-	 * @param name - validator name
-	 * @param args - array of args to be passed
+	 * @param name validator name
+	 * @param args array of args to be passed
+	 *
+	 * @returns validator result
 	 */
 	public runValidator(name: string, ...args: any[]) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');

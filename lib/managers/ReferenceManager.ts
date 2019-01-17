@@ -6,7 +6,6 @@ import { IllegalArgumentError } from '@ayana/errors';
  * Sub-Manager of [[ComponentManager]] and [[PluginManager]] handling references
  */
 export class ReferenceManager<T extends { name: string }> {
-
 	private readonly references: Map<any, string> = new Map();
 
 	/**
@@ -71,5 +70,4 @@ export class ReferenceManager<T extends { name: string }> {
 
 		return name;
 	}
-
 }

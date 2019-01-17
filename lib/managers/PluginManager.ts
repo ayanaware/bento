@@ -9,7 +9,6 @@ import { Plugin } from '../interfaces';
 import { ReferenceManager } from './ReferenceManager';
 
 export class PluginManager {
-
 	private readonly bento: Bento;
 
 	private readonly references: ReferenceManager<Plugin> = new ReferenceManager();
@@ -26,11 +25,18 @@ export class PluginManager {
 	 * @param reference Plugin instance, name or reference
 	 *
 	 * @see ReferenceManager#resolveName
+	 * @returns resolved component name
 	 */
 	public resolveName(reference: Plugin | string | any) {
 		return this.references.resolveName(reference);
 	}
 
+	/**
+	 * Get plugin instance
+	 * @param reference - Plugin name or reference
+	 *
+	 * @returns Plugin instance
+	 */
 	public getPlugin(reference: Plugin | string | any) {
 		const name = this.resolveName(reference);
 		if (!this.plugins.has(name)) return null;
@@ -39,8 +45,19 @@ export class PluginManager {
 	}
 
 	/**
+	 * Get instances of all currently loaded plugins
+	 *
+	 * @returns Array of component instances
+	 */
+	public getPlugins() {
+		return Array.from(this.plugins.values());
+	}
+
+	/**
 	 * Add a Plugin to Bento
-	 * @param plugin - plugin to add
+	 * @param plugin Plugin instance
+	 *
+	 * @returns Plugin name
 	 */
 	public async addPlugin(plugin: Plugin) {
 		if (plugin == null || typeof plugin !== 'object') throw new IllegalArgumentError('Plugin must be a object');
@@ -79,6 +96,8 @@ export class PluginManager {
 	/**
 	 * Adds plugins to Bento in order of array
 	 * @param plugins - array of plugins
+	 *
+	 * @returns Array of loaded plugin names
 	 */
 	public async addPlugins(plugins: Plugin[]) {
 		if (!Array.isArray(plugins)) throw new IllegalArgumentError('addPlugins only accepts an array.');

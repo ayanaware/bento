@@ -51,6 +51,15 @@ export class ComponentManager {
 	}
 
 	/**
+	 * Get instances of all currently loaded componets
+	 *
+	 * @returns Array of component instances
+	 */
+	public getComponents(): Array<Component> {
+		return Array.from(this.components.values());
+	}
+
+	/**
 	 * Get component events instance
 	 * @param component - Component name or reference
 	 *

@@ -2,13 +2,13 @@
 
 [Documentation](https://docs.ayana.io/modules/bento.html)
 
-Bento is a NodeJS framework designed to make creating and maintaing complex projects a simple and fast process.
+Bento is a robust NodeJS application framework designed to make creating and maintaing complex projects a simple and fast process.
 
 ### What does Bento do:
+* Robust plugable application framework.
+* Featuring: Components, Events, Plugins, Properties, Variables
 * Component lifecycle state and management
-* Provides consistent API for all components
-* Config Loading API
-* Event API
+* Consistent Component API
 * Defines strict, opinionated, rules
 
 ### What is a Bento Component?

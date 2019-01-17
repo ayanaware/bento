@@ -111,11 +111,19 @@ export class PluginManager {
 			value: this.bento,
 		});
 
+		// plugin must be defined before calling onload.
+		// this is because plugins can add components and other objects
+		// that will then need the plugin itself to continue loading
+		this.plugins.set(plugin.name, plugin);
+
 		// call onLoad
 		if (plugin.onLoad) {
-			await plugin.onLoad(this.bento);
+			try {
+				await plugin.onLoad(this.bento);
+			} catch (e) {
+				this.plugins.delete(plugin.name);
+				throw e;
+			}
 		}
-
-		this.plugins.set(plugin.name, plugin);
 	}
 }

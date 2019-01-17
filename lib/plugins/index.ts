@@ -1,4 +1,4 @@
 'use strict';
 
 export * from './cfg';
-export * from './components';
+export * from './loaders';

@@ -1,6 +1,6 @@
 'use strict';
 
-import { IllegalArgumentError, IllegalStateError, ProcessingError } from '@ayana/errors';
+import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 
 import { Bento } from '../Bento';
 import { ComponentRegistrationError } from '../errors';
@@ -31,7 +31,7 @@ export class ComponentManager {
 	 * @param reference Component instance, name or reference
 	 *
 	 * @see ReferenceManager#resolveName
-	 * @returns - Resolved component name
+	 * @returns resolved component name
 	 */
 	public resolveName(reference: Component | string | any) {
 		return this.references.resolveName(reference);
@@ -41,7 +41,7 @@ export class ComponentManager {
 	 * Get component instance
 	 * @param reference - Component name or reference
 	 *
-	 * @returns - Component instance
+	 * @returns Component instance
 	 */
 	public getComponent(reference: Component | string) {
 		const name = this.resolveName(reference);
@@ -54,7 +54,7 @@ export class ComponentManager {
 	 * Get component events instance
 	 * @param component - Component name or reference
 	 *
-	 * @returns - Component events helper
+	 * @returns Component events instance
 	 */
 	public getComponentEvents(component: Component | string) {
 		const name = this.resolveName(component);
@@ -67,9 +67,9 @@ export class ComponentManager {
 	 * Fetches all child components of a given parent component
 	 * @param parent - parent component name or reference
 	 *
-	 * @returns - An array of children
+	 * @returns Array of child components
 	 */
-	public getComponentChildren(parent: Component | string) {
+	public getComponentChildren(parent: Component | string): Array<Component> {
 		const name = this.resolveName(parent);
 		if (!this.components.has(name)) throw new IllegalStateError(`Parent "${name}" is not loaded`);
 
@@ -138,7 +138,7 @@ export class ComponentManager {
 	 * Add a Component to Bento
 	 * @param component - Component
 	 *
-	 * @returns - Component Name
+	 * @returns Component name
 	 */
 	public async addComponent(component: Component): Promise<string> {
 		if (component == null || typeof component !== 'object') throw new IllegalArgumentError('Component must be a object');
@@ -343,7 +343,7 @@ export class ComponentManager {
 			try {
 				await component.onLoad(component.api);
 			} catch (e) {
-				throw new ComponentRegistrationError(component, `Component "${component.name}" failed loading`).setCause(e);
+				throw new ComponentRegistrationError(component, `Component "${component.name}" failed to load`).setCause(e);
 			}
 		}
 

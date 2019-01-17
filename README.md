@@ -19,27 +19,30 @@ Components should not take on more then required. (IE: instead of having one com
 ### How to use Bento (IN-PROGRESS)
 Using bento is pretty simple. First import and initilize bento and any plugins you wish to use. Then simply add plugins to bento
 
-```js
+```ts
 'use strict';
-
-import * as path from 'path';
 
 import { Bento, FSComponentLoader } from '@ayana/bento';
 
 // Create a Bento instance
 const bento = new Bento();
 
-// Create FSComponentLoader
-// NOTE: Keep in mind all FSComponentLoader does is find Bento components in the path provided
-// Instantiates them and calls bento.addComponent
-// Behind the scenes
-const loader = new FSComponentLoader({
-	directories: [path.resolve(__dirname, 'modules')],
-});
+// Anonymous async function so we can use await
+(async () => {
+	// Create FSComponentLoader
+	// NOTE: Keep in mind all FSComponentLoader does is find components in a path
+	// Instantiates them and calls bento.addComponent
+	// Behind the scenes
+	const fsloader = new FSComponentLoader();
+	await fsloader.addDirectory(__dirname, 'components');
 
-// Apply plugin to Bento.
-// NOTE: Keep in mind that addPlugin is async and you should .catch any errors
-bento.addPlugin(loader).catch(e => {
-	console.log('Sad day', e);
+	// Apply plugin to Bento.
+	await bento.addPlugin(fsloader);
+
+	// Verify that Application looks good to continue
+	await bento.verify();
+})().catch(e => {
+	console.error(`Error while starting bento:\n${e}`);
+	process.exit(1);
 });
 ```

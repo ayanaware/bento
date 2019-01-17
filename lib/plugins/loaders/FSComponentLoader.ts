@@ -4,10 +4,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
 
-import { IllegalArgumentError } from '@ayana/errors';
+import { IllegalArgumentError, IllegalStateError, ProcessingError } from '@ayana/errors';
 
 import { Bento } from '../../Bento';
 import { Component } from '../../interfaces';
+import { ComponentLoader } from './ComponentLoader';
+
+import { ComponentLoadError, ComponentRegistrationError } from '../../errors';
 
 /**
  * @ignore
@@ -26,30 +29,109 @@ interface DirectoryItem {
 	parent: string;
 }
 
-export class FSPlugin {
+export class FSComponentLoader extends ComponentLoader {
 	public bento: Bento;
+	public name: string = 'FSComponentLoader';
 
-	private components: Map<string, string[]>;
+	// list of currently loaded directories and components
+	private directories: Set<string> = new Set();
+	private components: Set<string> = new Set();
 
+	// handles if addDirectory was called before bento has been attached
+	private pending: Array<{ file: string, instance: Component }> = [];
+
+	public async onLoad() {
+		// handle any pending components
+		if (this.pending.length > 0) {
+			for (const { file, instance } of this.pending) {
+				try {
+					const name = await this.bento.addComponent(instance);
+					this.components.add(name);
+				} catch (e) {
+					throw new ComponentLoadError(file, `Failed to attach component "${file}"`).setCause(e);
+				}
+			}
+
+			// reset array
+			this.pending = [];
+		}
+	}
+
+	/**
+	 * Add multiple directories at once
+	 * @param directories Array of paths
+	 */
+	public async addDirectories(directories: string[]) {
+		for (const directory of directories) await this.addDirectory(directory);
+	}
+
+	/**
+	 * Add and load all component like files and directories in given directory
+	 * @param directory Directory path
+	 */
 	public async addDirectory(...directory: string[]) {
 		const absolute = path.resolve(...directory);
+		if (this.directories.has(absolute)) throw new IllegalStateError(`Directory "${absolute}" already loaded`);
 
-		// find all files and directories in "absolute"
-		// determine component files and directories
-		// instantiate components
-		// add components to bento
+		const components: Array<string> = [];
+
+		// find component files
 		const files = await this.findComponentFiles(absolute);
-		console.log(absolute);
-		console.log(files);
+		for (const file of files) {
+			// create component instance
+			const instance = await this.createInstance(file);
+			// skip empty instances
+			if (instance == null) continue;
+
+			// gracefully handle bento not being attached yet
+			if (this.bento != null) {
+				try {
+					const name = await this.bento.addComponent(instance);
+					this.components.add(name);
+				} catch (e) {
+					throw new ComponentLoadError(file, `Failed to attach component "${file}"`).setCause(e);
+				}
+			} else this.pending.push({ file, instance });
+		}
+
+		this.directories.add(absolute);
 	}
 
 	public async removeDirectory(...directory: string[]) {
 		const absolute = path.resolve(...directory);
+
+		// TODO: Implement later
 	}
 
 	/**
-	 * Attempts to resolve a DirectoryItem to a component file
-	 * @param item - DirectoryItem
+	 * Should only ever be called by internally by bento
+	 * @param directory Path to directory
+	 */
+	public async loadComponents(...directory: string[]) {
+		await this.addDirectory(...directory);
+	}
+
+	private async createInstance(component: string) {
+		let nodeModule: any;
+		try {
+			nodeModule = require(component);
+		} catch (e) {
+			throw new ComponentLoadError(component, 'Failed to require module').setCause(e);
+		}
+
+		try {
+			const comp = this.findComponent(nodeModule);
+			return this.instantiate<Component>(comp);
+		} catch (e) {
+			throw new ComponentLoadError(component, 'Failed to create component instance').setCause(e);
+		}
+	}
+
+	/**
+	 * Attempts to resolve a directory to a component file
+	 * @param directory - directory path
+	 *
+	 * @returns List of component file paths
 	 */
 	private async findComponentFiles(directory: string): Promise<Array<string>> {
 		const paths: Array<string> = [];

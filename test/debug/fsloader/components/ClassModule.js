@@ -6,7 +6,7 @@ class ClassModule {
 	}
 
 	async onLoad() {
-		console.log('Hello from FileSystemLoader');
+		console.log('Hello from FSComponentLoader');
 	}
 }
 

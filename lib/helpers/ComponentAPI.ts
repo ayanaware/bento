@@ -79,14 +79,13 @@ export class ComponentAPI {
 		});
 	}
 
-	public async loadChildren(arg: string, reference?: Plugin | Function | string) {
+	public async loadComponents(reference: Plugin | Function | string, ...args: any[]) {
 		if (reference == null) reference = FSComponentLoader;
-
 		// verify that the plugin exists in bento
 		const plugin = this.getPlugin<any>(reference);
 
-		if (typeof plugin.loadChildren !== 'function') throw new IllegalStateError(`Plugin "${plugin.name}" does not define loadChildren method`);
-		return plugin.loadChildren(arg);
+		if (typeof plugin.loadComponents !== 'function') throw new IllegalStateError(`Plugin "${plugin.name}" does not define loadComponents method`);
+		return plugin.loadComponents(...args);
 	}
 
 	public getPlugin<T extends Plugin>(reference: Plugin | Function | string): T {

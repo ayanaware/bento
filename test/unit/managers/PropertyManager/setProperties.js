@@ -1,6 +1,5 @@
 'use strict';
 
-const expect = require('../../../unexpected');
 const sinon = require('sinon');
 
 const { PropertyManager } = require('../../../../build/managers/PropertyManager');

@@ -1,7 +1,5 @@
 'use strict';
 
-const expect = require('../../unexpected');
-
 const { Symbols } = require('../../../build/constants/internal/Symbols');
 const { SubscriptionType } = require('../../../build/constants/SubscriptionType');
 

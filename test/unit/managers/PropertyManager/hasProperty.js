@@ -1,7 +1,5 @@
 'use strict';
 
-const expect = require('../../../unexpected');
-
 const { PropertyManager } = require('../../../../build/managers/PropertyManager');
 
 describe('#hasProperty', function () {

@@ -1,7 +1,5 @@
 'use strict';
 
-const expect = require('../../../unexpected');
-
 const { ComponentLoadError } = require('../../../../build/errors/ComponentLoadError');
 
 describe('#constructor', function () {
@@ -9,7 +7,7 @@ describe('#constructor', function () {
 		const tested = new ComponentLoadError();
 
 		expect(
-			tested.componentLocation,
+			tested.location,
 			'to be',
 			'Unknown component location'
 		);
@@ -19,7 +17,7 @@ describe('#constructor', function () {
 		const tested = new ComponentLoadError('Some component location');
 
 		expect(
-			tested.componentLocation,
+			tested.location,
 			'to be',
 			'Some component location'
 		);
@@ -42,16 +40,6 @@ describe('#constructor', function () {
 			tested.message,
 			'to begin with',
 			'Some message'
-		);
-	});
-
-	it('should format the message properly', function () {
-		const tested = new ComponentLoadError('This location is good', 'This message is better');
-
-		expect(
-			tested.message,
-			'to be',
-			'This message is better: This location is good'
 		);
 	});
 });

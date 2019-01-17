@@ -1,7 +1,5 @@
 'use strict';
 
-const expect = require('../../../unexpected');
-
 const { ValidatorRegistrationError } = require('../../../../build/errors/ValidatorRegistrationError');
 
 describe('#constructor', function () {

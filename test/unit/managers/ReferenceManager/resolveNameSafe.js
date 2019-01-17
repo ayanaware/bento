@@ -1,7 +1,5 @@
 'use strict';
 
-const expect = require('../../../unexpected');
-
 const { ReferenceManager } = require('../../../../build/managers/ReferenceManager');
 
 describe('#resolveNameSafe', function () {

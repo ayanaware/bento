@@ -39,9 +39,10 @@ describe('#loadComponent', function () {
 			},
 		};
 
-		await assert.rejects(
+		expect(
 			async () => bento.loadComponent(testComponent),
-			{ message: 'Component "TestComponent" failed loading' }
+			'to error',
+			'Component "TestComponent" failed to load'
 		);
 	});
 });

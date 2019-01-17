@@ -1,7 +1,5 @@
 'use strict';
 
-const expect = require('../../../unexpected');
-
 const { VariableProcessingError } = require('../../../../build/errors/VariableProcessingError');
 
 describe('#constructor', function () {

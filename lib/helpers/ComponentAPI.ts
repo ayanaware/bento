@@ -2,7 +2,7 @@
 
 import { EventEmitter } from 'events';
 
-import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
+import { IllegalArgumentError, IllegalStateError, ProcessingError } from '@ayana/errors';
 import { Logger } from '@ayana/logger';
 
 import { Bento } from '../Bento';
@@ -50,7 +50,9 @@ export class ComponentAPI {
 	/**
 	 * Fetch the provided component instance
 	 *
-	 * @param referece - Component name or reference
+	 * @param reference Component name or reference
+	 *
+	 * @returns Component instance
 	 */
 	public getComponent<T extends Component>(reference: Component | Function | string): T {
 		const name = this.bento.components.resolveName(reference);
@@ -62,8 +64,8 @@ export class ComponentAPI {
 
 	/**
 	 * Inject component dependency into invoking component
-	 * @param reference - Component name or reference
-	 * @param name - name to inject into
+	 * @param reference Component name or reference
+	 * @param injectName name to inject into
 	 */
 	public injectComponent(reference: Component | Function | string, injectName: string) {
 		if (this.component.hasOwnProperty(injectName)) throw new IllegalStateError(`Component already has property "${injectName}" defined.`);
@@ -79,10 +81,22 @@ export class ComponentAPI {
 		});
 	}
 
+	/**
+	 * Invokes a plugins loadComponents method. Allowing for easy loading of peer/children components
+	 * @param reference Plugin name or reference
+	 * @param args Arguments to be passed to Plugin.loadComponents() method
+	 *
+	 * @returns Plugin.loadComponents() result
+	 */
 	public async loadComponents(reference: Plugin | Function | string, ...args: any[]) {
 		if (reference == null) reference = FSComponentLoader;
 		// verify that the plugin exists in bento
-		const plugin = this.getPlugin<any>(reference);
+		let plugin = null;
+		try {
+			plugin = this.getPlugin<any>(reference);
+		} catch (e) {
+			throw new IllegalStateError(`Failed to find requested component`).setCause(e);
+		}
 
 		if (typeof plugin.loadComponents !== 'function') throw new IllegalStateError(`Plugin "${plugin.name}" does not define loadComponents method`);
 		return plugin.loadComponents(...args);
@@ -98,15 +112,19 @@ export class ComponentAPI {
 
 	/**
 	 * Fetch the value of given application property
-	 * @param name - name of application property
+	 * @param name name of application property
+	 *
+	 * @returns Property value
 	 */
 	public getProperty(name: string) {
 		return this.bento.getProperty(name);
 	}
 
 	/**
-	 * Check if bento has a variable or not
-	 * @param name - name of variable
+	 * Check if bento has a given variable
+	 * @param name name of variable
+	 *
+	 * @returns boolean
 	 */
 	public hasVariable(name: string) {
 		return this.bento.variables.hasVariable(name);
@@ -114,7 +132,9 @@ export class ComponentAPI {
 
 	/**
 	 * Gets the value of a variable
-	 * @param definition - Variable name or definition
+	 * @param definition Variable name or definition
+	 *
+	 * @returns Variable value
 	 */
 	public getVariable(definition: VariableDefinition | string): any {
 		// if string, convert to basic definition
@@ -139,7 +159,7 @@ export class ComponentAPI {
 
 	/**
 	 * Define multiple variables at once
-	 * @param definitions - Array of definitions
+	 * @param definitions Array of definitions
 	 */
 	public injectVariables(definitions: VariableDefinition[]) {
 		if (!Array.isArray(definitions)) throw new IllegalArgumentError('Definitions must be an array');
@@ -151,7 +171,7 @@ export class ComponentAPI {
 
 	/**
 	 * Defines and attaches a variable to component
-	 * @param definition - The definition of the variable to define
+	 * @param definition Variable definition
 	 */
 	public injectVariable(definition: VariableDefinition) {
 		if (!definition.name) throw new IllegalArgumentError('A VariableDefinition must define a name');
@@ -170,13 +190,14 @@ export class ComponentAPI {
 				return this.getValue(definition);
 			},
 			set: function() {
-				// TODO Change to IllegalAccessError
+				// TODO: Change to IllegalAccessError
 				throw new Error(`Cannot set injected variable "${definition.name}"`);
 			}
 		});
 	}
 
 	private getValue(definition: VariableDefinition) {
+		// tslint:disable-next-line:no-unnecessary-initializer
 		let value = undefined;
 
 		// get latest
@@ -220,8 +241,8 @@ export class ComponentAPI {
 
 	/**
 	 * Emit a event on Component Events
-	 * @param eventName - Name of event
-	 * @param args - Ordered Array of args to emit
+	 * @param eventName Name of event
+	 * @param args Ordered Array of args to emit
 	 */
 	public async emit(eventName: string, ...args: any[]) {
 		const emitter = this.bento.components.getComponentEvents(this.component.name);
@@ -231,12 +252,11 @@ export class ComponentAPI {
 	}
 
 	// TODO: Add a error handler
-	// TODO: Consider name and maybe change it
 	/**
 	 * Re-emits events from a standard event emitter into component events.
 	 *
-	 * @param fromEmitter - Emitter to re-emit from
-	 * @param events - Events to watch for
+	 * @param fromEmitter Emitter to re-emit from
+	 * @param events Events to watch for
 	 *
 	 * @throws IllegalStateError if the emitter on the current component wasn't initialized
 	 * @throws IllegalArgumentError if fromEmitter is not an EventEmitter or events is not an array
@@ -262,12 +282,15 @@ export class ComponentAPI {
 
 	/**
 	 * Subscribe to a Component event
-	 * @param type - Type of subscription. Normal event or Subject
-	 * @param namespace - Component Reference / Name
-	 * @param name - Name of the event
-	 * @param handler - The function to be called
-	 * @param context - Optional `this` context for above handler function
+	 * @param type Type of subscription. Normal event or Subject
+	 * @param namespace Component Reference / Name
+	 * @param name Name of the event
+	 * @param handler The function to be called
+	 * @param context Optional `this` context for above handler function
+	 *
+	 * @returns Subscription ID
 	 */
+	// tslint:disable-next-line:max-params
 	public subscribe(type: SubscriptionType, namespace: Component | Function | string, name: string, handler: (...args: any[]) => void, context?: any) {
 		const componentName = this.bento.components.resolveName(namespace);
 
@@ -278,7 +301,7 @@ export class ComponentAPI {
 		const subID = events.subscribe(type, name, handler, context);
 
 		// Register subscription so if the current component unloads we can remove all events
-		// TODO If the componentName component unloads we need to remove that array
+		// TODO: If the componentName component unloads we need to remove that array
 		if (!this.subscriptions.has(componentName)) this.subscriptions.set(componentName, []);
 		this.subscriptions.get(componentName).push(subID);
 
@@ -287,10 +310,12 @@ export class ComponentAPI {
 
 	/**
 	 * Alias for subscribe with normal event
-	 * @param namespace - Component Reference / Name
-	 * @param eventName - Name of the event
-	 * @param handler - The function to be called
-	 * @param context - Optional `this` context for above handler function
+	 * @param namespace Component Reference / Name
+	 * @param eventName Name of the event
+	 * @param handler The function to be called
+	 * @param context Optional `this` context for above handler function
+	 *
+	 * @returns Subscription ID
 	 */
 	public subscribeEvent(namespace: Component | string, eventName: string, handler: (...args: any[]) => void, context?: any) {
 		return this.subscribe(SubscriptionType.EVENT, namespace, eventName, handler, context);
@@ -298,10 +323,12 @@ export class ComponentAPI {
 
 	/**
 	 * Alias for subscribe with subject
-	 * @param namespace - Component Reference / Name
-	 * @param eventName - Name of the event
-	 * @param handler - The function to be called
-	 * @param context - Optional `this` context for above handler function
+	 * @param namespace Component Reference / Name
+	 * @param subjectName Name of the event
+	 * @param handler The function to be called
+	 * @param context Optional `this` context for above handler function
+	 *
+	 * @returns Subscription ID
 	 */
 	public subscribeSubject(namespace: Component | string, subjectName: string, handler: (...args: any[]) => void, context?: any) {
 		return this.subscribe(SubscriptionType.SUBJECT, namespace, subjectName, handler, context);

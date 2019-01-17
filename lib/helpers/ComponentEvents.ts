@@ -16,7 +16,6 @@ import { Subscriber } from '../interfaces/internal';
 const log = Logger.get('ComponentEvents');
 
 export class ComponentEvents {
-
 	private emitter: EventEmitter = new EventEmitter();
 	private subjectEmitter: EventEmitter = new EventEmitter();
 	private subjects: Map<string, any> = new Map();
@@ -105,5 +104,4 @@ export class ComponentEvents {
 		// Delete the subscription
 		this.subscribers.delete(subID);
 	}
-
 }

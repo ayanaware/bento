@@ -9,11 +9,12 @@ import { DecoratorComponentInjection, DecoratorInjection, DecoratorSubscription,
  * Utility class for handling decorators on components
  */
 export class Decorators {
-
 	/**
 	 * Returns all decorator subscriptions of a component
 	 *
 	 * @param component The component that should be checked
+	 *
+	 * @returns Array of DecoratorSubscriptions
 	 */
 	public getSubscriptions(component: Component): DecoratorSubscription[] {
 		// Check if there is a constructor, if there isn't then there can't be any decorators
@@ -47,6 +48,8 @@ export class Decorators {
 	 * Returns all decorator injections of a component
 	 *
 	 * @param component The component that should be checked
+	 *
+	 * @returns Array of DecoratorInjections
 	 */
 	public getInjections(component: Component): DecoratorInjection[] {
 		// Check if there is a constructor, if there isn't then there can't be any decorators
@@ -111,5 +114,4 @@ export class Decorators {
 
 		return parent || null;
 	}
-
 }

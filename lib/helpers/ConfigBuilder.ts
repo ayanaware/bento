@@ -2,7 +2,7 @@
 
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 
-import { ConfigDefinition, ConfigDefinitionType, VariableSource, VariableSourceType } from '../interfaces';
+import { ConfigDefinition, ConfigDefinitionType } from '../interfaces';
 
 export interface ConfigBuilderDefinition {
 	type: ConfigDefinitionType;

@@ -1,7 +1,7 @@
 /.vscode/
 /lib/
 /docs/
-/example/
+/examples/
 /test/
 /node_modules/
 /.nyc_output/

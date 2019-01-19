@@ -14,6 +14,9 @@
 		"@ayana/bento": "latest",
 		"@ayana/logger": "next"
 	},
+	"optionalDependencies": {
+		"eris": "^0.9.0"
+	},
 	"devDependencies": {
 		"@types/node": "^10.12.7",
 		"tslint": "^5.11.0",

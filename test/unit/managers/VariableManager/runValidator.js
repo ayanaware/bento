@@ -1,11 +1,9 @@
 'use strict';
 
-const assert = require('assert');
-
 const { Bento } = require('../../../../build/Bento');
 
-describe('#runValidator', function () {
-	it('should throw an error if validator name is not a string', function () {
+describe('#runValidator', function() {
+	it('should throw an error if validator name is not a string', function() {
 		const bento = new Bento();
 
 		assert.throws(
@@ -14,7 +12,7 @@ describe('#runValidator', function () {
 		);
 	});
 
-	it('should throw an error if validator does not exist', function () {
+	it('should throw an error if validator does not exist', function() {
 		const bento = new Bento();
 
 		assert.throws(
@@ -23,7 +21,7 @@ describe('#runValidator', function () {
 		);
 	});
 
-	it('should attempt to call validator', function () {
+	it('should attempt to call validator', function() {
 		const bento = new Bento();
 
 		let attempted = false;
@@ -36,7 +34,7 @@ describe('#runValidator', function () {
 		assert.strictEqual(attempted, true, 'Validator was not called');
 	});
 
-	it('should throw an error if validator throws an error', function () {
+	it('should throw an error if validator throws an error', function() {
 		const bento = new Bento();
 
 		bento.addValidator('testValidator', () => {
@@ -45,7 +43,7 @@ describe('#runValidator', function () {
 
 		assert.throws(
 			() => bento.runValidator('testValidator'),
-			{ message: `Validator "testValidator" failed to execute` },
+			{ message: 'Validator "testValidator" failed to execute' },
 		);
 	});
 });

@@ -2,8 +2,8 @@
 
 const { ComponentLoadError } = require('../../../../build/errors/ComponentLoadError');
 
-describe('#constructor', function () {
-	it('should use a default component location if no one is passed and set it', function () {
+describe('#constructor', function() {
+	it('should use a default component location if no one is passed and set it', function() {
 		const tested = new ComponentLoadError();
 
 		expect(
@@ -13,7 +13,7 @@ describe('#constructor', function () {
 		);
 	});
 
-	it('should use the given component location and set it', function () {
+	it('should use the given component location and set it', function() {
 		const tested = new ComponentLoadError('Some component location');
 
 		expect(
@@ -23,7 +23,7 @@ describe('#constructor', function () {
 		);
 	});
 
-	it('should use a default message if no one is passed', function () {
+	it('should use a default message if no one is passed', function() {
 		const tested = new ComponentLoadError();
 
 		expect(
@@ -33,7 +33,7 @@ describe('#constructor', function () {
 		);
 	});
 
-	it('should accept a custom message', function () {
+	it('should accept a custom message', function() {
 		const tested = new ComponentLoadError(null, 'Some message');
 
 		expect(

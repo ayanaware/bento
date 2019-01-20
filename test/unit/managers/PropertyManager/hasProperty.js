@@ -2,14 +2,14 @@
 
 const { PropertyManager } = require('../../../../build/managers/PropertyManager');
 
-describe('#hasProperty', function () {
+describe('#hasProperty', function() {
 	const getClean = () => {
 		const tested = new PropertyManager({});
 
 		return tested;
 	};
 
-	it('should throw an error when the property name is not a string', function () {
+	it('should throw an error when the property name is not a string', function() {
 		const tested = getClean();
 
 		expect(
@@ -19,7 +19,7 @@ describe('#hasProperty', function () {
 		);
 	});
 
-	it('should return true if the property exists', function () {
+	it('should return true if the property exists', function() {
 		const tested = getClean();
 
 		tested.properties.set('test', 'stuff');
@@ -30,7 +30,7 @@ describe('#hasProperty', function () {
 		);
 	});
 
-	it('should return false if the property does not exist', function () {
+	it('should return false if the property does not exist', function() {
 		const tested = getClean();
 
 		expect(

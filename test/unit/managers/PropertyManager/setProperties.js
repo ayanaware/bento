@@ -1,17 +1,15 @@
 'use strict';
 
-const sinon = require('sinon');
-
 const { PropertyManager } = require('../../../../build/managers/PropertyManager');
 
-describe('#setProperty', function () {
+describe('#setProperty', function() {
 	const getClean = () => {
 		const tested = new PropertyManager({});
 
 		return tested;
 	};
 
-	it('should add all properties given', function () {
+	it('should add all properties given', function() {
 		const tested = getClean();
 
 		tested.setProperty = sinon.fake();
@@ -19,7 +17,7 @@ describe('#setProperty', function () {
 		const properties = {
 			A: 'B',
 			C: true,
-			D: function () {},
+			D: function() {},
 		};
 
 		tested.setProperties(properties);

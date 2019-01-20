@@ -1,11 +1,8 @@
 'use strict';
 
-const assert = require('assert');
-const sinon = require('sinon');
-
 const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
-describe('#prepareComponent', function () {
+describe('#prepareComponent', function() {
 	const getCleanComponentManager = () => {
 		const manager = new ComponentManager({});
 
@@ -17,7 +14,7 @@ describe('#prepareComponent', function () {
 		return manager;
 	};
 
-	it('should define component api', async function () {
+	it('should define component api', async function() {
 		const bento = getCleanComponentManager();
 
 		bento.resolveName = sinon.fake.returns('TestComponent');
@@ -32,7 +29,7 @@ describe('#prepareComponent', function () {
 		);
 	});
 
-	it('should create component event helper', async function () {
+	it('should create component event helper', async function() {
 		const bento = getCleanComponentManager();
 
 		bento.resolveName = sinon.fake.returns('TestComponent');

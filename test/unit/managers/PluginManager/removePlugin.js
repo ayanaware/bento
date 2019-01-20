@@ -1,11 +1,8 @@
 'use strict';
 
-const assert = require('assert');
-const sinon = require('sinon');
-
 const { PluginManager } = require('../../../../build/managers/PluginManager');
 
-describe('#removePlugin', async function () {
+describe('#removePlugin', async function() {
 	const getClean = () => {
 		const tested = new PluginManager({});
 
@@ -15,7 +12,7 @@ describe('#removePlugin', async function () {
 		return tested;
 	};
 
-	it('should throw an error if name is not a string', async function () {
+	it('should throw an error if name is not a string', async function() {
 		const tested = getClean();
 
 		await assert.rejects(
@@ -24,7 +21,7 @@ describe('#removePlugin', async function () {
 		);
 	});
 
-	it('should throw an error if name is empty', async function () {
+	it('should throw an error if name is empty', async function() {
 		const tested = getClean();
 
 		await assert.rejects(
@@ -33,7 +30,7 @@ describe('#removePlugin', async function () {
 		);
 	});
 
-	it('should throw an error if provided plugin is not loaded', async function () {
+	it('should throw an error if provided plugin is not loaded', async function() {
 		const tested = getClean();
 
 		await assert.rejects(
@@ -42,7 +39,7 @@ describe('#removePlugin', async function () {
 		);
 	});
 
-	it('should attempt to call onUnload on plugin before removing', async function () {
+	it('should attempt to call onUnload on plugin before removing', async function() {
 		const tested = getClean();
 
 		let attempted = false;

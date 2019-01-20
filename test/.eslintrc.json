@@ -1,0 +1,3 @@
+{
+	"extends": "@ayana/eslint-config/test"
+}

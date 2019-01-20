@@ -2,14 +2,14 @@
 
 const { ReferenceManager } = require('../../../../build/managers/ReferenceManager');
 
-describe('#resolveNameSafe', function () {
+describe('#resolveNameSafe', function() {
 	const getClean = () => {
 		const tested = new ReferenceManager();
 
 		return tested;
 	};
 
-	it('should return the given string', function () {
+	it('should return the given string', function() {
 		const tested = getClean();
 
 		expect(
@@ -19,7 +19,7 @@ describe('#resolveNameSafe', function () {
 		);
 	});
 
-	it('should return the resolved name of the passed constructor', function () {
+	it('should return the resolved name of the passed constructor', function() {
 		const tested = getClean();
 
 		class Test {}
@@ -33,7 +33,7 @@ describe('#resolveNameSafe', function () {
 		);
 	});
 
-	it('should return the name of a passed component', function () {
+	it('should return the name of a passed component', function() {
 		const tested = getClean();
 
 		class Test {
@@ -51,7 +51,7 @@ describe('#resolveNameSafe', function () {
 		);
 	});
 
-	it('should return null when no name could be determined', function () {
+	it('should return null when no name could be determined', function() {
 		const tested = getClean();
 
 		expect(
@@ -60,7 +60,7 @@ describe('#resolveNameSafe', function () {
 		);
 	});
 
-	it('should return null when null or undefined is passed', function () {
+	it('should return null when null or undefined is passed', function() {
 		const tested = getClean();
 
 		expect(

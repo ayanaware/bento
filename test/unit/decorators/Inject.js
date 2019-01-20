@@ -7,8 +7,8 @@ const {
 	Parent: parent,
 } = require('../../../build/decorators/Inject');
 
-describe('Inject', function () {
-	it('should throw an error if the target has a prototype', function () {
+describe('Inject', function() {
+	it('should throw an error if the target has a prototype', function() {
 		class SomeClass {}
 
 		expect(
@@ -18,7 +18,7 @@ describe('Inject', function () {
 		);
 	});
 
-	it('should define a new array on the injections symbol if it does not exist', function () {
+	it('should define a new array on the injections symbol if it does not exist', function() {
 		const object = new class SomeClass {}();
 
 		inject()(object);
@@ -29,7 +29,7 @@ describe('Inject', function () {
 		);
 	});
 
-	it('should not redefine the injections array', function () {
+	it('should not redefine the injections array', function() {
 		const object = new class SomeClass {}();
 
 		inject()(object);
@@ -45,10 +45,10 @@ describe('Inject', function () {
 		);
 	});
 
-	it('should push the given component injection into the array', function () {
+	it('should push the given component injection into the array', function() {
 		const properties = {
 			propertyKey: 'somePropertyKey',
-			component: function () {},
+			component: function() {},
 		};
 
 		const object = new class SomeClass {}();
@@ -62,7 +62,7 @@ describe('Inject', function () {
 		);
 	});
 
-	it('should push the given symbol injection into the array', function () {
+	it('should push the given symbol injection into the array', function() {
 		const properties = {
 			propertyKey: 'somePropertyKey',
 			symbol: Symbol('TestSymbol'),
@@ -80,8 +80,8 @@ describe('Inject', function () {
 	});
 });
 
-describe('Parent', function () {
-	it('should throw an error if the target has no prototype', function () {
+describe('Parent', function() {
+	it('should throw an error if the target has no prototype', function() {
 		class SomeClass {}
 
 		expect(
@@ -91,7 +91,7 @@ describe('Parent', function () {
 		);
 	});
 
-	it('should create an injection with the parent symbol', function () {
+	it('should create an injection with the parent symbol', function() {
 		const object = new class SomeClass {}();
 
 		parent()(object, null, {});

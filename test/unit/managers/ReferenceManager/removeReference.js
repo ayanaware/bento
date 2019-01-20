@@ -2,14 +2,14 @@
 
 const { ReferenceManager } = require('../../../../build/managers/ReferenceManager');
 
-describe('#removeReference', function () {
+describe('#removeReference', function() {
 	const getClean = () => {
 		const tested = new ReferenceManager();
 
 		return tested;
 	};
 
-	it('should delete the reference to the constructor', function () {
+	it('should delete the reference to the constructor', function() {
 		const tested = getClean();
 
 		class TestComponent {

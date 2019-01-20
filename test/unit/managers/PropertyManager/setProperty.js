@@ -2,14 +2,14 @@
 
 const { PropertyManager } = require('../../../../build/managers/PropertyManager');
 
-describe('#setProperty', function () {
+describe('#setProperty', function() {
 	const getClean = () => {
 		const tested = new PropertyManager({});
 
 		return tested;
 	};
 
-	it('should throw an error when the property name is not a string', function () {
+	it('should throw an error when the property name is not a string', function() {
 		const tested = getClean();
 
 		expect(
@@ -19,7 +19,7 @@ describe('#setProperty', function () {
 		);
 	});
 
-	it('should add a property', function () {
+	it('should add a property', function() {
 		const tested = getClean();
 
 		tested.setProperty('test', 'stuff');

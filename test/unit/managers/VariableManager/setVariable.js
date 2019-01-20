@@ -1,11 +1,9 @@
 'use strict';
 
-const assert = require('assert');
-
 const { Bento } = require('../../../../build/Bento');
 
-describe('#setVariable', function () {
-	it('should set a variable', function () {
+describe('#setVariable', function() {
+	it('should set a variable', function() {
 		const bento = new Bento();
 
 		bento.setVariable('test', 'stuff');
@@ -13,7 +11,7 @@ describe('#setVariable', function () {
 		assert.strictEqual(bento.variables.get('test'), 'stuff');
 	});
 
-	it('should fail when variable name is not a string', function () {
+	it('should fail when variable name is not a string', function() {
 		const bento = new Bento();
 
 		assert.throws(

@@ -6,8 +6,8 @@ const {
 	ChildOf: childOf,
 } = require('../../../build/decorators/ChildOf');
 
-describe('Subscribe', function () {
-	it('should define a the "child of" symbol with the given component if not yet defined', function () {
+describe('Subscribe', function() {
+	it('should define a the "child of" symbol with the given component if not yet defined', function() {
 		class SomeClass {}
 
 		childOf('SomeTestParent')(SomeClass);
@@ -19,7 +19,7 @@ describe('Subscribe', function () {
 		);
 	});
 
-	it('should not attempt to redefine the "child of" symbol', function () {
+	it('should not attempt to redefine the "child of" symbol', function() {
 		class SomeClass {}
 
 		childOf('SomeTestParent')(SomeClass);

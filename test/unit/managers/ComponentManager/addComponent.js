@@ -1,10 +1,8 @@
 'use strict';
 
-const sinon = require('sinon');
-
 const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
-describe('#addComponent', function () {
+describe('#addComponent', function() {
 	const getCleanComponentManager = () => {
 		const manager = new ComponentManager({});
 
@@ -18,7 +16,7 @@ describe('#addComponent', function () {
 		return manager;
 	};
 
-	it('should throw an error if the component is not an object or null', async function () {
+	it('should throw an error if the component is not an object or null', async function() {
 		await expect(
 			getCleanComponentManager().addComponent('totallyAComponent'),
 			'to be rejected with',
@@ -32,7 +30,7 @@ describe('#addComponent', function () {
 		);
 	});
 
-	it('should throw an error if component name is not a string', async function () {
+	it('should throw an error if component name is not a string', async function() {
 		await expect(
 			getCleanComponentManager().addComponent({ name: null }),
 			'to be rejected with',
@@ -40,7 +38,7 @@ describe('#addComponent', function () {
 		);
 	});
 
-	it('should throw an error if a component with the same name already exists', async function () {
+	it('should throw an error if a component with the same name already exists', async function() {
 		const manager = getCleanComponentManager();
 
 		manager.components.set('TestComponent', {});
@@ -48,11 +46,11 @@ describe('#addComponent', function () {
 		await expect(
 			manager.addComponent({ name: 'TestComponent' }),
 			'to be rejected with',
-			`Component name "TestComponent" must be unique`
+			'Component name "TestComponent" must be unique',
 		);
 	});
 
-	it('should set dependencies to an empty array if they are not defined', async function () {
+	it('should set dependencies to an empty array if they are not defined', async function() {
 		const component = { name: 'TestComponent' };
 
 		await getCleanComponentManager().addComponent(component);
@@ -65,7 +63,7 @@ describe('#addComponent', function () {
 		);
 	});
 
-	it('should throw an error if dependencies is set but not an array', async function () {
+	it('should throw an error if dependencies is set but not an array', async function() {
 		await expect(
 			getCleanComponentManager().addComponent({ name: 'TestComponent', dependencies: '' }),
 			'to be rejected with',
@@ -73,7 +71,7 @@ describe('#addComponent', function () {
 		);
 	});
 
-	it('should attempt to prepare the component', async function () {
+	it('should attempt to prepare the component', async function() {
 		const manager = getCleanComponentManager();
 
 		manager.prepareComponent = sinon.fake.resolves();
@@ -83,7 +81,7 @@ describe('#addComponent', function () {
 		sinon.assert.calledOnce(manager.prepareComponent);
 	});
 
-	it('should attempt to load the component if it has no missing dependencies', async function () {
+	it('should attempt to load the component if it has no missing dependencies', async function() {
 		const manager = getCleanComponentManager();
 
 		manager.loadComponent = sinon.fake.resolves();
@@ -93,7 +91,7 @@ describe('#addComponent', function () {
 		sinon.assert.calledOnce(manager.loadComponent);
 	});
 
-	it('should not handle pending components if no components are pending', async function () {
+	it('should not handle pending components if no components are pending', async function() {
 		const manager = getCleanComponentManager();
 
 		manager.handlePendingComponents = sinon.fake.resolves();
@@ -103,7 +101,7 @@ describe('#addComponent', function () {
 		sinon.assert.notCalled(manager.handlePendingComponents);
 	});
 
-	it('should handle pending components if there are pending components', async function () {
+	it('should handle pending components if there are pending components', async function() {
 		const manager = getCleanComponentManager();
 
 		manager.handlePendingComponents = sinon.fake.resolves();
@@ -115,7 +113,7 @@ describe('#addComponent', function () {
 		sinon.assert.calledOnce(manager.handlePendingComponents);
 	});
 
-	it('should add the component to pending if dependencies are missing', async function () {
+	it('should add the component to pending if dependencies are missing', async function() {
 		const manager = getCleanComponentManager();
 
 		manager.getMissingDependencies = sinon.fake.returns(['TestDependency']);
@@ -129,7 +127,7 @@ describe('#addComponent', function () {
 		);
 	});
 
-	it('should return the component name', async function () {
+	it('should return the component name', async function() {
 		const name = await getCleanComponentManager().addComponent({ name: 'TestComponent' });
 
 		expect(

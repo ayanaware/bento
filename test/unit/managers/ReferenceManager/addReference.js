@@ -2,14 +2,14 @@
 
 const { ReferenceManager } = require('../../../../build/managers/ReferenceManager');
 
-describe('#addReference', function () {
+describe('#addReference', function() {
 	const getClean = () => {
 		const tested = new ReferenceManager();
 
 		return tested;
 	};
 
-	it('should not add a reference if the given component has the Object constructor', function () {
+	it('should not add a reference if the given component has the Object constructor', function() {
 		const tested = getClean();
 
 		tested.addReference(Object.create(null));
@@ -22,7 +22,7 @@ describe('#addReference', function () {
 		);
 	});
 
-	it('should add a reference to the constructor and use the name as the value', function () {
+	it('should add a reference to the constructor and use the name as the value', function() {
 		const tested = getClean();
 
 		class TestComponent {

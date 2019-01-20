@@ -1,10 +1,8 @@
 'use strict';
 
-const assert = require('assert');
-
 const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
-describe('#loadComponent', function () {
+describe('#loadComponent', function() {
 	const getCleanComponentManager = () => {
 		const manager = new ComponentManager({});
 
@@ -15,7 +13,7 @@ describe('#loadComponent', function () {
 		return manager;
 	};
 
-	it('should attempt to call component onLoad', async function () {
+	it('should attempt to call component onLoad', async function() {
 		const bento = getCleanComponentManager();
 
 		let attempted = false;
@@ -29,7 +27,7 @@ describe('#loadComponent', function () {
 		assert.strictEqual(attempted, true, 'Component onLoad was not called');
 	});
 
-	it('should throw an error if component onLoad throws an error', async function () {
+	it('should throw an error if component onLoad throws an error', async function() {
 		const bento = getCleanComponentManager();
 
 		const testComponent = {

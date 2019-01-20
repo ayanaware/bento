@@ -6,8 +6,8 @@ const {
 	Variable: variable,
 } = require('../../../build/decorators/Variable');
 
-describe('Variable', function () {
-	it('should throw an error if the target has a prototype', function () {
+describe('Variable', function() {
+	it('should throw an error if the target has a prototype', function() {
 		class SomeClass {}
 
 		expect(
@@ -17,7 +17,7 @@ describe('Variable', function () {
 		);
 	});
 
-	it('should define a new array on the variables symbol if it does not exist', function () {
+	it('should define a new array on the variables symbol if it does not exist', function() {
 		const object = new class SomeClass {}();
 
 		variable()(object);
@@ -28,7 +28,7 @@ describe('Variable', function () {
 		);
 	});
 
-	it('should not redefine the variables array', function () {
+	it('should not redefine the variables array', function() {
 		const object = new class SomeClass {}();
 
 		variable()(object);
@@ -44,7 +44,7 @@ describe('Variable', function () {
 		);
 	});
 
-	it('should push the given data into the array', function () {
+	it('should push the given data into the array', function() {
 		const properties = {
 			propertyKey: 'somePropertyKey',
 			definition: {},

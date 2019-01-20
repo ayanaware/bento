@@ -1,10 +1,8 @@
 'use strict';
 
-const sinon = require('sinon');
-
 const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
-describe('#getComponentEvents', function () {
+describe('#getComponentEvents', function() {
 	const getCleanComponentManager = () => {
 		const manager = new ComponentManager({});
 
@@ -15,7 +13,7 @@ describe('#getComponentEvents', function () {
 		return manager;
 	};
 
-	it('should attempt to resolve the given component', function () {
+	it('should attempt to resolve the given component', function() {
 		const manager = getCleanComponentManager();
 
 		manager.getComponentEvents('FakeComponent');
@@ -23,7 +21,7 @@ describe('#getComponentEvents', function () {
 		sinon.assert.calledOnce(manager.resolveName);
 	});
 
-	it('should return null if the given component events could not be found', function () {
+	it('should return null if the given component events could not be found', function() {
 		const manager = getCleanComponentManager();
 
 		expect(
@@ -32,7 +30,7 @@ describe('#getComponentEvents', function () {
 		);
 	});
 
-	it('should return the component if it could be found', function () {
+	it('should return the component if it could be found', function() {
 		const manager = getCleanComponentManager();
 
 		manager.resolveName = sinon.fake.returns('FakeComponent');

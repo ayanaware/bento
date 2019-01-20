@@ -9,8 +9,8 @@ const {
 	SubscribeSubject: subscribeSubject,
 } = require('../../../build/decorators/Subscribe');
 
-describe('Subscribe', function () {
-	it('should throw an error if the target has a prototype', function () {
+describe('Subscribe', function() {
+	it('should throw an error if the target has a prototype', function() {
 		class SomeClass {}
 
 		expect(
@@ -20,7 +20,7 @@ describe('Subscribe', function () {
 		);
 	});
 
-	it('should define a new array on the subscriptions symbol if it does not exist', function () {
+	it('should define a new array on the subscriptions symbol if it does not exist', function() {
 		const object = new class SomeClass {}();
 
 		subscribe()(object, null, {});
@@ -31,7 +31,7 @@ describe('Subscribe', function () {
 		);
 	});
 
-	it('should not redefine the subscription array', function () {
+	it('should not redefine the subscription array', function() {
 		const object = new class SomeClass {}();
 
 		subscribe()(object, null, {});
@@ -47,12 +47,12 @@ describe('Subscribe', function () {
 		);
 	});
 
-	it('should push the given data into the array', function () {
+	it('should push the given data into the array', function() {
 		const properties = {
 			type: 'SomeType',
 			namespace: 'SomeNamespace',
 			name: 'SomeName',
-			handler: function () {},
+			handler: function() {},
 		};
 
 		const object = new class SomeClass {}();
@@ -67,8 +67,8 @@ describe('Subscribe', function () {
 	});
 });
 
-describe('SubscribeEvent', function () {
-	it('should use event as a subscription type', function () {
+describe('SubscribeEvent', function() {
+	it('should use event as a subscription type', function() {
 		const object = new class SomeClass {}();
 
 		subscribeEvent()(object, null, {});
@@ -81,8 +81,8 @@ describe('SubscribeEvent', function () {
 	});
 });
 
-describe('SubscribeSubject', function () {
-	it('should use subject as a subscription type', function () {
+describe('SubscribeSubject', function() {
+	it('should use subject as a subscription type', function() {
 		const object = new class SomeClass {}();
 
 		subscribeSubject()(object, null, {});

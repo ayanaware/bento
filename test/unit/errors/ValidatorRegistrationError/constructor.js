@@ -2,8 +2,8 @@
 
 const { ValidatorRegistrationError } = require('../../../../build/errors/ValidatorRegistrationError');
 
-describe('#constructor', function () {
-	it('should accept a validator string and set it', function () {
+describe('#constructor', function() {
+	it('should accept a validator string and set it', function() {
 		const tested = new ValidatorRegistrationError('Some validator');
 
 		expect(
@@ -13,7 +13,7 @@ describe('#constructor', function () {
 		);
 	});
 
-	it('should accept a custom message', function () {
+	it('should accept a custom message', function() {
 		const tested = new ValidatorRegistrationError(null, 'Some message');
 
 		expect(

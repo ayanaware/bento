@@ -2,8 +2,8 @@
 
 const { VariableProcessingError } = require('../../../../build/errors/VariableProcessingError');
 
-describe('#constructor', function () {
-	it('should use the input parameters to format a message', function () {
+describe('#constructor', function() {
+	it('should use the input parameters to format a message', function() {
 		const tested = new VariableProcessingError('TestComponent', { name: 'TestVariable' }, 'Some custom message');
 
 		expect(
@@ -13,7 +13,7 @@ describe('#constructor', function () {
 		);
 	});
 
-	it('should define the given definition', function () {
+	it('should define the given definition', function() {
 		const definition = { some: 'definition' };
 
 		const tested = new VariableProcessingError(null, definition);

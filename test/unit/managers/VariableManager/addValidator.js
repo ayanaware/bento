@@ -1,11 +1,9 @@
 'use strict';
 
-const assert = require('assert');
-
 const { Bento } = require('../../../../build/Bento');
 
-describe('#addValidator', function () {
-	it('should throw an error if validator name is not a string', function () {
+describe('#addValidator', function() {
+	it('should throw an error if validator name is not a string', function() {
 		const bento = new Bento();
 
 		assert.throws(
@@ -14,7 +12,7 @@ describe('#addValidator', function () {
 		);
 	});
 
-	it('should throw an error if validator is not a function', function () {
+	it('should throw an error if validator is not a function', function() {
 		const bento = new Bento();
 
 		assert.throws(

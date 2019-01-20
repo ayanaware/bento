@@ -1,11 +1,9 @@
 'use strict';
 
-const assert = require('assert');
-
 const { Bento } = require('../../../../build/Bento');
 
-describe('#removeValidator', function () {
-	it('should throw an error if validator name is not a string', function () {
+describe('#removeValidator', function() {
+	it('should throw an error if validator name is not a string', function() {
 		const bento = new Bento();
 
 		assert.throws(
@@ -14,7 +12,7 @@ describe('#removeValidator', function () {
 		);
 	});
 
-	it('should throw an error if validator does not exist', function () {
+	it('should throw an error if validator does not exist', function() {
 		const bento = new Bento();
 
 		assert.throws(

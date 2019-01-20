@@ -1,10 +1,8 @@
 'use strict';
 
-const sinon = require('sinon');
-
 const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
-describe('#getMissingDependencies', function () {
+describe('#getMissingDependencies', function() {
 	const getClean = () => {
 		const tested = new ComponentManager({});
 
@@ -15,7 +13,7 @@ describe('#getMissingDependencies', function () {
 		return tested;
 	};
 
-	it('should throw an error if not an object', function () {
+	it('should throw an error if not an object', function() {
 		expect(
 			() => getClean().getMissingDependencies('Totally an object'),
 			'to throw',
@@ -23,7 +21,7 @@ describe('#getMissingDependencies', function () {
 		);
 	});
 
-	it('should throw an error if object has no dependencies property', function () {
+	it('should throw an error if object has no dependencies property', function() {
 		expect(
 			() => getClean().getMissingDependencies({ name: 'test' }),
 			'to throw',
@@ -31,7 +29,7 @@ describe('#getMissingDependencies', function () {
 		);
 	});
 
-	it('should return an array', function () {
+	it('should return an array', function() {
 		const tested = getClean();
 
 		expect(
@@ -40,7 +38,7 @@ describe('#getMissingDependencies', function () {
 		);
 	});
 
-	it('should return a list of components not currently loaded, requested by provided component', function () {
+	it('should return a list of components not currently loaded, requested by provided component', function() {
 		const tested = getClean();
 
 		tested.components.set('A', {});

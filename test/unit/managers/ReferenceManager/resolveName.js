@@ -1,10 +1,8 @@
 'use strict';
 
-const sinon = require('sinon');
-
 const { ReferenceManager } = require('../../../../build/managers/ReferenceManager');
 
-describe('#resolveName', function () {
+describe('#resolveName', function() {
 	const getClean = () => {
 		const tested = new ReferenceManager();
 
@@ -13,7 +11,7 @@ describe('#resolveName', function () {
 		return tested;
 	};
 
-	it('should attempt to resolve the name', function () {
+	it('should attempt to resolve the name', function() {
 		const tested = getClean();
 
 		tested.resolveNameSafe = sinon.fake.returns('TestComponent');
@@ -23,7 +21,7 @@ describe('#resolveName', function () {
 		sinon.assert.calledOnce(tested.resolveNameSafe);
 	});
 
-	it('should throw an error when no name could be determined', function () {
+	it('should throw an error when no name could be determined', function() {
 		const tested = getClean();
 
 		expect(
@@ -33,7 +31,7 @@ describe('#resolveName', function () {
 		);
 	});
 
-	it('should return the resolved components name', function () {
+	it('should return the resolved components name', function() {
 		const tested = getClean();
 
 		tested.resolveNameSafe = sinon.fake.returns('TestComponent');

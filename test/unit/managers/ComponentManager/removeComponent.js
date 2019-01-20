@@ -1,11 +1,8 @@
 'use strict';
 
-const expect = require('../../../unexpected');
-const sinon = require('sinon');
-
 const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
-describe('#removeComponent', function () {
+describe('#removeComponent', function() {
 	const getCleanComponentManager = () => {
 		const manager = new ComponentManager({});
 
@@ -17,7 +14,7 @@ describe('#removeComponent', function () {
 		return manager;
 	};
 
-	it('should throw an error if name is not a string', async function () {
+	it('should throw an error if name is not a string', async function() {
 		const bento = getCleanComponentManager();
 
 		await expect(
@@ -27,7 +24,7 @@ describe('#removeComponent', function () {
 		);
 	});
 
-	it('should throw an error if name is not specified', async function () {
+	it('should throw an error if name is not specified', async function() {
 		const bento = getCleanComponentManager();
 
 		await expect(
@@ -37,19 +34,19 @@ describe('#removeComponent', function () {
 		);
 	});
 
-	it('should throw an error if the component is not loaded', async function () {
+	it('should throw an error if the component is not loaded', async function() {
 
 	});
 
-	it('should attempt to get its children', async function () {
+	it('should attempt to get its children', async function() {
 
 	});
 
-	it('should attempt to remove each of its children', async function () {
+	it('should attempt to remove each of its children', async function() {
 
 	});
 
-	it('should attempt to unload the component', async function () {
+	it('should attempt to unload the component', async function() {
 		const bento = getCleanComponentManager();
 
 		const component = {
@@ -64,17 +61,17 @@ describe('#removeComponent', function () {
 		sinon.assert.calledOnce(component.onUnload);
 	});
 
-	it('should not require the unload function to be present', async function () {
+	it('should not require the unload function to be present', async function() {
 
 	});
 
 	// TODO Parent handling
 
-	it('should remove the constructor from the list', async function () {
+	it('should remove the constructor from the list', async function() {
 
 	});
 
-	it('should remove the component', async function () {
+	it('should remove the component', async function() {
 
 	});
 });

@@ -11,16 +11,17 @@
 		"build": "rm -rf build/ && tsc"
 	},
 	"dependencies": {
-		"@ayana/bento": "latest",
-		"@ayana/logger": "next"
+		"@ayana/bento": "../",
+		"@ayana/logger": "^2.0.0-alpha.1"
 	},
 	"optionalDependencies": {
 		"eris": "^0.9.0"
 	},
 	"devDependencies": {
+		"@ayana/tslint-config": "^1.0.0",
 		"@types/node": "^10.12.7",
 		"tslint": "^5.11.0",
-		"tslint-config-xo": "^2.0.0",
 		"typescript": "^3.1.6"
-	}
+	},
+	"license": "MIT"
 }

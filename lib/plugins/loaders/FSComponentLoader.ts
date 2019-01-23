@@ -106,9 +106,11 @@ export class FSComponentLoader extends ComponentLoader {
 	/**
 	 * Should only ever be called by internally by bento
 	 * @param directory Path to directory
+	 *
+	 * @returns Promise
 	 */
 	public async loadComponents(...directory: string[]) {
-		await this.addDirectory(...directory);
+		return this.addDirectory(...directory);
 	}
 
 	private async createInstance(component: string) {

@@ -10,6 +10,9 @@ export class ClockListener {
 	public api: ComponentAPI;
 	public name: string = 'ClockListener';
 
+	// The below @SubscribeEvent actually automatically appends the dependency to this array.
+	// So you actually don't need to include this line at all. However for the sake of the example
+	// and non-ts users we have included this line
 	public dependencies: Array<Component> = [Clock];
 
 	private tickCount: number = 0;

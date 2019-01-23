@@ -31,7 +31,7 @@ export class Discord {
 		this.cli = new Eris.Client(this.token, {
 			autoreconnect: true,
 			firstShardID: 0,
-			lastShardID: 0,
+			maxShards: 1,
 		});
 
 		// forward events we care about

@@ -10,6 +10,7 @@ export class Clock {
 	public api: ComponentAPI;
 	public name: string = 'Clock';
 
+	// While not required in this instance. Still a good habit to get into including
 	public dependencies: Array<Component> = [];
 
 	private interval: NodeJS.Timeout;

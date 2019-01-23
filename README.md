@@ -1,6 +1,6 @@
 # Bento [![npm (scoped)](https://img.shields.io/npm/v/@ayana/bento.svg)](https://www.npmjs.com/package/@ayana/bento) [![Discord](https://discordapp.com/api/guilds/508903834853310474/embed.png)](https://discord.gg/eaa5pYf) [![install size](https://packagephobia.now.sh/badge?p=@ayana/bento)](https://packagephobia.now.sh/result?p=@ayana/bento)
 
-[Documentation](https://docs.ayana.io/modules/bento.html) • [Examples](https://gitlab.com/ayana/bento/tree/master/examples)
+[Documentation](https://docs.ayana.io/modules/bento.html) • [Examples](https://gitlab.com/ayana/libs/bento/tree/master/examples)
 
 Bento is a robust NodeJS application framework designed to make creating and maintaing complex projects a simple and fast process.
 
@@ -44,7 +44,7 @@ export class ExampleComponent {
 	}
 }
 ```
-A runnable version of this example is available on [Gitlab](https://gitlab.com/ayana/bento/tree/master/examples/src/bento-basic)
+A runnable version of this example is available on [Gitlab](https://gitlab.com/ayana/libs/bento/tree/master/examples/src/bento-basic)
 
 ## How to use Bento (IN-PROGRESS)
 Using Bento is pretty simple. First import and initilize Bento and any plugins you wish to use. Then simply add the plugins to Bento. The below example assumes you have a directory called "components" in the same directory (relative) to it.
@@ -75,4 +75,4 @@ const bento = new Bento();
 });
 ```
 
-More examples available [here](https://gitlab.com/ayana/bento/tree/master/examples)
+More examples available [here](https://gitlab.com/ayana/libs/bento/tree/master/examples)

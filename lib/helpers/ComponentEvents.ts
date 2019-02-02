@@ -5,7 +5,7 @@ import * as crypto from 'crypto';
 import * as EventEmitter from 'eventemitter3';
 
 import { IllegalArgumentError } from '@ayana/errors';
-import { Logger } from '@ayana/logger';
+import { Logger } from '@ayana/logger-api';
 
 import { SubscriptionType } from '../constants';
 import { Subscriber } from '../interfaces/internal';

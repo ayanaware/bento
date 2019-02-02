@@ -3,7 +3,7 @@
 import { EventEmitter } from 'events';
 
 import { IllegalArgumentError, IllegalStateError, ProcessingError } from '@ayana/errors';
-import { Logger } from '@ayana/logger';
+import { Logger } from '@ayana/logger-api';
 
 import { Bento } from '../Bento';
 

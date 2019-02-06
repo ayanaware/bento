@@ -1,10 +1,15 @@
 'use strict';
 
+const { EventEmitter } = require('events');
+
 const { ComponentManager } = require('../../../../build/managers/ComponentManager');
 
 describe('#prepareComponent', function() {
 	const getCleanComponentManager = () => {
-		const manager = new ComponentManager({});
+		const manager = new ComponentManager({ options: {
+			createID: () => 'totallyAUniqueIDForSure',
+			eventEmitter: () => new EventEmitter(),
+		} });
 
 		manager.resolveName = sinon.fake.returns(null);
 

@@ -20,40 +20,35 @@ import {
 } from './managers';
 
 export interface BentoOptions {
+	createID?(len?: number): string;
 	eventEmitter?(): EventEmitterLike;
 }
 
 export class Bento {
-	public readonly components: ComponentManager = new ComponentManager(this);
+	public readonly components: ComponentManager;
 
-	public readonly plugins: PluginManager = new PluginManager(this);
+	public readonly plugins: PluginManager;
 
-	public readonly properties: PropertyManager = new PropertyManager(this);
+	public readonly properties: PropertyManager;
 
-	public readonly variables: VariableManager = new VariableManager(this);
+	public readonly variables: VariableManager;
 
 	/**
 	 * @ignore
 	 */
-	public readonly opts: BentoOptions;
+	public readonly options: BentoOptions;
 
-	constructor(opts?: BentoOptions) {
-		this.opts = Object.assign({}, {
+	constructor(options?: BentoOptions) {
+		this.options = Object.assign({}, {
+			createID: (len = 16) => crypto.randomBytes(len).toString('base64').replace(/[^a-z0-9]/gi, '').slice(0, len),
 			eventEmitter: () => new EventEmitter(),
-		} as BentoOptions, opts);
-	}
+		} as BentoOptions, options);
 
-	/**
-	 * Generates a uniqueID
-	 * @param len - length of id
-	 *
-	 * @returns uniqueID
-	 */
-	public createID(len: number = 16) {
-		return crypto.randomBytes(len)
-			.toString('base64')
-			.replace(/[^a-z0-9]/gi, '')
-			.slice(0, len);
+		// now that options has been defined, create our managers
+		this.components = new ComponentManager(this);
+		this.plugins = new PluginManager(this);
+		this.properties = new PropertyManager(this);
+		this.variables = new VariableManager(this);
 	}
 
 	// COMPONENTS Aliases

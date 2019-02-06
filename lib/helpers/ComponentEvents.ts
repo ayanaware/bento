@@ -2,7 +2,7 @@
 
 import { IllegalArgumentError } from '@ayana/errors';
 
-import { Bento } from '../Bento';
+import { Bento, BentoOptions } from '../Bento';
 
 import { SubscriptionType } from '../constants';
 import { EventEmitterLike } from '../interfaces';
@@ -16,18 +16,22 @@ import { Logger } from '@ayana/logger-api';
 const log = Logger.get('ComponentEvents');
 
 export class ComponentEvents {
-	private readonly bento: Bento;
 	private readonly name: string;
 
 	private emitter: EventEmitterLike;
 	private subjectEmitter: EventEmitterLike;
-	private subjects: Map<string, any> = new Map();
 
+	private subjects: Map<string, any> = new Map();
 	private subscribers: Map<string, Subscriber> = new Map();
 
-	constructor(name: string, bento: Bento) {
-		this.bento = bento;
+	private options: BentoOptions;
+
+	constructor(name: string, options: BentoOptions) {
 		this.name = name;
+		this.options = options;
+
+		this.emitter = this.options.eventEmitter();
+		this.subjectEmitter = this.options.eventEmitter();
 	}
 
 	public getSubject(name: string): any {
@@ -53,7 +57,7 @@ export class ComponentEvents {
 	}
 
 	public subscribe(type: SubscriptionType, name: string, handler: (...args: any[]) => void, context: any): string {
-		const subID = this.bento.createID();
+		const subID = this.options.createID();
 		const subscriber = function() {
 			handler.apply(context, arguments);
 		};

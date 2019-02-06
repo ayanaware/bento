@@ -19,8 +19,7 @@
 	},
 	"dependencies": {
 		"@ayana/errors": "^0.0.4",
-		"@ayana/logger-api": "^2.0.0",
-		"eventemitter3": "^3.1.0"
+		"@ayana/logger-api": "^2.0.0"
 	},
 	"devDependencies": {
 		"@ayana/test": "^1.0.0",

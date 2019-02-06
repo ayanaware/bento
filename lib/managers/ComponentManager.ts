@@ -278,7 +278,7 @@ export class ComponentManager {
 
 		// Create component events if it does not already exist
 		if (!this.events.has(component.name)) {
-			const events = new ComponentEvents(component.name);
+			const events = new ComponentEvents(component.name, this.bento.options);
 			this.events.set(component.name, events);
 		}
 

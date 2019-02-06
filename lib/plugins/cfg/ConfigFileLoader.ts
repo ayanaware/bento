@@ -6,6 +6,8 @@ import * as util from 'util';
 
 import { ProcessingError } from '@ayana/errors';
 
+import { Bento } from '../../Bento';
+
 import { ConfigLoader } from './ConfigLoader';
 
 /**
@@ -19,25 +21,29 @@ const access = util.promisify(fs.access);
 const readFile = util.promisify(fs.readFile);
 
 export class ConfigFileLoader extends ConfigLoader {
-	private files: string[] = [];
+	public bento: Bento;
+	public name: string = 'ConfigFileLoader';
+
+	private files: Set<string> = new Set();
 
 	public async onLoad() {
 		return this.reloadFiles();
 	}
 
-	public addFile(...file: string[]) {
+	/**
+	 * Add file and 
+	 * @param file - Path to file
+	 */
+	public addFile(...file: Array<string>) {
 		const absolute = path.resolve(...file);
-		this.files.push(absolute);
+		this.files.add(absolute);
 	}
 
 	public removeFile(...file: string[]) {
 		const absolute = path.resolve(...file);
-		this.files.push(absolute);
+		this.files.add(absolute);
 
-		const index = this.files.indexOf(absolute);
-		if (index === -1) return;
-
-		this.files.splice(index, 1);
+		if (this.files.has(absolute)) this.files.delete(absolute);
 	}
 
 	public async getFileContents(file: string) {

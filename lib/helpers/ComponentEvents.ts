@@ -1,14 +1,14 @@
 'use strict';
 
-import * as crypto from 'crypto';
-
-import * as EventEmitter from 'eventemitter3';
-
 import { IllegalArgumentError } from '@ayana/errors';
-import { Logger } from '@ayana/logger-api';
+
+import { Bento } from '../Bento';
 
 import { SubscriptionType } from '../constants';
+import { EventEmitterLike } from '../interfaces';
 import { Subscriber } from '../interfaces/internal';
+
+import { Logger } from '@ayana/logger-api';
 
 /**
  * @ignore
@@ -16,19 +16,18 @@ import { Subscriber } from '../interfaces/internal';
 const log = Logger.get('ComponentEvents');
 
 export class ComponentEvents {
-	private emitter: EventEmitter = new EventEmitter();
-	private subjectEmitter: EventEmitter = new EventEmitter();
+	private readonly bento: Bento;
+	private readonly name: string;
+
+	private emitter: EventEmitterLike;
+	private subjectEmitter: EventEmitterLike;
 	private subjects: Map<string, any> = new Map();
 
 	private subscribers: Map<string, Subscriber> = new Map();
 
-	constructor(private readonly name: string) {}
-
-	private createID(len: number = 16): string {
-		return crypto.randomBytes(len)
-		.toString('base64')
-		.replace(/[^a-z0-9]/gi, '')
-		.slice(0, len);
+	constructor(name: string, bento: Bento) {
+		this.bento = bento;
+		this.name = name;
 	}
 
 	public getSubject(name: string): any {
@@ -54,9 +53,9 @@ export class ComponentEvents {
 	}
 
 	public subscribe(type: SubscriptionType, name: string, handler: (...args: any[]) => void, context: any): string {
-		const subID = this.createID();
+		const subID = this.bento.createID();
 		const subscriber = function() {
-			handler.apply(this, arguments);
+			handler.apply(context, arguments);
 		};
 
 		this.subscribers.set(subID, {
@@ -66,14 +65,14 @@ export class ComponentEvents {
 		});
 
 		if (type === SubscriptionType.SUBJECT) {
-			this.subjectEmitter.on(name, subscriber, context);
+			this.subjectEmitter.addListener(name, subscriber);
 
 			// Instantly call the subscriber with the current state if there is one
 			if (this.subjects.has(name)) {
 				subscriber.call(context, this.getSubject(name));
 			}
 		} else if (type === SubscriptionType.EVENT) {
-			this.emitter.on(name, subscriber, context);
+			this.subjectEmitter.addListener(name, subscriber);
 		} else {
 			throw new IllegalArgumentError(`Invalid subscription type "${type}"`);
 		}

@@ -1,14 +1,27 @@
 'use strict';
 
 import * as crypto from 'crypto';
+import { EventEmitter } from 'events';
 
 import { IllegalStateError } from '@ayana/errors';
 
-import { ApplicationState, Component, Plugin } from './interfaces';
+import {
+	ApplicationState,
+	Component,
+	EventEmitterLike,
+	Plugin,
+} from './interfaces';
 
-import { ComponentManager, PluginManager, PropertyManager, VariableManager } from './managers';
+import {
+	ComponentManager,
+	PluginManager,
+	PropertyManager,
+	VariableManager,
+} from './managers';
 
-export interface BentoOptions {}
+export interface BentoOptions {
+	eventEmitter?(): EventEmitterLike;
+}
 
 export class Bento {
 	public readonly components: ComponentManager = new ComponentManager(this);
@@ -25,7 +38,9 @@ export class Bento {
 	public readonly opts: BentoOptions;
 
 	constructor(opts?: BentoOptions) {
-		this.opts = opts;
+		this.opts = Object.assign({}, {
+			eventEmitter: () => new EventEmitter(),
+		} as BentoOptions, opts);
 	}
 
 	/**

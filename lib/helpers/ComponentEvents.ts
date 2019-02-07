@@ -58,9 +58,9 @@ export class ComponentEvents {
 
 	public subscribe(type: SubscriptionType, name: string, handler: (...args: any[]) => void, context: any): string {
 		const subID = this.options.createID();
-		const subscriber = function() {
-			handler.apply(context, arguments);
-		};
+
+		// wrap handler
+		const subscriber = (...args: any[]) => handler.apply(context, args);
 
 		this.subscribers.set(subID, {
 			handler: subscriber,
@@ -76,7 +76,7 @@ export class ComponentEvents {
 				subscriber.call(context, this.getSubject(name));
 			}
 		} else if (type === SubscriptionType.EVENT) {
-			this.subjectEmitter.addListener(name, subscriber);
+			this.emitter.addListener(name, subscriber);
 		} else {
 			throw new IllegalArgumentError(`Invalid subscription type "${type}"`);
 		}

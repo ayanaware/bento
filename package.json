@@ -22,7 +22,7 @@
 		"@ayana/logger-api": "^2.0.0"
 	},
 	"devDependencies": {
-		"@ayana/test": "^1.0.0",
+		"@ayana/test": "^1.0.1",
 		"@ayana/tslint-config": "^1.0.0",
 		"@types/node": "^10.12.18",
 		"tslint": "^5.12.1",

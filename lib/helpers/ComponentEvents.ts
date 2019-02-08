@@ -2,7 +2,7 @@
 
 import { IllegalArgumentError } from '@ayana/errors';
 
-import { Bento, BentoOptions } from '../Bento';
+import { BentoOptions } from '../Bento';
 
 import { SubscriptionType } from '../constants';
 import { EventEmitterLike } from '../interfaces';
@@ -32,6 +32,10 @@ export class ComponentEvents {
 
 		this.emitter = this.options.eventEmitter();
 		this.subjectEmitter = this.options.eventEmitter();
+
+		// prevent throwing of 'error' events
+		this.emitter.addListener('error', () => { /* no op */ });
+		this.subjectEmitter.addListener('error', () => { /* no op */ });
 	}
 
 	public getSubject(name: string): any {

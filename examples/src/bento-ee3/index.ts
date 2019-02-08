@@ -4,7 +4,7 @@ import { Bento } from '@ayana/bento';
 import { EventEmitter } from 'eventemitter3';
 
 import { Logger } from '@ayana/logger';
-const log = Logger.get('EE3');
+const log = Logger.get(null);
 
 // create bento instance
 const bento = new Bento({

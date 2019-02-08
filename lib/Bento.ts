@@ -26,19 +26,18 @@ export interface BentoOptions {
 
 export class Bento {
 	public readonly components: ComponentManager;
-
 	public readonly plugins: PluginManager;
-
 	public readonly properties: PropertyManager;
-
 	public readonly variables: VariableManager;
 
-	/**
-	 * @ignore
-	 */
 	public readonly options: BentoOptions;
 
+	public readonly version: string;
+
 	constructor(options?: BentoOptions) {
+		const { version } = require('../package.json');
+		this.version = version;
+
 		this.options = Object.assign({}, {
 			createID: (len = 16) => crypto.randomBytes(len).toString('base64').replace(/[^a-z0-9]/gi, '').slice(0, len),
 			eventEmitter: () => new EventEmitter(),

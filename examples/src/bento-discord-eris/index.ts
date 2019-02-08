@@ -4,7 +4,7 @@ import { Bento, ConfigLoader, FSComponentLoader } from '@ayana/bento';
 import { Definitions } from './Config';
 
 import { Logger } from '@ayana/logger';
-const log = Logger.get('DiscordEris');
+const log = Logger.get(null);
 
 // create bento instance
 const bento = new Bento();

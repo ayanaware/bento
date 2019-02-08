@@ -2,7 +2,7 @@
 import { Bento, FSComponentLoader } from '@ayana/bento';
 
 import { Logger } from '@ayana/logger';
-const log = Logger.get('Basic');
+const log = Logger.get(null);
 
 // create bento instance
 const bento = new Bento();

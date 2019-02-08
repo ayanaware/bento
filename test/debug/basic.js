@@ -1,6 +1,6 @@
 'use strict';
 
-const { Bento } = require('../build');
+const { Bento } = require('../../build');
 const bento = new Bento();
 
 // example component
@@ -53,6 +53,7 @@ class Example2 {
 	await bento.addComponent(example2);
 	await bento.addComponent(example);
 
+	await bento.verify();
 	console.log(bento);
 })();
 

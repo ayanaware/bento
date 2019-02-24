@@ -37,11 +37,11 @@ export class PluginManager {
 	 *
 	 * @returns Plugin instance
 	 */
-	public getPlugin(reference: Plugin | string | any) {
+	public getPlugin<T extends Plugin>(reference: Plugin | string | any): T {
 		const name = this.resolveName(reference);
 		if (!this.plugins.has(name)) return null;
 
-		return this.plugins.get(name);
+		return this.plugins.get(name) as T;
 	}
 
 	/**

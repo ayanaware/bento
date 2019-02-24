@@ -56,10 +56,10 @@ export class ComponentAPI {
 	 */
 	public getComponent<T extends Component>(reference: Component | Function | string): T {
 		const name = this.bento.components.resolveName(reference);
-		const component = this.bento.components.getComponent(name);
+		const component = this.bento.components.getComponent<T>(name);
 		if (!component) throw new IllegalStateError(`Component "${name}" does not exist`);
 
-		return component as T;
+		return component;
 	}
 
 	/**
@@ -104,10 +104,10 @@ export class ComponentAPI {
 
 	public getPlugin<T extends Plugin>(reference: Plugin | Function | string): T {
 		const name = this.bento.plugins.resolveName(reference);
-		const plugin = this.bento.plugins.getPlugin(name);
+		const plugin = this.bento.plugins.getPlugin<T>(name);
 		if (!plugin) throw new IllegalStateError(`Plugin "${name}" does not exist`);
 
-		return plugin as T;
+		return plugin;
 	}
 
 	/**

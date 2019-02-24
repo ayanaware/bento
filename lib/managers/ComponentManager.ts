@@ -43,11 +43,11 @@ export class ComponentManager {
 	 *
 	 * @returns Component instance
 	 */
-	public getComponent(reference: Component | string) {
+	public getComponent<T extends Component>(reference: Component | string): T {
 		const name = this.resolveName(reference);
 		if (!this.components.has(name)) return null;
 
-		return this.components.get(name);
+		return this.components.get(name) as T;
 	}
 
 	/**
@@ -78,14 +78,14 @@ export class ComponentManager {
 	 *
 	 * @returns Array of child components
 	 */
-	public getComponentChildren(parent: Component | string): Array<Component> {
+	public getComponentChildren<T extends Component>(parent: Component | string): Array<T> {
 		const name = this.resolveName(parent);
 		if (!this.components.has(name)) throw new IllegalStateError(`Parent "${name}" is not loaded`);
 
-		const children: Component[] = [];
+		const children: T[] = [];
 		for (const component of this.components.values()) {
 			if (component.parent != null && name === this.resolveName(component.parent)) {
-				children.push(component);
+				children.push(component as T);
 			}
 		}
 

@@ -19,16 +19,20 @@ import {
 	VariableManager,
 } from './managers';
 
+import { LiteEmitter } from './helpers/internal';
+
 export interface BentoOptions {
 	createID?(len?: number): string;
 	eventEmitter?(): EventEmitterLike;
 }
 
 export class Bento {
-	public readonly components: ComponentManager;
-	public readonly plugins: PluginManager;
+	public readonly bus: LiteEmitter = new LiteEmitter();
+
 	public readonly properties: PropertyManager;
 	public readonly variables: VariableManager;
+	public readonly plugins: PluginManager;
+	public readonly components: ComponentManager;
 
 	public readonly options: BentoOptions;
 
@@ -44,10 +48,10 @@ export class Bento {
 		} as BentoOptions, options);
 
 		// now that options has been defined, create our managers
-		this.components = new ComponentManager(this);
-		this.plugins = new PluginManager(this);
 		this.properties = new PropertyManager(this);
 		this.variables = new VariableManager(this);
+		this.plugins = new PluginManager(this);
+		this.components = new ComponentManager(this);
 	}
 
 	// COMPONENTS Aliases

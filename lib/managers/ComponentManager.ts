@@ -3,6 +3,7 @@
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 
 import { Bento } from '../Bento';
+import { BentoEvent } from '../constants';
 import { ComponentRegistrationError } from '../errors';
 import { ComponentAPI, ComponentEvents } from '../helpers';
 import { Decorators } from '../helpers/internal';
@@ -228,6 +229,12 @@ export class ComponentManager {
 			}
 		}
 
+		// emit component unload
+		this.bento.bus.emit(BentoEvent.COMPONENT_UNLOAD, component);
+
+		// handle plugin hooks
+		await this.bento.plugins.handleComponentUnload(component);
+
 		// remove componentConstructor
 		this.references.removeReference(component);
 
@@ -346,6 +353,12 @@ export class ComponentManager {
 
 		// Subscribe to all events from decorator subscriptions
 		this.decorators.handleSubscriptions(component, component.api);
+
+		// emit component loaded on bento bus
+		this.bento.bus.emit(BentoEvent.COMPONENT_LOAD, component);
+
+		// handle plugin hooks
+		await this.bento.plugins.handleComponentLoad(component);
 
 		// Call onLoad if present
 		if (component.onLoad) {

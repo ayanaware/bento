@@ -1,6 +1,9 @@
 
-export type LiteEmitterHandler = (...args: any[]) => void;
+export type LiteEmitterHandler = (...args: Array<any>) => void;
 
+/**
+ * LiteEmitter is a very basic implementation of a eventemitter. For internal use
+ */
 export class LiteEmitter {
 	private handlers: Map<string, Set<LiteEmitterHandler>> = new Map();
 
@@ -18,14 +21,21 @@ export class LiteEmitter {
 		if (!handlers) return;
 
 		// a specfic fn was provided, try to find it
-		if (fn && handlers.has(fn)) handlers.delete(fn);
-		else {
-			// delete all handlers
-		}
+		if (fn && handlers.has(fn)) {
+			handlers.delete(fn);
 
-		// if no handlers left, delete the set
-		if (handlers.size === 0) {
-			
+			// if no handlers left, delete the set
+			if (handlers.size === 0) this.handlers.delete(name);
+		} else {
+			// delete all handlers
+			this.handlers.delete(name);
 		}
+	}
+
+	public emit(name: string, ...args: Array<any>) {
+		const handlers = this.handlers.get(name);
+		if (!handlers) return;
+
+		handlers.forEach(h => h(...args));
 	}
 }

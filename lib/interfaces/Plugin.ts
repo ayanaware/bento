@@ -1,6 +1,7 @@
 'use strict';
 
 import { Bento } from '../Bento';
+import { Component } from './Component';
 
 export interface Plugin {
 	bento?: Bento;
@@ -11,6 +12,11 @@ export interface Plugin {
 	name: string;
 	version?: string;
 
+	// Lifecycle events
 	onLoad?(bento?: Bento): Promise<void>;
 	onUnload?(): Promise<void>;
+
+	// Plugin hooks
+	onComponentLoad(component: Component): Promise<void>;
+	onComponentUnload(component: Component): Promise<void>;
 }

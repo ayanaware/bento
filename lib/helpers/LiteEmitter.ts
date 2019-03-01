@@ -2,7 +2,7 @@
 export type LiteEmitterHandler = (...args: Array<any>) => void;
 
 /**
- * LiteEmitter is a very basic implementation of a eventemitter. For internal use
+ * LiteEmitter is a very basic implementation of a eventemitter.
  */
 export class LiteEmitter {
 	private handlers: Map<string, Set<LiteEmitterHandler>> = new Map();
@@ -36,6 +36,12 @@ export class LiteEmitter {
 		const handlers = this.handlers.get(name);
 		if (!handlers) return;
 
-		handlers.forEach(h => h(...args));
+		for (const handler of handlers) {
+			try {
+				handler(...args);
+			}	catch (e) {
+				// TODO: determine what we should do here :thonk:
+			}
+		}
 	}
 }

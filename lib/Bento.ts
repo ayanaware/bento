@@ -19,16 +19,12 @@ import {
 	VariableManager,
 } from './managers';
 
-import { LiteEmitter } from './helpers/internal';
-
 export interface BentoOptions {
 	createID?(len?: number): string;
 	eventEmitter?(): EventEmitterLike;
 }
 
 export class Bento {
-	public readonly bus: LiteEmitter = new LiteEmitter();
-
 	public readonly properties: PropertyManager;
 	public readonly variables: VariableManager;
 	public readonly plugins: PluginManager;

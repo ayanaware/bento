@@ -118,14 +118,14 @@ export class FSComponentLoader extends ComponentLoader {
 		try {
 			nodeModule = require(component);
 		} catch (e) {
-			throw new ComponentLoadError(component, 'Failed to require module').setCause(e);
+			throw new ComponentLoadError(component, `Failed to require module "${component}"`).setCause(e);
 		}
 
 		try {
 			const comp = this.findComponent(nodeModule);
 			return this.instantiate<Component>(comp);
 		} catch (e) {
-			throw new ComponentLoadError(component, 'Failed to create component instance').setCause(e);
+			throw new ComponentLoadError(component, `Failed to create component instance "${component}"`).setCause(e);
 		}
 	}
 

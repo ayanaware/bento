@@ -17,6 +17,6 @@ export interface Plugin {
 	onUnload?(): Promise<void>;
 
 	// Plugin hooks
-	onComponentLoad(component: Component): Promise<void>;
-	onComponentUnload(component: Component): Promise<void>;
+	onComponentLoad?(component: Component): Promise<void>;
+	onComponentUnload?(component: Component): Promise<void>;
 }

@@ -3,7 +3,6 @@
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 
 import { Bento } from '../Bento';
-import { BentoEvent } from '../constants';
 import { ComponentRegistrationError } from '../errors';
 import { ComponentAPI, ComponentEvents } from '../helpers';
 import { Decorators } from '../helpers/internal';

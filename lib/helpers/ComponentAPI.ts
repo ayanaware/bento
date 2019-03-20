@@ -48,6 +48,14 @@ export class ComponentAPI {
 	}
 
 	/**
+	 * Get the semantic version string of the bento instance attached to this component api
+	 * @returns Semantic version string (https://semver.org)
+	 */
+	public getBentoVersion() {
+		return this.bento.version;
+	}
+
+	/**
 	 * Fetch the provided component instance
 	 *
 	 * @param reference Component name or reference

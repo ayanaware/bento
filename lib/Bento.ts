@@ -1,12 +1,11 @@
 'use strict';
 
 import * as crypto from 'crypto';
-import { EventEmitter } from 'events';
 
 import { IllegalStateError } from '@ayana/errors';
 
 import {
-	ApplicationState,
+	BentoState,
 	Component,
 	EventEmitterLike,
 	Plugin,
@@ -19,16 +18,18 @@ import {
 	VariableManager,
 } from './managers';
 
+import { LiteEmitter } from './helpers';
+
 export interface BentoOptions {
 	createID?(len?: number): string;
 	eventEmitter?(): EventEmitterLike;
 }
 
 export class Bento {
-	public readonly components: ComponentManager;
-	public readonly plugins: PluginManager;
 	public readonly properties: PropertyManager;
 	public readonly variables: VariableManager;
+	public readonly plugins: PluginManager;
+	public readonly components: ComponentManager;
 
 	public readonly options: BentoOptions;
 
@@ -40,14 +41,14 @@ export class Bento {
 
 		this.options = Object.assign({}, {
 			createID: (len = 16) => crypto.randomBytes(len).toString('base64').replace(/[^a-z0-9]/gi, '').slice(0, len),
-			eventEmitter: () => new EventEmitter(),
+			eventEmitter: () => new LiteEmitter(),
 		} as BentoOptions, options);
 
 		// now that options has been defined, create our managers
-		this.components = new ComponentManager(this);
-		this.plugins = new PluginManager(this);
 		this.properties = new PropertyManager(this);
 		this.variables = new VariableManager(this);
+		this.plugins = new PluginManager(this);
+		this.components = new ComponentManager(this);
 	}
 
 	// COMPONENTS Aliases
@@ -210,14 +211,14 @@ export class Bento {
 	 *
 	 * @returns Application state Object
 	 */
-	public async verify(): Promise<ApplicationState> {
+	public async verify(): Promise<BentoState> {
 		// check for any pending components
 		const pending = this.components.getPendingComponents();
 		if (pending.length > 0) {
 			throw new IllegalStateError(`One or more components are still in a pending state: '${pending.map(p => p.name).join('\', \'')}'`);
 		}
 
-		const state: ApplicationState = { components: [], plugins: [], variables: [] };
+		const state: BentoState = { components: [], plugins: [], variables: [] };
 
 		// add component names
 		const components = this.components.getComponents();

@@ -3,8 +3,8 @@
 import { IllegalArgumentError } from '@ayana/errors';
 
 import { Bento } from '../Bento';
-import { PluginRegistrationError } from '../errors';
-import { Plugin } from '../interfaces';
+import { PluginError, PluginRegistrationError } from '../errors';
+import { Component, Plugin } from '../interfaces';
 
 import { ReferenceManager } from './ReferenceManager';
 
@@ -109,6 +109,50 @@ export class PluginManager {
 		}
 
 		return results;
+	}
+
+	/**
+	 * FOR INTERNAL PACKAGE USE ONLY
+	 *
+	 * Notifies all plugins that a new component has been loaded into bento.
+	 * This is an internal function to be used by bento managers.
+	 * @param component - The loaded component
+	 *
+	 * @package
+	 * @see {@link docs/internal-functions}
+	 */
+	public async __handleComponentLoad(component: Component) {
+		for (const plugin of this.plugins.values()) {
+			if (!plugin.onComponentLoad) continue;
+
+			try {
+				await plugin.onComponentLoad(component);
+			} catch (e) {
+				throw new PluginError(`Plugin "${plugin.name}" onComponentLoad hook threw an error`).setCause(e);
+			}
+		}
+	}
+
+	/**
+	 * FOR INTERNAL PACKAGE USE ONLY
+	 *
+	 * Notifies all plugins that a component was unloaded from bento.
+	 * This is an internal function to be used by bento managers.
+	 * @param component - The unloaded component
+	 *
+	 * @package
+	 * @see {@link docs/internal-functions}
+	 */
+	public async __handleComponentUnload(component: Component) {
+		for (const plugin of this.plugins.values()) {
+			if (!plugin.onComponentUnload) continue;
+
+			try {
+				await plugin.onComponentUnload(component);
+			} catch (e) {
+				throw new PluginError(`Plugin "${plugin.name}" onComponentUnload hook threw an error`).setCause(e);
+			}
+		}
 	}
 
 	private async loadPlugin(plugin: Plugin) {

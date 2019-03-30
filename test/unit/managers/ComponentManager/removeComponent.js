@@ -7,28 +7,31 @@ describe('#removeComponent', function() {
 		const manager = new ComponentManager({});
 
 		manager.references = {};
-
 		manager.references.removeReference = sinon.fake();
+
 		manager.getComponentChildren = sinon.fake.returns([]);
+
+		manager.bento.plugins = {};
+		manager.bento.plugins.__handleComponentUnload = sinon.fake.resolves();
 
 		return manager;
 	};
 
 	it('should throw an error if name is not a string', async function() {
-		const bento = getCleanComponentManager();
+		const manager = getCleanComponentManager();
 
 		await expect(
-			bento.removeComponent(null),
+			manager.removeComponent(null),
 			'to be rejected with',
 			'Name must be a string'
 		);
 	});
 
 	it('should throw an error if name is not specified', async function() {
-		const bento = getCleanComponentManager();
+		const manager = getCleanComponentManager();
 
 		await expect(
-			bento.removeComponent(''),
+			manager.removeComponent(''),
 			'to be rejected with',
 			'Name must not be empty',
 		);
@@ -47,16 +50,16 @@ describe('#removeComponent', function() {
 	});
 
 	it('should attempt to unload the component', async function() {
-		const bento = getCleanComponentManager();
+		const manager = getCleanComponentManager();
 
 		const component = {
 			name: 'TestComponent',
 			onUnload: sinon.fake.resolves(),
 		};
 
-		bento.components.set('TestComponent', component);
+		manager.components.set('TestComponent', component);
 
-		await bento.removeComponent('TestComponent');
+		await manager.removeComponent('TestComponent');
 
 		sinon.assert.calledOnce(component.onUnload);
 	});

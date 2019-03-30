@@ -3,7 +3,7 @@
 export * from './Component';
 export * from './Plugin';
 
-export * from './ApplicationState';
+export * from './BentoState';
 export * from './ConfigDefinition';
 export * from './EventEmitterLike';
 export * from './PendingComponentData';

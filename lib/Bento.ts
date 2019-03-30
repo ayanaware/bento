@@ -5,7 +5,7 @@ import * as crypto from 'crypto';
 import { IllegalStateError } from '@ayana/errors';
 
 import {
-	ApplicationState,
+	BentoState,
 	Component,
 	EventEmitterLike,
 	Plugin,
@@ -211,14 +211,14 @@ export class Bento {
 	 *
 	 * @returns Application state Object
 	 */
-	public async verify(): Promise<ApplicationState> {
+	public async verify(): Promise<BentoState> {
 		// check for any pending components
 		const pending = this.components.getPendingComponents();
 		if (pending.length > 0) {
 			throw new IllegalStateError(`One or more components are still in a pending state: '${pending.map(p => p.name).join('\', \'')}'`);
 		}
 
-		const state: ApplicationState = { components: [], plugins: [], variables: [] };
+		const state: BentoState = { components: [], plugins: [], variables: [] };
 
 		// add component names
 		const components = this.components.getComponents();

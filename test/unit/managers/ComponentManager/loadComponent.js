@@ -7,17 +7,20 @@ describe('#loadComponent', function() {
 		const manager = new ComponentManager({});
 
 		manager.references = {};
-
 		manager.dependencies = {};
+
+		// mock __handleComponentLoad
+		manager.bento.plugins = {};
+		manager.bento.plugins.__handleComponentLoad = sinon.fake.resolves();
 
 		return manager;
 	};
 
 	it('should attempt to call component onLoad', async function() {
-		const bento = getCleanComponentManager();
+		const manager = getCleanComponentManager();
 
 		let attempted = false;
-		await bento.loadComponent({
+		await manager.loadComponent({
 			name: 'TestComponent',
 			async onLoad() {
 				attempted = true;

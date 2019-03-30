@@ -3,11 +3,10 @@
 import { IllegalArgumentError } from '@ayana/errors';
 
 import { Bento } from '../Bento';
-import { PluginRegistrationError } from '../errors';
+import { PluginError, PluginRegistrationError } from '../errors';
 import { Component, Plugin } from '../interfaces';
 
 import { ReferenceManager } from './ReferenceManager';
-import { PluginError } from '../errors/PluginError';
 
 export class PluginManager {
 	private readonly bento: Bento;
@@ -113,11 +112,16 @@ export class PluginManager {
 	}
 
 	/**
+	 * FOR INTERNAL PACKAGE USE ONLY
+	 *
 	 * Notifies all plugins that a new component has been loaded into bento.
 	 * This is an internal function to be used by bento managers.
 	 * @param component - The loaded component
+	 *
+	 * @package
+	 * @see {@link docs/internal-functions}
 	 */
-	public async handleComponentLoad(component: Component) {
+	public async __handleComponentLoad(component: Component) {
 		for (const plugin of this.plugins.values()) {
 			if (!plugin.onComponentLoad) continue;
 
@@ -130,11 +134,16 @@ export class PluginManager {
 	}
 
 	/**
+	 * FOR INTERNAL PACKAGE USE ONLY
+	 *
 	 * Notifies all plugins that a component was unloaded from bento.
 	 * This is an internal function to be used by bento managers.
 	 * @param component - The unloaded component
+	 *
+	 * @package
+	 * @see {@link docs/internal-functions}
 	 */
-	public async handleComponentUnload(component: Component) {
+	public async __handleComponentUnload(component: Component) {
 		for (const plugin of this.plugins.values()) {
 			if (!plugin.onComponentUnload) continue;
 

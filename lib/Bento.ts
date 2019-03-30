@@ -1,7 +1,6 @@
 'use strict';
 
 import * as crypto from 'crypto';
-import { EventEmitter } from 'events';
 
 import { IllegalStateError } from '@ayana/errors';
 
@@ -18,6 +17,8 @@ import {
 	PropertyManager,
 	VariableManager,
 } from './managers';
+
+import { LiteEmitter } from './helpers';
 
 export interface BentoOptions {
 	createID?(len?: number): string;
@@ -40,7 +41,7 @@ export class Bento {
 
 		this.options = Object.assign({}, {
 			createID: (len = 16) => crypto.randomBytes(len).toString('base64').replace(/[^a-z0-9]/gi, '').slice(0, len),
-			eventEmitter: () => new EventEmitter(),
+			eventEmitter: () => new LiteEmitter(),
 		} as BentoOptions, options);
 
 		// now that options has been defined, create our managers

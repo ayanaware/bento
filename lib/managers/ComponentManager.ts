@@ -9,6 +9,7 @@ import { Decorators } from '../helpers/internal';
 import { Component, PendingComponentInfo } from '../interfaces';
 
 import { ReferenceManager } from './ReferenceManager';
+
 export class ComponentManager {
 	private readonly bento: Bento;
 
@@ -229,7 +230,7 @@ export class ComponentManager {
 		}
 
 		// handle plugin hooks
-		await this.bento.plugins.handleComponentUnload(component);
+		await this.bento.plugins.__handleComponentUnload(component);
 
 		// remove componentConstructor
 		this.references.removeReference(component);
@@ -351,7 +352,7 @@ export class ComponentManager {
 		this.decorators.handleSubscriptions(component, component.api);
 
 		// handle plugin hooks
-		await this.bento.plugins.handleComponentLoad(component);
+		await this.bento.plugins.__handleComponentLoad(component);
 
 		// Call onLoad if present
 		if (component.onLoad) {

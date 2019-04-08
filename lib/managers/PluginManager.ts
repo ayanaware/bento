@@ -12,7 +12,6 @@ export class PluginManager {
 	private readonly bento: Bento;
 
 	private readonly references: ReferenceManager<Plugin> = new ReferenceManager();
-
 	private readonly plugins: Map<string, Plugin> = new Map();
 
 	constructor(bento: Bento) {
@@ -111,50 +110,6 @@ export class PluginManager {
 		return results;
 	}
 
-	/**
-	 * FOR INTERNAL PACKAGE USE ONLY
-	 *
-	 * Notifies all plugins that a new component has been loaded into bento.
-	 * This is an internal function to be used by bento managers.
-	 * @param component - The loaded component
-	 *
-	 * @package
-	 * @see {@link docs/internal-functions}
-	 */
-	public async __handleComponentLoad(component: Component) {
-		for (const plugin of this.plugins.values()) {
-			if (!plugin.onComponentLoad) continue;
-
-			try {
-				await plugin.onComponentLoad(component);
-			} catch (e) {
-				throw new PluginError(`Plugin "${plugin.name}" onComponentLoad hook threw an error`).setCause(e);
-			}
-		}
-	}
-
-	/**
-	 * FOR INTERNAL PACKAGE USE ONLY
-	 *
-	 * Notifies all plugins that a component was unloaded from bento.
-	 * This is an internal function to be used by bento managers.
-	 * @param component - The unloaded component
-	 *
-	 * @package
-	 * @see {@link docs/internal-functions}
-	 */
-	public async __handleComponentUnload(component: Component) {
-		for (const plugin of this.plugins.values()) {
-			if (!plugin.onComponentUnload) continue;
-
-			try {
-				await plugin.onComponentUnload(component);
-			} catch (e) {
-				throw new PluginError(`Plugin "${plugin.name}" onComponentUnload hook threw an error`).setCause(e);
-			}
-		}
-	}
-
 	private async loadPlugin(plugin: Plugin) {
 		Object.defineProperty(plugin, 'name', {
 			configurable: true,
@@ -186,6 +141,50 @@ export class PluginManager {
 			} catch (e) {
 				this.plugins.delete(plugin.name);
 				throw e;
+			}
+		}
+	}
+
+	/**
+	 * FOR INTERNAL PACKAGE USE ONLY
+	 *
+	 * Notifies all plugins that a new component has been loaded into bento.
+	 * This is an internal function to be used by bento managers.
+	 * @param component - The loaded component
+	 *
+	 * @package
+	 * @see {@link docs/internal-functions}
+	 */
+	private async __handleComponentLoad(component: Component) {
+		for (const plugin of this.plugins.values()) {
+			if (!plugin.onComponentLoad) continue;
+
+			try {
+				await plugin.onComponentLoad(component);
+			} catch (e) {
+				throw new PluginError(`Plugin "${plugin.name}" onComponentLoad hook threw an error`).setCause(e);
+			}
+		}
+	}
+
+	/**
+	 * FOR INTERNAL PACKAGE USE ONLY
+	 *
+	 * Notifies all plugins that a component was unloaded from bento.
+	 * This is an internal function to be used by bento managers.
+	 * @param component - The unloaded component
+	 *
+	 * @package
+	 * @see {@link docs/internal-functions}
+	 */
+	private async __handleComponentUnload(component: Component) {
+		for (const plugin of this.plugins.values()) {
+			if (!plugin.onComponentUnload) continue;
+
+			try {
+				await plugin.onComponentUnload(component);
+			} catch (e) {
+				throw new PluginError(`Plugin "${plugin.name}" onComponentUnload hook threw an error`).setCause(e);
 			}
 		}
 	}

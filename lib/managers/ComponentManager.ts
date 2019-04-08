@@ -230,7 +230,7 @@ export class ComponentManager {
 		}
 
 		// handle plugin hooks
-		await this.bento.plugins.__handleComponentUnload(component);
+		await (this.bento.plugins as any).__handleComponentUnload(component);
 
 		// remove componentConstructor
 		this.references.removeReference(component);
@@ -311,10 +311,8 @@ export class ComponentManager {
 			value: component.dependencies,
 		});
 
-		// Create components' api
+		// Create and define component api
 		const api = new ComponentAPI(this.bento, component);
-
-		// Define api
 		Object.defineProperty(component, 'api', {
 			configurable: true,
 			writable: false,
@@ -335,16 +333,6 @@ export class ComponentManager {
 			parent = this.components.get(component.parent);
 		}
 
-		// if child. lets modify name a bit
-		if (parent != null && !component.name.startsWith(`${parent.name}.`)) {
-			Object.defineProperty(component, 'name', {
-				configurable: true,
-				writable: false,
-				enumerable: true,
-				value: `${parent.name}.${component.name}`,
-			});
-		}
-
 		// Inject all components from decorator subscriptions
 		this.decorators.handleInjections(component, component.api);
 
@@ -352,7 +340,7 @@ export class ComponentManager {
 		this.decorators.handleSubscriptions(component, component.api);
 
 		// handle plugin hooks
-		await this.bento.plugins.__handleComponentLoad(component);
+		await (this.bento.plugins as any).__handleComponentLoad(component);
 
 		// Call onLoad if present
 		if (component.onLoad) {

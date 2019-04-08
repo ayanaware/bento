@@ -24,9 +24,9 @@
 	"devDependencies": {
 		"@ayana/test": "^1.0.1",
 		"@ayana/tslint-config": "^1.0.0",
-		"@types/node": "^11.12.1",
-		"tslint": "^5.14.0",
-		"typescript": "^3.4.1"
+		"@types/node": "^11.13.0",
+		"tslint": "^5.15.0",
+		"typescript": "^3.4.2"
 	},
 	"license": "MIT",
 	"private": false

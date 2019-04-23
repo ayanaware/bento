@@ -8,9 +8,6 @@
 		"lib": [
 			"es2017"
 		],
-		"typeRoots": [
-			"./lib/@types"
-		],
 		"types": [
 			"node"
 		],

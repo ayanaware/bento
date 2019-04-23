@@ -8,6 +8,7 @@ import { ComponentAPI, ComponentEvents } from '../helpers';
 import { Decorators } from '../helpers/internal';
 import { Component, PendingComponentInfo } from '../interfaces';
 
+import { ComponentReference } from '../@types/ComponentReference';
 import { ReferenceManager } from './ReferenceManager';
 
 export class ComponentManager {
@@ -34,8 +35,20 @@ export class ComponentManager {
 	 * @see ReferenceManager#resolveName
 	 * @returns resolved component name
 	 */
-	public resolveName(reference: Component | string | any) {
+	public resolveName(reference: ComponentReference) {
 		return this.references.resolveName(reference);
+	}
+
+	/**
+	 * Check if a given component exists
+	 *
+	 * @param reference Component instance, name or reference
+	 *
+	 * @returns boolean
+	 */
+	public hasComponent(reference: ComponentReference) {
+		const name = this.resolveName(reference);
+		return this.components.has(name);
 	}
 
 	/**
@@ -44,7 +57,7 @@ export class ComponentManager {
 	 *
 	 * @returns Component instance
 	 */
-	public getComponent<T extends Component>(reference: Component | string): T {
+	public getComponent<T extends Component>(reference: ComponentReference): T {
 		const name = this.resolveName(reference);
 		if (!this.components.has(name)) return null;
 
@@ -66,7 +79,7 @@ export class ComponentManager {
 	 *
 	 * @returns Component events instance
 	 */
-	public getComponentEvents(component: Component | string) {
+	public getComponentEvents(component: ComponentReference) {
 		const name = this.resolveName(component);
 		if (!this.events.has(name)) return null;
 
@@ -79,7 +92,7 @@ export class ComponentManager {
 	 *
 	 * @returns Array of child components
 	 */
-	public getComponentChildren<T extends Component>(parent: Component | string): Array<T> {
+	public getComponentChildren<T extends Component>(parent: ComponentReference): Array<T> {
 		const name = this.resolveName(parent);
 		if (!this.components.has(name)) throw new IllegalStateError(`Parent "${name}" is not loaded`);
 
@@ -100,7 +113,7 @@ export class ComponentManager {
 	 *
 	 * @returns An array of dependencies requested but not loaded
 	 */
-	public getMissingDependencies(component: Component | string): string[] {
+	public getMissingDependencies(component: ComponentReference): Array<string> {
 		try {
 			const name = this.resolveName(component);
 			if (this.components.has(name)) component = this.components.get(name);
@@ -191,8 +204,6 @@ export class ComponentManager {
 
 		const component = this.components.get(name);
 		if (!component) throw new Error(`Component '${name}' is not currently loaded.`);
-
-		// TODO: check if required, required components can't be unloaded
 
 		// if we have any children lets unload them first
 		const children = this.getComponentChildren(component);
@@ -303,15 +314,7 @@ export class ComponentManager {
 			return a;
 		}, []);
 
-		// take control and redeine dependencies
-		Object.defineProperty(component, 'dependencies', {
-			configurable: true,
-			writable: false,
-			enumerable: true,
-			value: component.dependencies,
-		});
-
-		// Create and define component api
+		// Create and inject component api
 		const api = new ComponentAPI(this.bento, component);
 		Object.defineProperty(component, 'api', {
 			configurable: true,

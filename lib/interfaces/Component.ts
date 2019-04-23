@@ -2,8 +2,8 @@
 
 import { ComponentAPI } from '../helpers';
 
-import { Plugin } from './Plugin';
-import { VariableDefinition } from './VariableDefinition';
+import { ComponentReference } from '../@types/ComponentReference';
+import { PluginReference } from '../@types/PluginReference';
 
 export interface Component {
 	api?: ComponentAPI;
@@ -11,11 +11,10 @@ export interface Component {
 	name: string;
 	version?: string;
 
-	parent?: Component | string;
+	dependencies?: Array<ComponentReference>;
+	parent?: ComponentReference;
 
-	plugins?: Array<Function | Plugin | string>;
-	dependencies?: Array<Function | Component | string>;
-	variables?: Array<VariableDefinition>;
+	plugins?: Array<PluginReference>;
 
 	// General lifecycle events
 	onLoad?(api?: ComponentAPI): Promise<void>;

@@ -2,8 +2,10 @@
 
 import { Symbols } from '../constants/internal';
 
-export function ChildOf(component: string | Function): ClassDecorator {
-	return function (target: any) {
+import { ComponentReference } from '../@types/ComponentReference';
+
+export function ChildOf(component: ComponentReference): ClassDecorator {
+	return function(target: any) {
 		if (target[Symbols.childOf] == null) {
 			Object.defineProperty(target, Symbols.childOf, {
 				configurable: false,

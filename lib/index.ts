@@ -1,6 +1,7 @@
 'use strict';
 
 export * from './Bento';
+export * from './@types';
 
 export * from './constants';
 export * from './decorators';

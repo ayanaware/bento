@@ -6,6 +6,7 @@ import { Bento } from '../Bento';
 import { PluginError, PluginRegistrationError } from '../errors';
 import { Component, Plugin } from '../interfaces';
 
+import { PluginReference } from '../@types/PluginReference';
 import { ReferenceManager } from './ReferenceManager';
 
 export class PluginManager {
@@ -26,17 +27,29 @@ export class PluginManager {
 	 * @see ReferenceManager#resolveName
 	 * @returns resolved component name
 	 */
-	public resolveName(reference: Plugin | string | any) {
+	public resolveName(reference: PluginReference) {
 		return this.references.resolveName(reference);
 	}
 
 	/**
+	 * Check if a given plugin exists
+	 *
+	 * @param reference Plugin instance, name or reference
+	 *
+	 * @returns boolean
+	 */
+	public hasPlugin(reference: PluginReference) {
+		const name = this.resolveName(reference);
+		return this.plugins.has(name);
+	}
+
+	/**
 	 * Get plugin instance
-	 * @param reference - Plugin name or reference
+	 * @param reference Plugin name or reference
 	 *
 	 * @returns Plugin instance
 	 */
-	public getPlugin<T extends Plugin>(reference: Plugin | string | any): T {
+	public getPlugin<T extends Plugin>(reference: PluginReference): T {
 		const name = this.resolveName(reference);
 		if (!this.plugins.has(name)) return null;
 

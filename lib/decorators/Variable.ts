@@ -1,8 +1,8 @@
 'use strict';
 
-import { Symbols } from '../constants/internal';
+import { DecoratorSymbols, DecoratorVariable } from './internal';
+
 import { VariableDefinition } from '../interfaces';
-import { DecoratorVariable } from '../interfaces/internal';
 
 export function Variable(definition: VariableDefinition & { property?: never }): PropertyDecorator {
 	return function(target: any, propertyKey: string) {
@@ -10,8 +10,8 @@ export function Variable(definition: VariableDefinition & { property?: never }):
 			throw new Error(`The variable decorator can only be applied to non-static class properties ("${propertyKey}" in class "${target.name}")`);
 		}
 
-		if (target.constructor[Symbols.variables] == null) {
-			Object.defineProperty(target.constructor, Symbols.variables, {
+		if (target.constructor[DecoratorSymbols.variables] == null) {
+			Object.defineProperty(target.constructor, DecoratorSymbols.variables, {
 				configurable: false,
 				enumerable: false,
 				writable: false,
@@ -19,7 +19,7 @@ export function Variable(definition: VariableDefinition & { property?: never }):
 			});
 		}
 
-		target.constructor[Symbols.variables].push({
+		target.constructor[DecoratorSymbols.variables].push({
 			propertyKey,
 			definition,
 		} as DecoratorVariable);

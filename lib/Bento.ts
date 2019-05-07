@@ -4,21 +4,22 @@ import * as crypto from 'crypto';
 
 import { IllegalStateError } from '@ayana/errors';
 
+import { PropertyManager } from './properties/internal';
+
+import { VariableManager } from './variables/internal';
+
+import { Plugin } from './plugins';
+import { PluginManager } from './plugins/internal';
+
+import { Component } from './components';
+import { ComponentManager } from './components/internal';
+
 import {
 	BentoState,
-	Component,
 	EventEmitterLike,
-	Plugin,
 } from './interfaces';
 
-import {
-	ComponentManager,
-	PluginManager,
-	PropertyManager,
-	VariableManager,
-} from './managers';
-
-import { LiteEmitter } from './helpers';
+import { LiteEmitter } from './util';
 
 export interface BentoOptions {
 	createID?(len?: number): string;

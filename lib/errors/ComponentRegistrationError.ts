@@ -2,7 +2,7 @@
 
 import { GlobalInstanceOf } from '@ayana/errors';
 
-import { Component } from '../interfaces';
+import { Component } from '../components';
 
 import { ComponentError } from './ComponentError';
 

@@ -1,9 +1,8 @@
 'use strict';
 
-import { Symbols } from '../constants/internal';
-import { DecoratorInjection } from '../interfaces/internal';
+import { DecoratorInjection, DecoratorSymbols } from './internal';
 
-import { ComponentReference } from '../@types/ComponentReference';
+import { ComponentReference } from '../references';
 
 export function Inject(component: ComponentReference): PropertyDecorator {
 	return function(target: any, propertyKey: string) {
@@ -11,8 +10,8 @@ export function Inject(component: ComponentReference): PropertyDecorator {
 			throw new Error(`The inject decorator can only be applied to non-static class properties ("${propertyKey}" in class "${target.name}")`);
 		}
 
-		if (target.constructor[Symbols.injections] == null) {
-			Object.defineProperty(target.constructor, Symbols.injections, {
+		if (target.constructor[DecoratorSymbols.injections] == null) {
+			Object.defineProperty(target.constructor, DecoratorSymbols.injections, {
 				configurable: false,
 				enumerable: false,
 				writable: false,
@@ -21,12 +20,12 @@ export function Inject(component: ComponentReference): PropertyDecorator {
 		}
 
 		if (typeof component === 'symbol') {
-			target.constructor[Symbols.injections].push({
+			target.constructor[DecoratorSymbols.injections].push({
 				propertyKey,
 				symbol: component,
 			} as DecoratorInjection);
 		} else {
-			target.constructor[Symbols.injections].push({
+			target.constructor[DecoratorSymbols.injections].push({
 				propertyKey,
 				component,
 			} as DecoratorInjection);
@@ -40,6 +39,6 @@ export function Parent(): PropertyDecorator {
 			throw new Error(`The parent decorator can only be applied to non-static class methods ("${propertyKey}" in class "${target.name}")`);
 		}
 
-		return Inject(Symbols.parent as any)(target, propertyKey);
+		return Inject(DecoratorSymbols.parent as any)(target, propertyKey);
 	};
 }

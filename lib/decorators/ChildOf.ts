@@ -1,13 +1,13 @@
 'use strict';
 
-import { Symbols } from '../constants/internal';
+import { DecoratorSymbols } from './internal';
 
-import { ComponentReference } from '../@types/ComponentReference';
+import { ComponentReference } from '../references';
 
 export function ChildOf(component: ComponentReference): ClassDecorator {
 	return function(target: any) {
-		if (target[Symbols.childOf] == null) {
-			Object.defineProperty(target, Symbols.childOf, {
+		if (target[DecoratorSymbols.childOf] == null) {
+			Object.defineProperty(target, DecoratorSymbols.childOf, {
 				configurable: false,
 				enumerable: false,
 				writable: false,

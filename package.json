@@ -22,11 +22,11 @@
 		"@ayana/logger-api": "^2.0.0"
 	},
 	"devDependencies": {
-		"@ayana/test": "^1.0.1",
-		"@ayana/tslint-config": "^1.0.0",
-		"@types/node": "^11.13.0",
-		"tslint": "^5.15.0",
-		"typescript": "^3.4.2"
+		"@ayana/test": "^2.0.1",
+		"@ayana/tslint-config": "^1.1.2",
+		"@types/node": "^12.0.0",
+		"tslint": "^5.16.0",
+		"typescript": "^3.4.5"
 	},
 	"license": "MIT",
 	"private": false

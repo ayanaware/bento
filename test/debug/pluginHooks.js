@@ -14,15 +14,29 @@ const plugin = {
 	},
 };
 
+const plugin2 = {
+	name: 'plugin2',
+
+	myMethod() {
+		return 'hello world';
+	}
+}
+
 const component = {
 	name: 'hello',
 	onLoad() {
 		console.log('My number is:', component.myNumber);
+
+		this.api.injectPlugin(plugin2, 'plug2');
+
+		console.log(this.plug2.myMethod(), ' injected plugin!');
 	},
 };
 
 (async () => {
 	await bento.addPlugin(plugin);
+
+	await bento.addPlugin(plugin2);
 
 	await bento.addComponent(component);
 	await bento.removeComponent(component.name);

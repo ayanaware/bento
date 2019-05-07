@@ -152,6 +152,25 @@ export class ComponentAPI {
 	}
 
 	/**
+	 * Inject plugin into invoking component
+	 * @param reference Plugin name or reference
+	 * @param injectName name to inject into
+	 */
+	public injectPlugin(reference: PluginReference, injectName: string) {
+		if (this.component.hasOwnProperty(injectName)) throw new IllegalStateError(`Component already has property "${injectName}" defined.`);
+		if (this.hasPlugin(reference) === false) throw new IllegalStateError('Unable to inject non-existent plugin');
+
+		Object.defineProperty(this.component, injectName, {
+			configurable: true,
+			enumerable: true,
+			get: () => this.getPlugin(reference),
+			set: () => {
+				throw new IllegalAccessError(`Cannot write to injected plugin`);
+			},
+		});
+	}
+
+	/**
 	 * Fetch the value of given application property
 	 * @param name name of application property
 	 *
@@ -177,7 +196,7 @@ export class ComponentAPI {
 	 *
 	 * @returns Variable value
 	 */
-	public getVariable(definition: VariableDefinition | string): any {
+	public getVariable<T>(definition: VariableDefinition | string): T {
 		// if string, convert to basic definition
 		if (typeof definition === 'string') {
 			definition = {
@@ -190,8 +209,8 @@ export class ComponentAPI {
 
 		// validate definition
 		if (!definition.name) throw new IllegalArgumentError('VariableDefinition must define a name');
-		const value = this.getValue(definition);
 
+		const value = this.bento.variables.getVariable<T>(definition.name, definition.default);
 		// if undefined. then is a required variable that is not in bento
 		if (value === undefined) throw new IllegalStateError(`Failed to find a value for "${definition.name}" variable`);
 
@@ -207,7 +226,7 @@ export class ComponentAPI {
 		if (!definition.type) definition.type = VariableDefinitionType.STRING;
 
 		// if variable not in bento, and no default defined. Throw an error
-		if (!this.bento.variables.hasVariable(definition.name) && definition.default === undefined) {
+		if (!this.hasVariable(definition.name) && definition.default === undefined) {
 			throw new IllegalStateError(`Cannot inject undefined variable "${definition.name}"`);
 		}
 
@@ -215,7 +234,7 @@ export class ComponentAPI {
 		Object.defineProperty(this.component, definition.property || definition.name, {
 			configurable: true,
 			enumerable: false,
-			get: () => this.getValue(definition),
+			get: () => this.getVariable(definition),
 			set: () => {
 				throw new IllegalAccessError(`Cannot write to injected variable`);
 			},
@@ -232,49 +251,6 @@ export class ComponentAPI {
 		for (const definition of definitions) {
 			this.injectVariable(definition);
 		}
-	}
-
-	private getValue(definition: VariableDefinition) {
-		// tslint:disable-next-line:no-unnecessary-initializer
-		let value = undefined;
-
-		// get latest
-		if (this.bento.variables.hasVariable(definition.name)) {
-			value = this.bento.variables.getVariable(definition.name);
-		}
-
-		// if undefined and have default set now
-		if (value === undefined && definition.default !== undefined) value = definition.default;
-		if (value === undefined) return value;
-
-		// Verifies that value matches definition type
-		if (!definition.type) definition.type = VariableDefinitionType.STRING;
-		switch (definition.type) {
-			case VariableDefinitionType.NUMBER:
-			case VariableDefinitionType.STRING:
-			case VariableDefinitionType.BOOLEAN: {
-				if (value !== null && typeof value !== definition.type) throw new IllegalStateError('Found value does not match definition type');
-				break;
-			}
-
-			case VariableDefinitionType.ARRAY: {
-				if (!Array.isArray) throw new IllegalStateError('Found value does not match definition type');
-				break;
-			}
-
-			case VariableDefinitionType.OBJECT: {
-				if (typeof value === 'object' && Array.isArray(value)) throw new IllegalStateError('Found value does not match definition type');
-				break;
-			}
-
-			default: {
-				throw new IllegalStateError('VariableDefinition specified an unknown type');
-			}
-		}
-
-		// TODO: validators
-
-		return value;
 	}
 
 	/**

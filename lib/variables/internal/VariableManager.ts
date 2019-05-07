@@ -33,13 +33,17 @@ export class VariableManager {
 	/**
 	 * Fetch a value for a given variable name
 	 * @param name name of variable
+	 * @param def default value
 	 *
 	 * @returns variable value
 	 */
-	public getVariable(name: string) {
+	public getVariable<T = string>(name: string, def?: T): T {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
-		if (!this.variables.has(name)) return null;
-		return this.variables.get(name);
+
+		const value = this.variables.get(name);
+		if (value === undefined && def !== undefined) return def;
+
+		return value as T;
 	}
 
 	/**
@@ -48,9 +52,10 @@ export class VariableManager {
 	 * @param value new value
 	 * @param source specify variable source (optional)
 	 */
-	public setVariable(name: string, value: any, source?: VariableSource) {
+	public setVariable<T = string>(name: string, value: T, source?: VariableSource) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
 		if (source) this.setSource(name, source);
+
 		if (value === undefined) return;
 
 		this.variables.set(name, value);

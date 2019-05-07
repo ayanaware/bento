@@ -7,6 +7,7 @@ export * from './references';
 export * from './components';
 export * from './decorators';
 export * from './plugins';
+export * from './variables';
 
 export * from './errors';
 export * from './interfaces';

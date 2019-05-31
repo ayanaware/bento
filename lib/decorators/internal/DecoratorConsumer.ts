@@ -108,7 +108,7 @@ export class DecoratorConsumer {
 		const variables: DecoratorVariable[] = (component.constructor as any)[DecoratorSymbols.variables];
 		if (Array.isArray(variables)) {
 			for (const variable of variables) {
-				api.injectVariable(Object.assign({}, variable.definition, { property: variable.propertyKey }));
+				api.injectVariable(variable.definition, variable.propertyKey);
 			}
 		}
 	}

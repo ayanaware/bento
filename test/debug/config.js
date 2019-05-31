@@ -24,6 +24,8 @@ class Test {
 			},
 		]);
 
+		this.api.injectVariable({ name: 'oof' }, 'oof');
+
 		console.log('someVal =', this.someVal);
 	}
 }

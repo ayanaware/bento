@@ -1,22 +1,18 @@
 'use strict';
 
-import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
-import { IllegalAccessError } from '../errors/IllegalAccessError';
-
 import { Bento } from '../Bento';
 import { ComponentReference, PluginReference } from '../references';
 
+import { Plugin } from '../plugins';
 import { Component } from './interfaces';
 
-import { Plugin } from '../plugins';
-
-import {
-	EventEmitterLike,
-	VariableDefinition,
-	VariableDefinitionType,
-} from '../interfaces';
+import { EventEmitterLike } from '../interfaces';
+import { VariableDefinition } from '../variables';
 
 import { SubscriptionType } from './SubscriptionType';
+
+import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
+import { IllegalAccessError } from '../errors/IllegalAccessError';
 
 import { Logger } from '@ayana/logger-api';
 /**
@@ -87,7 +83,7 @@ export class ComponentAPI {
 	/**
 	 * Inject component dependency into invoking component
 	 * @param reference Component name or reference
-	 * @param injectName name to inject into
+	 * @param injectName property name to inject into
 	 */
 	public injectComponent(reference: ComponentReference, injectName: string) {
 		if (this.component.hasOwnProperty(injectName)) throw new IllegalStateError(`Component already has property "${injectName}" defined.`);
@@ -154,7 +150,7 @@ export class ComponentAPI {
 	/**
 	 * Inject plugin into invoking component
 	 * @param reference Plugin name or reference
-	 * @param injectName name to inject into
+	 * @param injectName property name to inject into
 	 */
 	public injectPlugin(reference: PluginReference, injectName: string) {
 		if (this.component.hasOwnProperty(injectName)) throw new IllegalStateError(`Component already has property "${injectName}" defined.`);
@@ -201,16 +197,14 @@ export class ComponentAPI {
 		if (typeof definition === 'string') {
 			definition = {
 				name: definition,
-				type: VariableDefinitionType.STRING,
 			};
 		}
-
-		if (!definition.type) definition.type = VariableDefinitionType.STRING;
 
 		// validate definition
 		if (!definition.name) throw new IllegalArgumentError('VariableDefinition must define a name');
 
 		const value = this.bento.variables.getVariable<T>(definition.name, definition.default);
+
 		// if undefined. then is a required variable that is not in bento
 		if (value === undefined) throw new IllegalStateError(`Failed to find a value for "${definition.name}" variable`);
 
@@ -220,18 +214,20 @@ export class ComponentAPI {
 	/**
 	 * Defines and attaches a variable to component
 	 * @param definition Variable definition
+	 * @param injectName property name to inject into
 	 */
-	public injectVariable(definition: VariableDefinition) {
+	public injectVariable(definition: VariableDefinition, injectName?: string) {
 		if (!definition.name) throw new IllegalArgumentError('A VariableDefinition must define a name');
-		if (!definition.type) definition.type = VariableDefinitionType.STRING;
 
 		// if variable not in bento, and no default defined. Throw an error
 		if (!this.hasVariable(definition.name) && definition.default === undefined) {
 			throw new IllegalStateError(`Cannot inject undefined variable "${definition.name}"`);
 		}
 
+		const property = injectName || definition.name;
+
 		// attach property to component
-		Object.defineProperty(this.component, definition.property || definition.name, {
+		Object.defineProperty(this.component, property, {
 			configurable: true,
 			enumerable: false,
 			get: () => this.getVariable(definition),
@@ -239,18 +235,6 @@ export class ComponentAPI {
 				throw new IllegalAccessError(`Cannot write to injected variable`);
 			},
 		});
-	}
-
-	/**
-	 * Define multiple variables at once
-	 * @param definitions Array of definitions
-	 */
-	public injectVariables(definitions: VariableDefinition[]) {
-		if (!Array.isArray(definitions)) throw new IllegalArgumentError('Definitions must be an array');
-
-		for (const definition of definitions) {
-			this.injectVariable(definition);
-		}
 	}
 
 	/**

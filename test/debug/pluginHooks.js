@@ -5,11 +5,17 @@ const bento = new Bento();
 
 const plugin = {
 	name: 'examplePlugin',
-	onComponentLoad(component) {
-		console.log(component.name, `has loaded! (from ${plugin.name})`);
+	onPreComponentLoad(component) {
+		console.log(component.name, `about to be loaded! (from ${plugin.name})`);
 		component.myNumber = Math.random();
 	},
-	onComponentUnload(component) {
+	onPostComponentLoad(component) {
+		console.log(component.name, `has loaded (from ${plugin.name})`);
+	},
+	onPreComponentUnload(component) {
+		console.log(component.name, `about to be unloaded (from ${plugin.name})`);
+	},
+	onPostComponentUnload(component) {
 		console.log(component.name, `has been unloaded! (from ${plugin.name})`);
 	},
 };
@@ -29,7 +35,7 @@ const component = {
 
 		this.api.injectPlugin(plugin2, 'plug2');
 
-		console.log(this.plug2.myMethod(), ' injected plugin!');
+		console.log(this.plug2.myMethod(), 'injected plugin!');
 	},
 };
 

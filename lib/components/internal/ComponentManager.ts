@@ -14,6 +14,8 @@ import { DecoratorConsumer } from '../../decorators/internal';
 import { ComponentReference } from '../../references';
 import { ReferenceManager } from '../../references/internal';
 
+import { PluginHook } from '../../plugins/internal';
+
 export interface PendingComponentInfo {
 	name: string;
 	component: Component;
@@ -220,6 +222,9 @@ export class ComponentManager {
 			}
 		}
 
+		// onPreComponentUnload
+		await (this.bento.plugins as any).__handlePluginHook(PluginHook.onPreComponentUnload, component);
+
 		// call unMount
 		if (component.onUnload) {
 			try {
@@ -247,9 +252,6 @@ export class ComponentManager {
 			}
 		}
 
-		// handle plugin hooks
-		await (this.bento.plugins as any).__handleComponentUnload(component);
-
 		// remove componentConstructor
 		this.references.removeReference(component);
 
@@ -257,6 +259,9 @@ export class ComponentManager {
 		if (this.components.has(component.name)) {
 			this.components.delete(component.name);
 		}
+
+		// onPostComponentUnload
+		await (this.bento.plugins as any).__handlePluginHook(PluginHook.onPostComponentUnload, component);
 	}
 
 	/**
@@ -349,8 +354,8 @@ export class ComponentManager {
 		// Subscribe to all events from decorator subscriptions
 		DecoratorConsumer.handleSubscriptions(component, component.api);
 
-		// handle plugin hooks
-		await (this.bento.plugins as any).__handleComponentLoad(component);
+		// onPreComponentLoad
+		await (this.bento.plugins as any).__handlePluginHook(PluginHook.onPreComponentLoad, component);
 
 		// Call onLoad if present
 		if (component.onLoad) {
@@ -373,6 +378,9 @@ export class ComponentManager {
 		}
 
 		this.components.set(component.name, component);
+
+		// onPostComponentLoad
+		await (this.bento.plugins as any).__handlePluginHook(PluginHook.onPostComponentLoad, component);
 	}
 
 	private async handlePendingComponents(): Promise<void> {

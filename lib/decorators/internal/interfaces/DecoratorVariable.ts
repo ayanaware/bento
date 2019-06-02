@@ -1,6 +1,6 @@
 'use strict';
 
-import { VariableDefinition } from '../../../interfaces';
+import { VariableDefinition } from '../../../variables';
 
 export interface DecoratorVariable {
 	propertyKey: string;

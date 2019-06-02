@@ -2,7 +2,7 @@
 
 import { AyanaError, GlobalInstanceOf } from '@ayana/errors';
 
-import { VariableDefinition } from '../interfaces';
+import { VariableDefinition } from '../variables';
 
 @GlobalInstanceOf('@ayana/bento', '1')
 export class VariableProcessingError extends AyanaError {

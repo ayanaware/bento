@@ -1,18 +1,18 @@
-'use strict';
+
+import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
+import { IllegalAccessError } from '../errors/IllegalAccessError';
 
 import { Bento } from '../Bento';
-import { ComponentReference, PluginReference } from '../references';
 
-import { Plugin } from '../plugins';
+import { SharedAPI } from '../abstractions';
 import { Component } from './interfaces';
+
+import { ComponentReference, PluginReference } from '../references';
 
 import { EventEmitterLike } from '../interfaces';
 import { VariableDefinition } from '../variables';
 
 import { SubscriptionType } from './SubscriptionType';
-
-import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
-import { IllegalAccessError } from '../errors/IllegalAccessError';
 
 import { Logger } from '@ayana/logger-api';
 /**
@@ -26,9 +26,7 @@ const log = Logger.get('ComponentAPI');
  * The gateway of a component to the rest of the application.
  * Each component gets one if loaded.
  */
-export class ComponentAPI {
-	private readonly bento: Bento;
-
+export class ComponentAPI extends SharedAPI {
 	/**
 	 * The component this API object belongs to
 	 */
@@ -42,42 +40,9 @@ export class ComponentAPI {
 	private readonly subscriptions: Map<string, string[]> = new Map();
 
 	public constructor(bento: Bento, component: Component) {
-		this.bento = bento;
+		super(bento);
+
 		this.component = component;
-	}
-
-	/**
-	 * Get the semantic version string of the bento instance attached to this component api
-	 * @returns Semantic version string (https://semver.org)
-	 */
-	public getBentoVersion() {
-		return this.bento.version;
-	}
-
-	/**
-	 * Checks if Bento has a given component
-	 *
-	 * @param reference Component instance, name or reference
-	 *
-	 * @returns boolean
-	 */
-	public hasComponent(reference: ComponentReference) {
-		return this.bento.components.hasComponent(reference);
-	}
-
-	/**
-	 * Fetch the provided component instance
-	 *
-	 * @param reference Component name or reference
-	 *
-	 * @returns Component instance
-	 */
-	public getComponent<T extends Component>(reference: ComponentReference): T {
-		const name = this.bento.components.resolveName(reference);
-		const component = this.bento.components.getComponent<T>(name);
-		if (!component) throw new IllegalStateError(`Component "${name}" does not exist`);
-
-		return component;
 	}
 
 	/**
@@ -122,32 +87,6 @@ export class ComponentAPI {
 	}
 
 	/**
-	 * Checks if Bento has a given plugin
-	 *
-	 * @param reference Plugin instance, name or reference
-	 *
-	 * @returns boolean
-	 */
-	public hasPlugin(reference: PluginReference) {
-		return this.bento.plugins.hasPlugin(reference);
-	}
-
-	/**
-	 * Fetch the provided plugin instance
-	 *
-	 * @param reference Plugin name or reference
-	 *
-	 * @returns Plugin instance
-	 */
-	public getPlugin<T extends Plugin>(reference: PluginReference): T {
-		const name = this.bento.plugins.resolveName(reference);
-		const plugin = this.bento.plugins.getPlugin<T>(name);
-		if (!plugin) throw new IllegalStateError(`Plugin "${name}" does not exist`);
-
-		return plugin;
-	}
-
-	/**
 	 * Inject plugin into invoking component
 	 * @param reference Plugin name or reference
 	 * @param injectName property name to inject into
@@ -164,51 +103,6 @@ export class ComponentAPI {
 				throw new IllegalAccessError(`Cannot write to injected plugin`);
 			},
 		});
-	}
-
-	/**
-	 * Fetch the value of given application property
-	 * @param name name of application property
-	 *
-	 * @returns Property value
-	 */
-	public getProperty(name: string) {
-		return this.bento.getProperty(name);
-	}
-
-	/**
-	 * Check if bento has a given variable
-	 * @param name name of variable
-	 *
-	 * @returns boolean
-	 */
-	public hasVariable(name: string) {
-		return this.bento.variables.hasVariable(name);
-	}
-
-	/**
-	 * Gets the value of a variable
-	 * @param definition Variable name or definition
-	 *
-	 * @returns Variable value
-	 */
-	public getVariable<T>(definition: VariableDefinition | string): T {
-		// if string, convert to basic definition
-		if (typeof definition === 'string') {
-			definition = {
-				name: definition,
-			};
-		}
-
-		// validate definition
-		if (!definition.name) throw new IllegalArgumentError('VariableDefinition must define a name');
-
-		const value = this.bento.variables.getVariable<T>(definition.name, definition.default);
-
-		// if undefined. then is a required variable that is not in bento
-		if (value === undefined) throw new IllegalStateError(`Failed to find a value for "${definition.name}" variable`);
-
-		return value;
 	}
 
 	/**

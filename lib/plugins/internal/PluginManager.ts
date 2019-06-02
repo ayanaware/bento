@@ -11,6 +11,13 @@ import { Plugin } from '../interfaces';
 import { PluginReference } from '../../references';
 import { ReferenceManager } from '../../references/internal';
 
+export enum PluginHook {
+	onPreComponentLoad = 'onPreComponentLoad',
+	onPreComponentUnload = 'onPreComponentUnload',
+	onPostComponentLoad = 'onPostComponentLoad',
+	onPostComponentUnload = 'onPostComponentUnload',
+}
+
 export class PluginManager {
 	private readonly bento: Bento;
 
@@ -163,43 +170,22 @@ export class PluginManager {
 	/**
 	 * FOR INTERNAL PACKAGE USE ONLY
 	 *
-	 * Notifies all plugins that a new component has been loaded into bento.
+	 * Calls a given hook for all plugins
 	 * This is an internal function to be used by bento managers.
-	 * @param component - The loaded component
+	 * @param hookName Hook name
+	 * @param component Component
 	 *
 	 * @package
 	 * @see {@link docs/internal-functions}
 	 */
-	private async __handleComponentLoad(component: Component) {
+	private async __handlePluginHook(hookName: PluginHook | string, component: Component) {
 		for (const plugin of this.plugins.values()) {
-			if (!plugin.onComponentLoad) continue;
+			if (!(plugin as Plugin & { [key: string]: any })[hookName]) continue;
 
 			try {
-				await plugin.onComponentLoad(component);
+				await (plugin as Plugin & { [key: string]: any })[hookName](component);
 			} catch (e) {
-				throw new PluginError(`Plugin "${plugin.name}" onComponentLoad hook threw an error`).setCause(e);
-			}
-		}
-	}
-
-	/**
-	 * FOR INTERNAL PACKAGE USE ONLY
-	 *
-	 * Notifies all plugins that a component was unloaded from bento.
-	 * This is an internal function to be used by bento managers.
-	 * @param component - The unloaded component
-	 *
-	 * @package
-	 * @see {@link docs/internal-functions}
-	 */
-	private async __handleComponentUnload(component: Component) {
-		for (const plugin of this.plugins.values()) {
-			if (!plugin.onComponentUnload) continue;
-
-			try {
-				await plugin.onComponentUnload(component);
-			} catch (e) {
-				throw new PluginError(`Plugin "${plugin.name}" onComponentUnload hook threw an error`).setCause(e);
+				throw new PluginError(`Plugin "${plugin.name}" ${hookName} hook threw an error`).setCause(e);
 			}
 		}
 	}

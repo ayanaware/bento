@@ -24,9 +24,9 @@
 	"devDependencies": {
 		"@ayana/test": "^2.0.1",
 		"@ayana/tslint-config": "^1.1.2",
-		"@types/node": "^12.0.0",
-		"tslint": "^5.16.0",
-		"typescript": "^3.4.5"
+		"@types/node": "^12.0.4",
+		"tslint": "^5.17.0",
+		"typescript": "^3.5.1"
 	},
 	"bugs": {
 		"url": "https://gitlab.com/ayana/libs/bento/issues"
@@ -34,7 +34,8 @@
 	"keywords": [
 		"bento",
 		"api",
-		"app", "application",
+		"app",
+		"application",
 		"ayana",
 		"backend",
 		"component",

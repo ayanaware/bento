@@ -31,7 +31,6 @@ interface DirectoryItem {
 }
 
 export class FSComponentLoader extends ComponentLoader {
-	public bento: Bento;
 	public name: string = 'FSComponentLoader';
 
 	// list of currently loaded directories and components
@@ -46,7 +45,7 @@ export class FSComponentLoader extends ComponentLoader {
 		if (this.pending.length > 0) {
 			for (const { file, instance } of this.pending) {
 				try {
-					const name = await this.bento.addComponent(instance);
+					const name = await this.api.getBento().addComponent(instance);
 					this.components.add(name);
 				} catch (e) {
 					throw new ComponentLoadError(file, `Failed to attach component "${file}"`).setCause(e);
@@ -85,9 +84,9 @@ export class FSComponentLoader extends ComponentLoader {
 			if (instance == null) continue;
 
 			// gracefully handle bento not being attached yet
-			if (this.bento != null) {
+			if (this.api != null) {
 				try {
-					const name = await this.bento.addComponent(instance);
+					const name = await this.api.getBento().addComponent(instance);
 					this.components.add(name);
 				} catch (e) {
 					throw new ComponentLoadError(file, `Failed to attach component "${file}"`).setCause(e);

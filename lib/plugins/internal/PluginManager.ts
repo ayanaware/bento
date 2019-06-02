@@ -10,6 +10,7 @@ import { Plugin } from '../interfaces';
 
 import { PluginReference } from '../../references';
 import { ReferenceManager } from '../../references/internal';
+import { PluginAPI } from '../PluginAPI';
 
 export enum PluginHook {
 	onPreComponentLoad = 'onPreComponentLoad',
@@ -143,12 +144,13 @@ export class PluginManager {
 		// track any constructors
 		this.references.addReference(plugin);
 
-		// Define bento instance
-		Object.defineProperty(plugin, 'bento', {
-			configurable: false,
+		// create and inject plugin api
+		const api = new PluginAPI(this.bento, plugin);
+		Object.defineProperty(plugin, 'api', {
+			configurable: true,
 			writable: false,
 			enumerable: true,
-			value: this.bento,
+			value: api,
 		});
 
 		// plugin must be defined before calling onload.
@@ -159,7 +161,7 @@ export class PluginManager {
 		// call onLoad
 		if (plugin.onLoad) {
 			try {
-				await plugin.onLoad(this.bento);
+				await plugin.onLoad(plugin.api);
 			} catch (e) {
 				this.plugins.delete(plugin.name);
 				throw e;

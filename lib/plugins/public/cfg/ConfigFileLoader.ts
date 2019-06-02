@@ -31,7 +31,7 @@ export class ConfigFileLoader extends ConfigLoader {
 	}
 
 	/**
-	 * Add file and 
+	 * Add file and
 	 * @param file - Path to file
 	 */
 	public addFile(...file: Array<string>) {

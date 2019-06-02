@@ -7,7 +7,6 @@ import { PluginAPI } from '../PluginAPI';
 import { Component } from '../../components';
 
 export interface Plugin {
-	bento?: Bento;
 	api?: PluginAPI;
 
 	/**
@@ -18,9 +17,9 @@ export interface Plugin {
 
 	/**
 	 * Plugin Lifecycle Hook, Plugin Entrypoint
-	 * @param bento Bento
+	 * @param api Plugin API
 	 */
-	onLoad?(bento?: Bento): Promise<void>;
+	onLoad?(api?: PluginAPI): Promise<void>;
 
 	/**
 	 * Plugin Lifecycle Hook, Plugin unload

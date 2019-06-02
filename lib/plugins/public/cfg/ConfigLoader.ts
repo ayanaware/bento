@@ -1,8 +1,9 @@
 'use strict';
 
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
-import { Bento } from '../../../Bento';
 import { VariableSource, VariableSourceType } from '../../../interfaces';
+
+import { PluginAPI } from '../../PluginAPI';
 
 export interface ConfigLoaderDefinition {
 	name: string;
@@ -11,7 +12,7 @@ export interface ConfigLoaderDefinition {
 }
 
 export class ConfigLoader {
-	public bento: Bento;
+	public api: PluginAPI;
 	public name: string = 'ConfigLoader';
 
 	private definitions: Map<string, ConfigLoaderDefinition> = new Map();
@@ -73,7 +74,7 @@ export class ConfigLoader {
 	}
 
 	public async reloadValues() {
-		if (this.bento == null) return;
+		if (this.api == null) return;
 
 		for (const definition of this.definitions.values()) {
 			const value = await this.getValue(definition);
@@ -85,7 +86,7 @@ export class ConfigLoader {
 				source.source = definition.env;
 			}
 
-			this.bento.variables.setVariable(definition.name, value, source);
+			this.api.getBento().variables.setVariable(definition.name, value, source);
 		}
 	}
 

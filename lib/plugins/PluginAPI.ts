@@ -20,7 +20,7 @@ export class PluginAPI extends SharedAPI {
 
 	/**
 	 * Plugins are allowed to have direct access to bento
-	 * 
+	 *
 	 * @returns bento instance
 	 */
 	public getBento() {

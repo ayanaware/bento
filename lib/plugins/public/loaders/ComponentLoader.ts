@@ -2,10 +2,10 @@
 
 import { ProcessingError } from '@ayana/errors';
 
-import { Bento } from '../../../Bento';
-
 import { Component } from '../../../components';
 import { DetectedComponent } from '../../../decorators/internal';
+
+import { PluginAPI } from '../../PluginAPI';
 
 /**
  * Abstract loader class containing an interface to the outside and core functionality
@@ -14,7 +14,7 @@ export abstract class ComponentLoader {
 	/**
 	 * The currently attached Bento instance
 	 */
-	public bento: Bento = null;
+	public api: PluginAPI = null;
 
 	/**
 	 * This method can and will be called by components desiring to load peer components
@@ -61,7 +61,7 @@ export abstract class ComponentLoader {
 				return {
 					classLike: this.classLike(nodeModule.default),
 					obj: nodeModule.default,
-					esModule: true
+					esModule: true,
 				};
 			}
 
@@ -87,7 +87,7 @@ export abstract class ComponentLoader {
 				return {
 					classLike: this.classLike(componentObject),
 					obj: componentObject,
-					esModule: true
+					esModule: true,
 				};
 			}
 

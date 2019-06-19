@@ -6,9 +6,9 @@ import { DecoratorInjection } from '../interfaces/internal';
 import { ComponentReference } from '../@types/ComponentReference';
 
 export function Inject(component: ComponentReference): PropertyDecorator {
-	return function(target: any, propertyKey: string) {
+	return function(target: any, propertyKey: string | symbol) {
 		if(target.prototype !== undefined) {
-			throw new Error(`The inject decorator can only be applied to non-static class properties ("${propertyKey}" in class "${target.name}")`);
+			throw new Error(`The inject decorator can only be applied to non-static class properties ("${String(propertyKey)}" in class "${target.name}")`);
 		}
 
 		if (target.constructor[Symbols.injections] == null) {
@@ -35,9 +35,9 @@ export function Inject(component: ComponentReference): PropertyDecorator {
 }
 
 export function Parent(): PropertyDecorator {
-	return function(target: any, propertyKey: string) {
+	return function(target: any, propertyKey: string | symbol) {
 		if(target.prototype !== undefined) {
-			throw new Error(`The parent decorator can only be applied to non-static class methods ("${propertyKey}" in class "${target.name}")`);
+			throw new Error(`The parent decorator can only be applied to non-static class methods ("${String(propertyKey)}" in class "${target.name}")`);
 		}
 
 		return Inject(Symbols.parent as any)(target, propertyKey);

@@ -11,6 +11,6 @@ export class VariableProcessingError extends AyanaError {
 	constructor(componentName: string, definition: VariableDefinition, msg: string) {
 		super(`Component "${componentName}", Variable "${definition.name}": ${msg}`);
 
-		this.define('definition', definition);
+		this.__define('definition', definition);
 	}
 }

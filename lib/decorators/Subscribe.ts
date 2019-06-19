@@ -7,9 +7,9 @@ import { SubscriptionType } from '../components/SubscriptionType';
 import { DecoratorSubscription, DecoratorSymbols } from './internal';
 
 export function Subscribe(type: SubscriptionType, reference: ComponentReference, name: string): MethodDecorator {
-	return function(target: any, propertyKey: string, descriptor: TypedPropertyDescriptor<any>) {
+	return function(target: any, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<any>) {
 		if(target.prototype !== undefined) {
-			throw new Error(`The subscribe decorator can only be applied to non-static class methods ("${propertyKey}" in class "${target.name}")`);
+			throw new Error(`The subscribe decorator can only be applied to non-static class methods ("${String(propertyKey)}" in class "${target.name}")`);
 		}
 
 		if (target.constructor[DecoratorSymbols.subscriptions] == null) {

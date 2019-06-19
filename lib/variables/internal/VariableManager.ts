@@ -161,14 +161,14 @@ export class VariableManager {
 	 *
 	 * @returns validator result
 	 */
-	public runValidator(name: string, ...args: any[]) {
+	public runValidator(name: string, value: any, ...args: any[]) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');
 		if (!this.validators.has(name)) throw new IllegalStateError(`Validator "${name}" does not exist`);
 
 		const validator = this.validators.get(name);
 
 		try {
-			return validator.call(undefined, ...args);
+			return validator.call(undefined, value, args);
 		} catch (e) {
 			throw new ValidatorRegistrationError(name, `Validator "${name}" failed to execute`).setCause(e);
 		}

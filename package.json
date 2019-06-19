@@ -18,15 +18,15 @@
 		"testcoverage": "rm -rf build && tsc && nyc mocha"
 	},
 	"dependencies": {
-		"@ayana/errors": "^0.0.4",
+		"@ayana/errors": "^1.0.0",
 		"@ayana/logger-api": "^2.0.0"
 	},
 	"devDependencies": {
 		"@ayana/test": "^2.0.1",
 		"@ayana/tslint-config": "^1.1.2",
-		"@types/node": "^12.0.4",
+		"@types/node": "^10.14.5",
 		"tslint": "^5.17.0",
-		"typescript": "^3.5.1"
+		"typescript": "^3.5.2"
 	},
 	"bugs": {
 		"url": "https://gitlab.com/ayana/libs/bento/issues"

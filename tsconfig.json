@@ -1,9 +1,9 @@
 {
 	"compileOnSave": false,
 	"compilerOptions": {
-		"declaration": true,
-		"moduleResolution": "node",
 		"module": "commonjs",
+		"moduleResolution": "node",
+		"target": "ES2017",
 		"outDir": "./build",
 		"lib": [
 			"es2017"
@@ -11,20 +11,25 @@
 		"types": [
 			"node"
 		],
-		"forceConsistentCasingInFileNames": true,
-		"pretty": false,
-		"target": "ES2017",
-		"noImplicitAny": true,
+		"baseUrl": ".",
+		"paths": {},
+		"declaration": true,
 		"sourceMap": true,
-		"skipLibCheck": true,
-		"disableSizeLimit": true,
+		"pretty": false,
+		"strict": true,
+		"strictNullChecks": false,
+		"skipLibCheck": false,
 		"allowJs": false,
-		"experimentalDecorators": true
+		"forceConsistentCasingInFileNames": true,
+		"disableSizeLimit": true,
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
 	},
 	"include": [
-		"./lib"
+		"./lib/**/*"
 	],
 	"exclude": [
-		"./node_modules"
+		"./node_modules/**/*",
+		"./lib/**/*.spec.ts"
 	]
 }

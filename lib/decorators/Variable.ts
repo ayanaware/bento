@@ -5,9 +5,9 @@ import { DecoratorSymbols, DecoratorVariable } from './internal';
 import { VariableDefinition } from '../variables';
 
 export function Variable(definition: VariableDefinition): PropertyDecorator {
-	return function(target: any, propertyKey: string) {
+	return function(target: any, propertyKey: string | symbol) {
 		if(target.prototype !== undefined) {
-			throw new Error(`The variable decorator can only be applied to non-static class properties ("${propertyKey}" in class "${target.name}")`);
+			throw new Error(`The variable decorator can only be applied to non-static class properties ("${String(propertyKey)}" in class "${target.name}")`);
 		}
 
 		if (target.constructor[DecoratorSymbols.variables] == null) {

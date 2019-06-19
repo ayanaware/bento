@@ -9,6 +9,6 @@ export class ValidatorRegistrationError extends AyanaError {
 	constructor(validator: string, msg: string) {
 		super(msg);
 
-		this.define('validator', validator);
+		this.__define('validator', validator);
 	}
 }

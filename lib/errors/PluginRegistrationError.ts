@@ -13,6 +13,6 @@ export class PluginRegistrationError extends PluginError {
 	constructor(plugin: Plugin, msg: string) {
 		super(msg);
 
-		this.define('plugin', plugin);
+		this.__define('plugin', plugin);
 	}
 }

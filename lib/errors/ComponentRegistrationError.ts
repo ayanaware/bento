@@ -13,6 +13,6 @@ export class ComponentRegistrationError extends ComponentError {
 	constructor(component: Component, msg: string) {
 		super(msg);
 
-		this.define('component', component);
+		this.__define('component', component);
 	}
 }

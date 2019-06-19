@@ -11,6 +11,6 @@ export class ComponentLoadError extends ComponentError {
 
 		super(msg);
 
-		this.define('location', location);
+		this.__define('location', location);
 	}
 }

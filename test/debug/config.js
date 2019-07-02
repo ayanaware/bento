@@ -12,17 +12,10 @@ class Test {
 	}
 
 	async onLoad() {
-		this.api.injectVariables([
-			{
-				type: 'string',
-				name: 'someVal',
-				default: 'blah',
-			},
-			{
-				type: 'number',
-				name: 'noExist',
-			},
-		]);
+		this.api.injectVariable({
+			name: 'someVal',
+			default: 'blah',
+		}, 'someVal');
 
 		console.log('someVal =', this.someVal);
 	}

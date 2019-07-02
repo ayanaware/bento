@@ -2,7 +2,7 @@
 
 import { GlobalInstanceOf } from '@ayana/errors';
 
-import { Plugin } from '../interfaces';
+import { Plugin } from '../plugins';
 
 import { PluginError } from './PluginError';
 

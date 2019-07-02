@@ -1,4 +1,4 @@
 
-import { AyanaError } from '@ayana/errors';
+import { GenericError } from '@ayana/errors';
 
-export class BentoError extends AyanaError {}
+export class BentoError extends GenericError {}

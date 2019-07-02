@@ -1,4 +1,7 @@
 'use strict';
 
-export * from './cfg';
-export * from './loaders';
+export * from './interfaces';
+
+export * from './PluginAPI';
+
+export * from './public';

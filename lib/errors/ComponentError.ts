@@ -1,6 +1,8 @@
 'use strict';
 
-import { AyanaError, GlobalInstanceOf } from '@ayana/errors';
+import { GlobalInstanceOf } from '@ayana/errors';
+
+import { BentoError } from './BentoError';
 
 @GlobalInstanceOf('@ayana/bento', '1')
-export class ComponentError extends AyanaError { }
+export class ComponentError extends BentoError { }

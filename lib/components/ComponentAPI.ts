@@ -1,6 +1,9 @@
 
-import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
-import { IllegalAccessError } from '../errors/IllegalAccessError';
+import {
+	IllegalAccessError,
+	IllegalArgumentError,
+	IllegalStateError,
+} from '@ayana/errors';
 
 import { Bento } from '../Bento';
 

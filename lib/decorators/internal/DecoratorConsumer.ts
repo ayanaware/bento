@@ -46,7 +46,7 @@ export class DecoratorConsumer {
 		const subscriptions: DecoratorSubscription[] = (component.constructor as any)[DecoratorSymbols.subscriptions];
 		if (Array.isArray(subscriptions)) {
 			for (const subscription of subscriptions) {
-				api.subscribe(subscription.type, subscription.namespace, subscription.name, subscription.handler, component);
+				api.subscribe(subscription.namespace, subscription.name, subscription.handler, component);
 			}
 		}
 	}

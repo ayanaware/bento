@@ -1,29 +1,24 @@
-'use strict';
-
-import { IllegalArgumentError } from '@ayana/errors';
-
-import { BentoOptions } from '../../Bento';
-
-import { SubscriptionType } from '../SubscriptionType';
 
 import { EventEmitterLike } from '../../interfaces';
-import { Subscriber } from '../../interfaces/internal';
 
-import { Logger } from '@ayana/logger-api';
+import { BentoOptions } from '../../Bento';
+import { ProcessingError, IllegalArgumentError } from '@ayana/errors';
 
-/**
- * @ignore
- */
-const log = Logger.get('ComponentEvents');
+export type ComponentEventHandler = (...args: Array<any>) => void;
+
+export interface ComponentEventSubscription {
+	name: string;
+	handler: ComponentEventHandler;
+}
 
 export class ComponentEvents {
 	private readonly name: string;
 
 	private emitter: EventEmitterLike;
-	private subjectEmitter: EventEmitterLike;
+	private subject: Map<string, Array<any>> = new Map();
 
-	private subjects: Map<string, any> = new Map();
-	private subscribers: Map<string, Subscriber> = new Map();
+	private subCount: number = 0;
+	private subscriptions: Map<number, ComponentEventSubscription> = new Map();
 
 	private options: BentoOptions;
 
@@ -31,85 +26,76 @@ export class ComponentEvents {
 		this.name = name;
 		this.options = options;
 
+		// create new emitter
 		this.emitter = this.options.eventEmitter();
-		this.subjectEmitter = this.options.eventEmitter();
 
 		// prevent throwing of 'error' events
 		this.emitter.addListener('error', () => { /* no op */ });
-		this.subjectEmitter.addListener('error', () => { /* no op */ });
 	}
 
-	public getSubject(name: string): any {
-		return this.subjects.get(name);
+	/**
+	 * Emit Event
+	 * @param name Event name
+	 * @param args Event args
+	 */
+	public emit(name: string, ...args: Array<any>) {
+		this.emitter.emit(name, ...args);
 	}
 
-	public updateSubject(name: string, value: any) {
-		if (value === undefined) {
-			throw new IllegalArgumentError('Cannot set subject value to undefined. Use deleteSubject() to remove the subject');
-		}
-
-		this.subjects.set(name, value);
-		this.subjectEmitter.emit(name, value);
+	/**
+	 * Emit Event and store as subject
+	 * @param name Event name
+	 * @param args Event args
+	 */
+	public emitSubject(name: string, ...args: Array<any>) {
+		this.subject.set(name, args);
+		this.emit(name, ...args);
 	}
 
-	public deleteSubject(name: string) {
-		this.subjects.delete(name);
-		this.subjectEmitter.emit(name, undefined);
+	/**
+	 * Purges subject data for event
+	 * @param name Event name
+	 */
+	public purgeSubject(name: string) {
+		this.subject.delete(name);
 	}
 
-	public emit(eventName: string, ...args: any[]) {
-		this.emitter.emit(eventName, ...args);
-	}
+	public subscribe(name: string, handler: ComponentEventHandler, context?: any): number {
+		const id = this.subCount++;
 
-	public subscribe(type: SubscriptionType, name: string, handler: (...args: any[]) => void, context: any): string {
-		const subID = this.options.createID();
+		// rewrap handler, if context provided
+		if (context) handler = (...args: Array<any>) => handler.apply(context, args);
 
-		// wrap handler
-		const subscriber = (...args: any[]) => handler.apply(context, args);
-
-		this.subscribers.set(subID, {
-			handler: subscriber,
-			name,
-			type,
-		});
-
-		if (type === SubscriptionType.SUBJECT) {
-			this.subjectEmitter.addListener(name, subscriber);
-
-			// Instantly call the subscriber with the current state if there is one
-			if (this.subjects.has(name)) {
-				subscriber.call(context, this.getSubject(name));
+		// if there is subject data for this event, call now
+		if (this.subject.has(name)) {
+			try {
+				handler.call(context, this.subject.get(name));
+			} catch (e) {
+				throw new ProcessingError(`Failed to call subject handler for "${name}"`).setCause(e);
 			}
-		} else if (type === SubscriptionType.EVENT) {
-			this.emitter.addListener(name, subscriber);
+		}
+
+		// add handler to emitter
+		this.emitter.addListener(name, handler);
+		this.subscriptions.set(id, { name, handler });
+
+		return id;
+	}
+
+	public unsubscribe(id?: number) {
+		if (typeof id !== 'undefined') {
+			if (typeof id !== 'number') throw new IllegalArgumentError('If given an argument, it must be number');
+			const subscription = this.subscriptions.get(id);
+			if (!subscription) return;
+
+			this.emitter.removeListener(subscription.name, subscription.handler);
+			this.subscriptions.delete(id);
 		} else {
-			throw new IllegalArgumentError(`Invalid subscription type "${type}"`);
+			// called with no id, remove all subscriptions
+			for (const [subId, subscription] of this.subscriptions.entries()) {
+				this.emitter.removeListener(subscription.name, subscription.handler);
+				this.subscriptions.delete(subId);
+			}
 		}
-
-		return subID;
-	}
-
-	public subscribeEvent(eventName: string, handler: (...args: any[]) => void, context?: any): string {
-		return this.subscribe(SubscriptionType.EVENT, eventName, handler, context);
-	}
-
-	public subscribeSubject(subjectName: string, handler: (...args: any[]) => void, context?: any): string {
-		return this.subscribe(SubscriptionType.SUBJECT, subjectName, handler, context);
-	}
-
-	public unsubscribe(subID: string): void {
-		// Check if this subscriber actually exists
-		const subscriber = this.subscribers.get(subID);
-		if (!subscriber) log.warn(`Something attempted to unsubscribe the subID "${subID}"`, this.name);
-
-		// Unsubscribe from the specified emitter
-		if (subscriber.type === SubscriptionType.EVENT) {
-			this.emitter.removeListener(subscriber.name, subscriber.handler);
-		} else if (subscriber.type === SubscriptionType.SUBJECT) {
-			this.subjectEmitter.removeListener(subscriber.name, subscriber.handler);
-		}
-
-		// Delete the subscription
-		this.subscribers.delete(subID);
 	}
 }

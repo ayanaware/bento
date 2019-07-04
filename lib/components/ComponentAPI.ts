@@ -15,8 +15,6 @@ import { ComponentReference, PluginReference } from '../references';
 import { EventEmitterLike } from '../interfaces';
 import { VariableDefinition } from '../variables';
 
-import { SubscriptionType } from './SubscriptionType';
-
 import { Logger } from '@ayana/logger-api';
 /**
  * Logger instance for the ComponentAPI class
@@ -40,7 +38,7 @@ export class ComponentAPI extends SharedAPI {
 	 * The key is the namespace where a subscription was added,
 	 * the value is an array of subscription ids on that namespace.
 	 */
-	private readonly subscriptions: Map<string, string[]> = new Map();
+	private readonly subscriptions: Map<string, Array<number>> = new Map();
 
 	public constructor(bento: Bento, component: Component) {
 		super(bento);
@@ -146,6 +144,18 @@ export class ComponentAPI extends SharedAPI {
 		emitter.emit(eventName, ...args);
 	}
 
+	/**
+	 * Emit subject event on Component Events
+	 * @param eventName Name of event
+	 * @param args Ordered Array of args to emit
+	 */
+	public async emitSubject(eventName: string, ...args: any[]) {
+		const emitter = this.bento.components.getComponentEvents(this.component.name);
+		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component emitter does not exist?');
+
+		emitter.emitSubject(eventName, ...args);
+	}
+
 	// TODO: Add a error handler
 	/**
 	 * Re-emits events from a standard event emitter into component events.
@@ -177,30 +187,29 @@ export class ComponentAPI extends SharedAPI {
 
 	/**
 	 * Subscribe to a Component event
-	 * @param type Type of subscription. Normal event or Subject
 	 * @param reference Component Reference / Name
 	 * @param name Name of the event
 	 * @param handler The function to be called
-	 * @param context Optional `this` context for above handler function
+	 * @param context Optional `this` context for prior handler function
 	 *
 	 * @returns Subscription ID
 	 */
 	// tslint:disable-next-line:max-params
-	public subscribe(type: SubscriptionType, reference: ComponentReference, name: string, handler: (...args: any[]) => void, context?: any) {
+	public subscribe(reference: ComponentReference, name: string, handler: (...args: any[]) => void, context?: any) {
 		const componentName = this.bento.components.resolveName(reference);
 
 		// Get the namespace
 		const events = this.bento.components.getComponentEvents(componentName);
 		if (events == null) throw new IllegalArgumentError(`Component Events "${componentName}" does not exist`);
 
-		const subID = events.subscribe(type, name, handler, context);
+		const id = events.subscribe(name, handler, context);
 
 		// Register subscription so if the current component unloads we can remove all events
 		// TODO: If the componentName component unloads we need to remove that array
 		if (!this.subscriptions.has(componentName)) this.subscriptions.set(componentName, []);
-		this.subscriptions.get(componentName).push(subID);
+		this.subscriptions.get(componentName).push(id);
 
-		return subID;
+		return id;
 	}
 
 	/**
@@ -210,31 +219,20 @@ export class ComponentAPI extends SharedAPI {
 	 * @param handler The function to be called
 	 * @param context Optional `this` context for above handler function
 	 *
-	 * @returns Subscription ID
-	 */
-	public subscribeEvent(reference: ComponentReference, eventName: string, handler: (...args: any[]) => void, context?: any) {
-		return this.subscribe(SubscriptionType.EVENT, reference, eventName, handler, context);
-	}
-
-	/**
-	 * Alias for subscribe with subject
-	 * @param reference Component Reference / Name
-	 * @param subjectName Name of the event
-	 * @param handler The function to be called
-	 * @param context Optional `this` context for above handler function
+	 * @deprecated
 	 *
 	 * @returns Subscription ID
 	 */
-	public subscribeSubject(reference: ComponentReference, subjectName: string, handler: (...args: any[]) => void, context?: any) {
-		return this.subscribe(SubscriptionType.SUBJECT, reference, subjectName, handler, context);
+	public subscribeEvent(reference: ComponentReference, eventName: string, handler: (...args: any[]) => void, context?: any) {
+		return this.subscribe(reference, eventName, handler, context);
 	}
 
 	/**
 	 * Ubsubscribe from a Component Event
 	 * @param reference - Component Reference / Name
-	 * @param subID - subscription id provided by subscribe
+	 * @param id - subscription id provided by subscribe
 	 */
-	public unsubscribe(reference: ComponentReference, subID: string) {
+	public unsubscribe(reference: ComponentReference, id: number) {
 		const componentName = this.bento.components.resolveName(reference);
 
 		// Check if the component events exists
@@ -246,13 +244,13 @@ export class ComponentAPI extends SharedAPI {
 
 		// Check if this subscriber actually exists
 		const subscriber = this.subscriptions.get(componentName);
-		if (subscriber == null || !subscriber.includes(subID)) throw new IllegalArgumentError(`Tried to unsubscribe from unknown subID "${subID}"`);
+		if (subscriber == null || !subscriber.includes(id)) throw new IllegalArgumentError(`Tried to unsubscribe from unknown id "${id}"`);
 
 		// Unsubscribe
-		events.unsubscribe(subID);
+		events.unsubscribe(id);
 
 		// Remove subID
-		subscriber.splice(subscriber.indexOf(subID), 1);
+		subscriber.splice(subscriber.indexOf(id), 1);
 	}
 
 	/**

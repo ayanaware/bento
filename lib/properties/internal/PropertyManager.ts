@@ -9,7 +9,7 @@ export class PropertyManager {
 
 	private readonly properties: Map<string, any> = new Map();
 
-	constructor(bento: Bento) {
+	public constructor(bento: Bento) {
 		this.bento = bento;
 	}
 

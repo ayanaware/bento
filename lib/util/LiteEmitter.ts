@@ -9,7 +9,7 @@ export type LiteEmitterHandler = (...args: Array<any>) => void;
  * LiteEmitter is a very simplified implementation of a eventemitter.
  */
 export class LiteEmitter {
-	private handlers: Map<string, Set<LiteEmitterHandler>> = new Map();
+	private readonly handlers: Map<string, Set<LiteEmitterHandler>> = new Map();
 
 	/**
 	 * Add a handler function for a given event

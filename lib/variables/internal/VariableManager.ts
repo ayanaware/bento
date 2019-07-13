@@ -7,14 +7,14 @@ import { ValidatorRegistrationError } from '../../errors';
 import { VariableSource, VariableSourceType } from '../../interfaces';
 
 export class VariableManager {
-	private bento: Bento;
+	private readonly bento: Bento;
 
 	private readonly variables: Map<string, any> = new Map();
-	private readonly validators: Map<string, (value: any, ...args: any[]) => boolean> = new Map();
+	private readonly validators: Map<string, (value: any, ...args: Array<any>) => boolean> = new Map();
 
 	private readonly sources: Map<string, VariableSource> = new Map();
 
-	constructor(bento: Bento) {
+	public constructor(bento: Bento) {
 		this.bento = bento;
 	}
 
@@ -27,6 +27,7 @@ export class VariableManager {
 	public hasVariable(name: string) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
 		if (this.variables.has(name)) return true;
+
 		return false;
 	}
 
@@ -82,6 +83,7 @@ export class VariableManager {
 	// TODO: Needs tests
 	public hasSource(name: string) {
 		if (typeof name !== 'string' || name === '') throw new IllegalArgumentError('Variable name must be a string');
+
 		return this.sources.has(name);
 	}
 
@@ -136,7 +138,7 @@ export class VariableManager {
 	 * @param name validator name
 	 * @param validator validator function
 	 */
-	public addValidator(name: string, validator: (value: any, ...args: any[]) => boolean) {
+	public addValidator(name: string, validator: (value: any, ...args: Array<any>) => boolean) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');
 		if (typeof validator !== 'function') throw new IllegalArgumentError('Validator must be a function');
 
@@ -157,11 +159,12 @@ export class VariableManager {
 	/**
 	 * Run a validator
 	 * @param name validator name
+	 * @param value validator value
 	 * @param args array of args to be passed
 	 *
 	 * @returns validator result
 	 */
-	public runValidator(name: string, value: any, ...args: any[]) {
+	public runValidator(name: string, value: any, ...args: Array<any>) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');
 		if (!this.validators.has(name)) throw new IllegalStateError(`Validator "${name}" does not exist`);
 

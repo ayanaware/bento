@@ -23,7 +23,7 @@
 	},
 	"devDependencies": {
 		"@ayana/test": "^2.0.1",
-		"@ayana/tslint-config": "^1.2.2",
+		"@ayana/tslint-config": "^1.2.4",
 		"@types/node": "^12.6.2",
 		"tslint": "^5.17.0",
 		"typescript": "^3.5.3"

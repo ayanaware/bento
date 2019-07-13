@@ -1,20 +1,17 @@
 'use strict';
 
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
-import { ComponentRegistrationError } from '../../errors';
 
 import { Bento } from '../../Bento';
-import { Component } from '../interfaces';
-
-import { ComponentAPI } from '../ComponentAPI';
-import { ComponentEvents } from './ComponentEvents';
-
 import { DecoratorConsumer } from '../../decorators/internal';
-
+import { ComponentRegistrationError } from '../../errors';
+import { PluginHook } from '../../plugins/internal';
 import { ComponentReference } from '../../references';
 import { ReferenceManager } from '../../references/internal';
+import { ComponentAPI } from '../ComponentAPI';
+import { Component } from '../interfaces';
 
-import { PluginHook } from '../../plugins/internal';
+import { ComponentEvents } from './ComponentEvents';
 
 export interface PendingComponentInfo {
 	name: string;
@@ -32,7 +29,7 @@ export class ComponentManager {
 
 	private readonly events: Map<string, ComponentEvents> = new Map();
 
-	constructor(bento: Bento) {
+	public constructor(bento: Bento) {
 		this.bento = bento;
 	}
 
@@ -57,6 +54,7 @@ export class ComponentManager {
 	 */
 	public hasComponent(reference: ComponentReference) {
 		const name = this.resolveName(reference);
+
 		return this.components.has(name);
 	}
 
@@ -105,7 +103,7 @@ export class ComponentManager {
 		const name = this.resolveName(parent);
 		if (!this.components.has(name)) throw new IllegalStateError(`Parent "${name}" is not loaded`);
 
-		const children: T[] = [];
+		const children: Array<T> = [];
 		for (const component of this.components.values()) {
 			if (component.parent != null && name === this.resolveName(component.parent)) {
 				children.push(component as T);

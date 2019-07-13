@@ -1,9 +1,9 @@
 
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 
+import { SharedAPI } from '../abstractions';
 import { Bento } from '../Bento';
 
-import { SharedAPI } from '../abstractions';
 import { Plugin } from './interfaces';
 
 export class PluginAPI extends SharedAPI {

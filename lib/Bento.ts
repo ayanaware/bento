@@ -4,22 +4,17 @@ import * as crypto from 'crypto';
 
 import { IllegalStateError } from '@ayana/errors';
 
-import { PropertyManager } from './properties/internal';
-
-import { VariableManager } from './variables/internal';
-
-import { Plugin } from './plugins';
-import { PluginManager } from './plugins/internal';
-
 import { Component } from './components';
 import { ComponentManager } from './components/internal';
-
 import {
 	BentoState,
 	EventEmitterLike,
 } from './interfaces';
-
+import { Plugin } from './plugins';
+import { PluginManager } from './plugins/internal';
+import { PropertyManager } from './properties/internal';
 import { LiteEmitter } from './util';
+import { VariableManager } from './variables/internal';
 
 export interface BentoOptions {
 	createID?(len?: number): string;
@@ -36,14 +31,14 @@ export class Bento {
 
 	public readonly version: string;
 
-	constructor(options?: BentoOptions) {
+	public constructor(options?: BentoOptions) {
 		const { version } = require('../package.json');
 		this.version = version;
 
-		this.options = Object.assign({}, {
+		this.options = {...{
 			createID: (len = 16) => crypto.randomBytes(len).toString('base64').replace(/[^a-z0-9]/gi, '').slice(0, len),
 			eventEmitter: () => new LiteEmitter(),
-		} as BentoOptions, options);
+		} as BentoOptions, ...options};
 
 		// now that options has been defined, create our managers
 		this.properties = new PropertyManager(this);
@@ -107,7 +102,7 @@ export class Bento {
 	 * @see PluginManager#addPlugins
 	 * @returns See Bento.plugins.addPlugins()
 	 */
-	public async addPlugins(plugins: Plugin[]) {
+	public async addPlugins(plugins: Array<Plugin>) {
 		return this.plugins.addPlugins(plugins);
 	}
 
@@ -133,7 +128,7 @@ export class Bento {
 	 * @returns See Bento.properties.setProperty()
 	 */
 	public setProperty(name: string, value: any) {
-		return this.properties.setProperty(name, value);
+		this.properties.setProperty(name, value);
 	}
 
 	/**
@@ -155,7 +150,7 @@ export class Bento {
 	 * @returns See Bento.properties.setProperties()
 	 */
 	public setProperties(properties: { [key: string]: any }) {
-		return this.properties.setProperties(properties);
+		this.properties.setProperties(properties);
 	}
 
 	// VARIABLES Aliases
@@ -191,7 +186,7 @@ export class Bento {
 	 * @returns See Bento.variables.setVariable()
 	 */
 	public setVariable(name: string, value: any) {
-		return this.variables.setVariable(name, value);
+		this.variables.setVariable(name, value);
 	}
 
 	/**
@@ -202,7 +197,7 @@ export class Bento {
 	 * @returns See Bento.variables.deleteVariable()
 	 */
 	public deleteVariable(name: string) {
-		return this.variables.deleteVariable(name);
+		this.variables.deleteVariable(name);
 	}
 
 	/**
@@ -233,6 +228,7 @@ export class Bento {
 
 		// freze object
 		Object.freeze(state);
+
 		return state;
 	}
 }

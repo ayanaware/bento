@@ -45,6 +45,7 @@ export class ReferenceManager<T extends { name: string }> {
 		const name = this.resolveNameSafe(reference);
 
 		if (name == null) throw new IllegalArgumentError('Given entity or reference is invalid, not registered or does not have a name');
+
 		return name;
 	}
 

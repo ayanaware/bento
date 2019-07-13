@@ -4,18 +4,15 @@ import {
 	IllegalArgumentError,
 	IllegalStateError,
 } from '@ayana/errors';
-
-import { Bento } from '../Bento';
+import { Logger } from '@ayana/logger-api';
 
 import { SharedAPI } from '../abstractions';
-import { Component } from './interfaces';
-
-import { ComponentReference, PluginReference } from '../references';
-
+import { Bento } from '../Bento';
 import { EventEmitterLike } from '../interfaces';
+import { ComponentReference, PluginReference } from '../references';
 import { VariableDefinition } from '../variables';
 
-import { Logger } from '@ayana/logger-api';
+import { Component } from './interfaces';
 /**
  * Logger instance for the ComponentAPI class
  *
@@ -53,7 +50,7 @@ export class ComponentAPI extends SharedAPI {
 	 */
 	public injectComponent(reference: ComponentReference, injectName: string) {
 		if (this.component.hasOwnProperty(injectName)) throw new IllegalStateError(`Component already has property "${injectName}" defined.`);
-		if (this.hasComponent(reference) === false) throw new IllegalStateError('Unable to inject non-existent component');
+		if (!this.hasComponent(reference)) throw new IllegalStateError('Unable to inject non-existent component');
 
 		Object.defineProperty(this.component, injectName, {
 			configurable: true,
@@ -84,6 +81,7 @@ export class ComponentAPI extends SharedAPI {
 		}
 
 		if (typeof plugin.loadComponents !== 'function') throw new IllegalStateError(`Plugin "${plugin.name}" does not define loadComponents method`);
+
 		return plugin.loadComponents(...args);
 	}
 
@@ -94,7 +92,7 @@ export class ComponentAPI extends SharedAPI {
 	 */
 	public injectPlugin(reference: PluginReference, injectName: string) {
 		if (this.component.hasOwnProperty(injectName)) throw new IllegalStateError(`Component already has property "${injectName}" defined.`);
-		if (this.hasPlugin(reference) === false) throw new IllegalStateError('Unable to inject non-existent plugin');
+		if (!this.hasPlugin(reference)) throw new IllegalStateError('Unable to inject non-existent plugin');
 
 		Object.defineProperty(this.component, injectName, {
 			configurable: true,
@@ -137,7 +135,7 @@ export class ComponentAPI extends SharedAPI {
 	 * @param eventName Name of event
 	 * @param args Ordered Array of args to emit
 	 */
-	public async emit(eventName: string, ...args: any[]) {
+	public async emit(eventName: string, ...args: Array<any>) {
 		const emitter = this.bento.components.getComponentEvents(this.component.name);
 		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component emitter does not exist?');
 
@@ -149,7 +147,7 @@ export class ComponentAPI extends SharedAPI {
 	 * @param eventName Name of event
 	 * @param args Ordered Array of args to emit
 	 */
-	public async emitSubject(eventName: string, ...args: any[]) {
+	public async emitSubject(eventName: string, ...args: Array<any>) {
 		const emitter = this.bento.components.getComponentEvents(this.component.name);
 		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component emitter does not exist?');
 
@@ -166,7 +164,7 @@ export class ComponentAPI extends SharedAPI {
 	 * @throws IllegalStateError if the emitter on the current component wasn't initialized
 	 * @throws IllegalArgumentError if fromEmitter is not an EventEmitter or events is not an array
 	 */
-	public forwardEvents(fromEmitter: EventEmitterLike, events: string[]) {
+	public forwardEvents(fromEmitter: EventEmitterLike, events: Array<string>) {
 		const emitter = this.bento.components.getComponentEvents(this.component.name);
 		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component emitter does not exist?');
 
@@ -195,7 +193,7 @@ export class ComponentAPI extends SharedAPI {
 	 * @returns Subscription ID
 	 */
 	// tslint:disable-next-line:max-params
-	public subscribe(reference: ComponentReference, name: string, handler: (...args: any[]) => void, context?: any) {
+	public subscribe(reference: ComponentReference, name: string, handler: (...args: Array<any>) => void, context?: any) {
 		const componentName = this.bento.components.resolveName(reference);
 
 		// Get the namespace
@@ -223,7 +221,7 @@ export class ComponentAPI extends SharedAPI {
 	 *
 	 * @returns Subscription ID
 	 */
-	public subscribeEvent(reference: ComponentReference, eventName: string, handler: (...args: any[]) => void, context?: any) {
+	public subscribeEvent(reference: ComponentReference, eventName: string, handler: (...args: Array<any>) => void, context?: any) {
 		return this.subscribe(reference, eventName, handler, context);
 	}
 
@@ -239,6 +237,7 @@ export class ComponentAPI extends SharedAPI {
 		const events = this.bento.components.getComponentEvents(componentName);
 		if (events == null) {
 			log.warn(`Could not find events for namespace "${componentName}" while trying to unsubscribe`, this.component.name);
+
 			return;
 		}
 
@@ -266,6 +265,7 @@ export class ComponentAPI extends SharedAPI {
 			const events = this.bento.components.getComponentEvents(name);
 			if (events == null) {
 				log.warn(`Could not find events for namespace "${name}" while trying to unsubscribe`, this.component.name);
+
 				return;
 			}
 

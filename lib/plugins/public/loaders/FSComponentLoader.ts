@@ -8,10 +8,9 @@ import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 
 import { Bento } from '../../../Bento';
 import { Component } from '../../../components';
+import { ComponentLoadError } from '../../../errors';
 
 import { ComponentLoader } from './ComponentLoader';
-
-import { ComponentLoadError } from '../../../errors';
 
 /**
  * @ignore
@@ -34,8 +33,8 @@ export class FSComponentLoader extends ComponentLoader {
 	public name: string = 'FSComponentLoader';
 
 	// list of currently loaded directories and components
-	private directories: Set<string> = new Set();
-	private components: Set<string> = new Set();
+	private readonly directories: Set<string> = new Set();
+	private readonly components: Set<string> = new Set();
 
 	// handles if addDirectory was called before bento has been attached
 	private pending: Array<{ file: string, instance: Component }> = [];
@@ -61,7 +60,7 @@ export class FSComponentLoader extends ComponentLoader {
 	 * Add multiple directories at once
 	 * @param directories Array of paths
 	 */
-	public async addDirectories(directories: string[]) {
+	public async addDirectories(directories: Array<string>) {
 		for (const directory of directories) await this.addDirectory(directory);
 	}
 
@@ -69,7 +68,7 @@ export class FSComponentLoader extends ComponentLoader {
 	 * Add and load all component like files and directories in given directory
 	 * @param directory Directory path
 	 */
-	public async addDirectory(...directory: string[]) {
+	public async addDirectory(...directory: Array<string>) {
 		const absolute = path.resolve(...directory);
 		if (this.directories.has(absolute)) throw new IllegalStateError(`Directory "${absolute}" already loaded`);
 
@@ -97,7 +96,7 @@ export class FSComponentLoader extends ComponentLoader {
 		this.directories.add(absolute);
 	}
 
-	public async removeDirectory(...directory: string[]) {
+	public async removeDirectory(...directory: Array<string>) {
 		const absolute = path.resolve(...directory);
 
 		// TODO: Implement later
@@ -109,7 +108,7 @@ export class FSComponentLoader extends ComponentLoader {
 	 *
 	 * @returns Promise
 	 */
-	public async loadComponents(...directory: string[]) {
+	public async loadComponents(...directory: Array<string>) {
 		return this.addDirectory(...directory);
 	}
 
@@ -123,7 +122,8 @@ export class FSComponentLoader extends ComponentLoader {
 
 		try {
 			const comp = this.findComponent(nodeModule);
-			return this.instantiate<Component>(comp);
+
+			return this.instantiate(comp);
 		} catch (e) {
 			throw new ComponentLoadError(component, `Failed to create component instance "${component}"`).setCause(e);
 		}
@@ -200,12 +200,13 @@ export class FSComponentLoader extends ComponentLoader {
 
 			// push promise to be resolved
 			a.push(stat(absolute));
+
 			return a;
 		}, []);
 
 		const stats: Array<fs.Stats> = await Promise.all(promises);
 		for (let i = 0; i < stats.length; i++) {
-			contents[i].type = stats[i].isDirectory() === true ? 'DIRECTORY' : 'FILE';
+			contents[i].type = stats[i].isDirectory() ? 'DIRECTORY' : 'FILE';
 		}
 
 		return contents;

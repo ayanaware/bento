@@ -1,9 +1,8 @@
 'use strict';
 
-import { DecoratorSymbols } from './DecoratorSymbols';
-
 import { Component, ComponentAPI } from '../../components';
 
+import { DecoratorSymbols } from './DecoratorSymbols';
 import {
 	DecoratorComponentInjection,
 	DecoratorInjection,
@@ -23,11 +22,11 @@ export class DecoratorConsumer {
 	 *
 	 * @returns Array of DecoratorSubscriptions
 	 */
-	public static getSubscriptions(component: Component): DecoratorSubscription[] {
+	public static getSubscriptions(component: Component): Array<DecoratorSubscription> {
 		// Check if there is a constructor, if there isn't then there can't be any decorators
 		if (component.constructor == null) return [];
 
-		const subscriptions: DecoratorSubscription[] = (component.constructor as any)[DecoratorSymbols.subscriptions];
+		const subscriptions: Array<DecoratorSubscription> = (component.constructor as any)[DecoratorSymbols.subscriptions];
 		if (Array.isArray(subscriptions)) return subscriptions;
 
 		return [];
@@ -43,7 +42,7 @@ export class DecoratorConsumer {
 		// Check if there is a constructor, if there isn't then there can't be any decorators
 		if (component.constructor == null) return;
 
-		const subscriptions: DecoratorSubscription[] = (component.constructor as any)[DecoratorSymbols.subscriptions];
+		const subscriptions: Array<DecoratorSubscription> = (component.constructor as any)[DecoratorSymbols.subscriptions];
 		if (Array.isArray(subscriptions)) {
 			for (const subscription of subscriptions) {
 				api.subscribe(subscription.namespace, subscription.name, subscription.handler, component);
@@ -58,22 +57,22 @@ export class DecoratorConsumer {
 	 *
 	 * @returns Array of DecoratorInjections
 	 */
-	public static getInjections(component: Component): DecoratorInjection[] {
+	public static getInjections(component: Component): Array<DecoratorInjection> {
 		// Check if there is a constructor, if there isn't then there can't be any decorators
 		if (component.constructor == null) return [];
 
-		const injections: DecoratorInjection[] = (component.constructor as any)[DecoratorSymbols.injections];
+		const injections: Array<DecoratorInjection> = (component.constructor as any)[DecoratorSymbols.injections];
 		if (Array.isArray(injections)) return injections;
 
 		return [];
 	}
 
-	public static getSymbolInjections(component: Component): DecoratorSymbolInjection[] {
-		return this.getInjections(component).filter(i => typeof i === 'symbol') as DecoratorSymbolInjection[];
+	public static getSymbolInjections(component: Component): Array<DecoratorSymbolInjection> {
+		return DecoratorConsumer.getInjections(component).filter(i => typeof i === 'symbol') as Array<DecoratorSymbolInjection>;
 	}
 
-	public static getComponentInjections(component: Component): DecoratorComponentInjection[] {
-		return this.getInjections(component).filter(i => typeof i !== 'symbol') as DecoratorComponentInjection[];
+	public static getComponentInjections(component: Component): Array<DecoratorComponentInjection> {
+		return DecoratorConsumer.getInjections(component).filter(i => typeof i !== 'symbol') as Array<DecoratorComponentInjection>;
 	}
 
 	/**
@@ -83,7 +82,7 @@ export class DecoratorConsumer {
 	 * @param api The components API instance
 	 */
 	public static handleInjections(component: Component, api: ComponentAPI) {
-		for (const injection of this.getInjections(component)) {
+		for (const injection of DecoratorConsumer.getInjections(component)) {
 			if (injection.symbol != null) {
 				// Handle parent injection
 				if (injection.symbol === DecoratorSymbols.parent) {
@@ -105,7 +104,7 @@ export class DecoratorConsumer {
 		// Check if there is a constructor, if there isn't then there can't be any decorators
 		if (component.constructor == null) return;
 
-		const variables: DecoratorVariable[] = (component.constructor as any)[DecoratorSymbols.variables];
+		const variables: Array<DecoratorVariable> = (component.constructor as any)[DecoratorSymbols.variables];
 		if (Array.isArray(variables)) {
 			for (const variable of variables) {
 				api.injectVariable(variable.definition, variable.propertyKey);

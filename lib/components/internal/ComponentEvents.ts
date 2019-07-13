@@ -1,8 +1,8 @@
 
-import { EventEmitterLike } from '../../interfaces';
+import { IllegalArgumentError, ProcessingError } from '@ayana/errors';
 
 import { BentoOptions } from '../../Bento';
-import { ProcessingError, IllegalArgumentError } from '@ayana/errors';
+import { EventEmitterLike } from '../../interfaces';
 
 export type ComponentEventHandler = (...args: Array<any>) => void;
 
@@ -14,15 +14,15 @@ export interface ComponentEventSubscription {
 export class ComponentEvents {
 	private readonly name: string;
 
-	private emitter: EventEmitterLike;
-	private subject: Map<string, Array<any>> = new Map();
+	private readonly emitter: EventEmitterLike;
+	private readonly subject: Map<string, Array<any>> = new Map();
 
 	private subCount: number = 0;
-	private subscriptions: Map<number, ComponentEventSubscription> = new Map();
+	private readonly subscriptions: Map<number, ComponentEventSubscription> = new Map();
 
-	private options: BentoOptions;
+	private readonly options: BentoOptions;
 
-	constructor(name: string, options: BentoOptions) {
+	public constructor(name: string, options: BentoOptions) {
 		this.name = name;
 		this.options = options;
 
@@ -64,7 +64,7 @@ export class ComponentEvents {
 		const id = this.subCount++;
 
 		// rewrap handler, if context provided
-		if (context) handler = (...args: Array<any>) => handler.apply(context, args);
+		if (context) handler = handler.bind(context);
 
 		// if there is subject data for this event, call now
 		if (this.subject.has(name)) {

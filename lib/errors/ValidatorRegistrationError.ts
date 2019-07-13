@@ -6,7 +6,7 @@ import { AyanaError, GlobalInstanceOf } from '@ayana/errors';
 export class ValidatorRegistrationError extends AyanaError {
 	public readonly validator: string;
 
-	constructor(validator: string, msg: string) {
+	public constructor(validator: string, msg: string) {
 		super(msg);
 
 		this.__define('validator', validator);

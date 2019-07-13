@@ -1,8 +1,7 @@
 'use strict';
 
-import { ComponentAPI } from '../ComponentAPI';
-
 import { ComponentReference, PluginReference } from '../../references';
+import { ComponentAPI } from '../ComponentAPI';
 
 export interface Component {
 	api?: ComponentAPI;

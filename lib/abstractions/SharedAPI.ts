@@ -2,13 +2,10 @@
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 
 import { Bento } from '../Bento';
-
-import { ComponentReference, PluginReference } from '../references';
-
-import { VariableDefinition } from '../variables';
-
 import { Component } from '../components';
 import { Plugin } from '../plugins';
+import { ComponentReference, PluginReference } from '../references';
+import { VariableDefinition } from '../variables';
 
 /**
  * Shared functions for ComponentAPI and PluginAPI

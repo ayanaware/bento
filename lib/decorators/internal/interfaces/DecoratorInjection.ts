@@ -1,4 +1,3 @@
-'use strict';
 
 export interface DecoratorInjection {
 	propertyKey: string;

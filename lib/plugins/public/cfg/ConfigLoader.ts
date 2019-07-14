@@ -1,8 +1,7 @@
-'use strict';
 
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
-import { VariableSource, VariableSourceType } from '../../../interfaces';
 
+import { VariableSource, VariableSourceType } from '../../../interfaces';
 import { PluginAPI } from '../../PluginAPI';
 
 export interface ConfigLoaderDefinition {
@@ -15,7 +14,7 @@ export class ConfigLoader {
 	public api: PluginAPI;
 	public name: string = 'ConfigLoader';
 
-	private definitions: Map<string, ConfigLoaderDefinition> = new Map();
+	private readonly definitions: Map<string, ConfigLoaderDefinition> = new Map();
 
 	public async onLoad() {
 		return this.reloadValues();
@@ -44,6 +43,7 @@ export class ConfigLoader {
 		this.definitions.set(definition.name, definition);
 
 		if (reload) await this.reloadValues();
+
 		return definition.name;
 	}
 
@@ -64,7 +64,7 @@ export class ConfigLoader {
 	 * Add multiple definitions at once
 	 * @param definitions - array of definitions
 	 */
-	public async addDefinitions(definitions: ConfigLoaderDefinition[]) {
+	public async addDefinitions(definitions: Array<ConfigLoaderDefinition>) {
 		if (!Array.isArray(definitions)) throw new IllegalArgumentError('Definitions must be an array');
 
 		for (const definition of definitions) await this.addDefinition(definition, false);

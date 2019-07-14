@@ -1,4 +1,3 @@
-'use strict';
 
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 
@@ -12,7 +11,7 @@ export interface ConfigBuilderDefinition {
 }
 
 export class ConfigBuilder {
-	private definitions: Map<string, ConfigDefinition> = new Map();
+	private readonly definitions: Map<string, ConfigDefinition> = new Map();
 
 	public add(name: string, item: ConfigBuilderDefinition) {
 		if (typeof name !== 'string' || name === '') throw new IllegalArgumentError(`Name must be a string`);
@@ -22,11 +21,12 @@ export class ConfigBuilder {
 
 		const hasOne = ['env', 'file', 'value'].reduce((a, i) => {
 			if (Object.prototype.hasOwnProperty.call(item, i)) a.push(item);
+
 			return a;
 		}, []).length >= 1;
 		if (!hasOne) throw new IllegalArgumentError('Definition must specify one or more sources: env, file, or value');
 
-		const definition: ConfigDefinition = Object.assign({}, { name }, item);
+		const definition: ConfigDefinition = { name, ...item };
 		this.definitions.set(name, definition);
 
 		return this;
@@ -37,12 +37,14 @@ export class ConfigBuilder {
 		if (!this.definitions.has(name)) throw new IllegalStateError(`Definition "${name}" does not exist`);
 
 		this.definitions.delete(name);
+
 		return this;
 	}
 
-	public build(): ConfigDefinition[] {
+	public build(): Array<ConfigDefinition> {
 		return Array.from(this.definitions.values()).reduce((a, definition) => {
 			a.push(definition);
+
 			return a;
 		}, []);
 	}

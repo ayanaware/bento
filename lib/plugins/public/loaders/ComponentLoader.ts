@@ -1,10 +1,8 @@
-'use strict';
 
 import { ProcessingError } from '@ayana/errors';
 
 import { Component } from '../../../components';
 import { DetectedComponent } from '../../../decorators/internal';
-
 import { PluginAPI } from '../../PluginAPI';
 
 /**
@@ -21,7 +19,7 @@ export abstract class ComponentLoader {
 	 *
 	 * @param args Loader specific implementation
 	 */
-	public abstract async loadComponents(...args: any[]): Promise<void>;
+	public abstract async loadComponents(...args: Array<any>): Promise<void>;
 
 	/**
 	 * Detects if a value is component-like.

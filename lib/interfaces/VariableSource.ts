@@ -1,4 +1,3 @@
-'use strict';
 
 export enum VariableSourceType {
 	ENV = 'env',

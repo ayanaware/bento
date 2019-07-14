@@ -1,4 +1,3 @@
-'use strict';
 
 export * from './ChildOf';
 export * from './Inject';

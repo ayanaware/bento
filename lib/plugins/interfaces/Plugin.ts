@@ -1,10 +1,7 @@
-'use strict';
 
 import { Bento } from '../../Bento';
-
-import { PluginAPI } from '../PluginAPI';
-
 import { Component } from '../../components';
+import { PluginAPI } from '../PluginAPI';
 
 export interface Plugin {
 	api?: PluginAPI;

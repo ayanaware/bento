@@ -1,15 +1,12 @@
-'use strict';
 
 import { IllegalArgumentError } from '@ayana/errors';
 
 import { Bento } from '../../Bento';
-import { PluginError, PluginRegistrationError } from '../../errors';
-
 import { Component } from '../../components';
-import { Plugin } from '../interfaces';
-
+import { PluginError, PluginRegistrationError } from '../../errors';
 import { PluginReference } from '../../references';
 import { ReferenceManager } from '../../references/internal';
+import { Plugin } from '../interfaces';
 import { PluginAPI } from '../PluginAPI';
 
 export enum PluginHook {
@@ -25,7 +22,7 @@ export class PluginManager {
 	private readonly references: ReferenceManager<Plugin> = new ReferenceManager();
 	private readonly plugins: Map<string, Plugin> = new Map();
 
-	constructor(bento: Bento) {
+	public constructor(bento: Bento) {
 		this.bento = bento;
 	}
 
@@ -50,6 +47,7 @@ export class PluginManager {
 	 */
 	public hasPlugin(reference: PluginReference) {
 		const name = this.resolveName(reference);
+
 		return this.plugins.has(name);
 	}
 
@@ -121,7 +119,7 @@ export class PluginManager {
 	 *
 	 * @returns Array of loaded plugin names
 	 */
-	public async addPlugins(plugins: Plugin[]) {
+	public async addPlugins(plugins: Array<Plugin>) {
 		if (!Array.isArray(plugins)) throw new IllegalArgumentError('addPlugins only accepts an array.');
 
 		const results = [];

@@ -1,8 +1,7 @@
-'use strict';
-
-import { DecoratorSymbols } from './internal';
 
 import { ComponentReference } from '../references';
+
+import { DecoratorSymbols } from './internal';
 
 export function ChildOf(component: ComponentReference): ClassDecorator {
 	return function(target: any) {

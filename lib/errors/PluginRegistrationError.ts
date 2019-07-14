@@ -1,4 +1,3 @@
-'use strict';
 
 import { GlobalInstanceOf } from '@ayana/errors';
 
@@ -10,7 +9,7 @@ import { PluginError } from './PluginError';
 export class PluginRegistrationError extends PluginError {
 	public readonly plugin: Plugin;
 
-	constructor(plugin: Plugin, msg: string) {
+	public constructor(plugin: Plugin, msg: string) {
 		super(msg);
 
 		this.__define('plugin', plugin);

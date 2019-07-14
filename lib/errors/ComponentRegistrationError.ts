@@ -1,4 +1,3 @@
-'use strict';
 
 import { GlobalInstanceOf } from '@ayana/errors';
 
@@ -10,7 +9,7 @@ import { ComponentError } from './ComponentError';
 export class ComponentRegistrationError extends ComponentError {
 	public readonly component: Component;
 
-	constructor(component: Component, msg: string) {
+	public constructor(component: Component, msg: string) {
 		super(msg);
 
 		this.__define('component', component);

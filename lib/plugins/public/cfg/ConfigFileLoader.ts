@@ -1,4 +1,3 @@
-'use strict';
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -24,7 +23,7 @@ export class ConfigFileLoader extends ConfigLoader {
 	public bento: Bento;
 	public name: string = 'ConfigFileLoader';
 
-	private files: Set<string> = new Set();
+	private readonly files: Set<string> = new Set();
 
 	public async onLoad() {
 		return this.reloadFiles();
@@ -39,7 +38,7 @@ export class ConfigFileLoader extends ConfigLoader {
 		this.files.add(absolute);
 	}
 
-	public removeFile(...file: string[]) {
+	public removeFile(...file: Array<string>) {
 		const absolute = path.resolve(...file);
 		this.files.add(absolute);
 
@@ -49,6 +48,7 @@ export class ConfigFileLoader extends ConfigLoader {
 	public async getFileContents(file: string) {
 		try {
 			await access(file, fs.constants.F_OK);
+
 			return await readFile(file);
 		} catch (e) {
 			throw new ProcessingError(`Failed to read file "${file}"`).setCause(e);

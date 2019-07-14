@@ -1,4 +1,3 @@
-'use strict';
 
 import { VariableDefinition } from '../../../variables';
 

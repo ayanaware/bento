@@ -1,4 +1,3 @@
-'use strict';
 
 export * from './BentoError';
 export * from './ComponentLoadError';

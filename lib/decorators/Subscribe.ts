@@ -1,14 +1,11 @@
-'use strict';
 
 import { ComponentReference } from '../references';
 
-import { SubscriptionType } from '../components/SubscriptionType';
-
 import { DecoratorSubscription, DecoratorSymbols } from './internal';
 
-export function Subscribe(type: SubscriptionType, reference: ComponentReference, name: string): MethodDecorator {
+export function Subscribe(reference: ComponentReference, name: string): MethodDecorator {
 	return function(target: any, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<any>) {
-		if(target.prototype !== undefined) {
+		if (target.prototype !== undefined) {
 			throw new Error(`The subscribe decorator can only be applied to non-static class methods ("${String(propertyKey)}" in class "${target.name}")`);
 		}
 
@@ -22,7 +19,6 @@ export function Subscribe(type: SubscriptionType, reference: ComponentReference,
 		}
 
 		target.constructor[DecoratorSymbols.subscriptions].push({
-			type,
 			namespace: reference,
 			name,
 			handler: descriptor.value,
@@ -31,9 +27,5 @@ export function Subscribe(type: SubscriptionType, reference: ComponentReference,
 }
 
 export function SubscribeEvent(reference: ComponentReference, eventName: string): MethodDecorator {
-	return Subscribe(SubscriptionType.EVENT, reference, eventName);
-}
-
-export function SubscribeSubject(reference: ComponentReference, subjectName: string): MethodDecorator {
-	return Subscribe(SubscriptionType.SUBJECT, reference, subjectName);
+	return Subscribe(reference, eventName);
 }

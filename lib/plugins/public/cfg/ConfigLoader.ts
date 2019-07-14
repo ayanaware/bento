@@ -1,4 +1,3 @@
-'use strict';
 
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 

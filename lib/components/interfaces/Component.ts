@@ -1,4 +1,3 @@
-'use strict';
 
 import { ComponentReference, PluginReference } from '../../references';
 import { ComponentAPI } from '../ComponentAPI';

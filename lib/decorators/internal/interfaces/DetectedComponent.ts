@@ -1,4 +1,3 @@
-'use strict';
 
 /**
  * Interface for the return value of the findComponent() method of the loader

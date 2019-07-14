@@ -1,4 +1,3 @@
-'use strict';
 
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 
@@ -45,6 +44,19 @@ export class VariableManager {
 		if (value === undefined && def !== undefined) return def;
 
 		return value as T;
+	}
+
+	/**
+	 * Get Key/Value Object of all variables
+	 * 
+	 * @returns Object of Key/Value pairs
+	 */
+	public getVariables() {
+		return Array.from(this.variables.entries()).reduce((a, [k, v]) => {
+			a[k] = v;
+
+			return a;
+		}, {} as { [key: string]: any });
 	}
 
 	/**

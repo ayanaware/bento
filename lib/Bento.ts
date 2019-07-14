@@ -1,4 +1,3 @@
-'use strict';
 
 import * as crypto from 'crypto';
 
@@ -15,6 +14,7 @@ import { PluginManager } from './plugins/internal';
 import { PropertyManager } from './properties/internal';
 import { LiteEmitter } from './util';
 import { VariableManager } from './variables/internal';
+import { ComponentReference, PluginReference } from './references';
 
 export interface BentoOptions {
 	createID?(len?: number): string;
@@ -61,6 +61,17 @@ export class Bento {
 	}
 
 	/**
+	 * Alias for Bento.components.getComponent()
+	 * @param reference Component name or reference
+	 *
+	 * @see ComponentManager#getComponent
+	 * @returns See Bento.components.getComponent()
+	 */
+	public async getComponent<T extends Component>(reference: ComponentReference) {
+		return this.components.getComponent<T>(reference);
+	}
+
+	/**
 	 * Alias for Bento.components.removeComponent()
 	 * @param name Component name
 	 *
@@ -82,6 +93,17 @@ export class Bento {
 	 */
 	public async addPlugin(plugin: Plugin) {
 		return this.plugins.addPlugin(plugin);
+	}
+
+	/**
+	 * Alias for Bento.plugins.getPlugin()
+	 * @param reference Plugin name or reference
+	 *
+	 * @see PluginManager#getPlugin
+	 * @returns See Bento.plugins.getPlugin()
+	 */
+	public async getPlugin<T extends Plugin>(reference: PluginReference) {
+		return this.plugins.getPlugin<T>(reference);
 	}
 
 	/**
@@ -224,7 +246,9 @@ export class Bento {
 		const plugins = this.plugins.getPlugins();
 		plugins.forEach(p => state.plugins.push(p.name));
 
-		// TODO: variable names
+		// add variable names
+		const variables = this.variables.getVariables();
+		state.variables = Object.keys(variables);
 
 		// freze object
 		Object.freeze(state);

@@ -1,4 +1,3 @@
-'use strict';
 
 import { ProcessingError } from '@ayana/errors';
 

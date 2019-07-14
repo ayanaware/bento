@@ -1,4 +1,3 @@
-'use strict';
 
 import { Bento } from '../../Bento';
 import { Component } from '../../components';

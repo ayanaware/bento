@@ -1,4 +1,3 @@
-'use strict';
 
 import { Bento, ComponentAPI, ConfigLoader, Variable, VariableDefinitionType } from '@ayana/bento';
 

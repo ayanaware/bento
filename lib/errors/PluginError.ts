@@ -1,4 +1,3 @@
-'use strict';
 
 import { GlobalInstanceOf } from '@ayana/errors';
 

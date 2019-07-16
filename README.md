@@ -2,19 +2,31 @@
 
 [Documentation](https://docs.ayana.io/modules/bento.html) • [Examples](https://gitlab.com/ayana/libs/bento/tree/master/examples)
 
-Bento is a robust NodeJS application framework designed to make creating and maintaing complex projects a simple and fast process.
+Bento is an application framework designed to help with creating and maintaing modular projects.
 
-## What does Bento do:
-* Robust plugable application framework.
+## The Goal
+Assist developers with common patterns used in modular codebases. While staying out
+of their way, minimal headaches, minimal debt.
+
+## The Promises
+* Readability First: Bento's Code should be well documented and easy to read.
+* Limited Dependencies: Solve problems by writing code, Not adding dependencies.
+* Tests all the things: Catch some bugs before they get out.
+
+## Stuff Bento does
+* Plugable application framework.
 * Featuring: Components, Events, Plugins, Properties, Variables
-* Component lifecycle state and management
+* Component and Plugin lifecycle management
 * Consistent Component API
 * Defines strict, opinionated, rules
+
+## Stuff Bento does not do
+* Bento *should* work in the browser, but it is not a website framework.
 
 ## What is a Bento Component?
 Bento indroduces a concept of components. Components are logical chunks of code that all work together to provide your application to the world.
 
-All components recieve their own ComponentAPI instance. The Component API is consistent across all components and provides a way for components to speak to eachother. As well as many other "Quality of life" features. Such as: variable injection and management, dependency management and injection, component event subscriptions, and more!
+All components recieve their own ComponentAPI instance. The Component API is consistent across all components and provides a way for components to speak to eachother. As well as many other "Quality of life" features. Such as: Dependency resolution and injection, Variable injection, component events, and more!
 
 As a rule of thumb, components should not take on more then required. (IE: instead of having one component for connecting to Discord and processing messages. Have two, one for the connection and emitting the message events, and one that handles messages)
 
@@ -22,15 +34,14 @@ Here is a very basic example of a Bento component:
 ```ts
 import { Component, ComponentAPI } from '@ayana/bento';
 
-export class ExampleComponent {
+export class Basic implements Component {
 	// this property becomes available after onLoad see ComponentAPI for more info
-	public api: ComponentAPI;
-
+	public api!: ComponentAPI;
 	// required for all components, must be unique
-	public name: string = 'ExampleComponent';
+	public name: string = 'Basic';
 
 	// Optionally define other components we depend upon
-	// Some decorators auto append to this array such as @SubscribeEvent
+	// Some decorators auto append to this array such as @Subscribe
 	public dependencies: Array<Component> = [];
 
 	// Lifecycle event, called right before component fully loaded
@@ -46,8 +57,8 @@ export class ExampleComponent {
 ```
 A runnable version of this example is available on [Gitlab](https://gitlab.com/ayana/libs/bento/tree/master/examples/src/bento-basic)
 
-## How to use Bento (IN-PROGRESS)
-Using Bento is pretty simple. First import and initilize Bento and any plugins you wish to use. Then simply add the plugins to Bento. The below example assumes you have a directory called "components" in the same directory (relative) to it.
+## How to use Bento
+Getting started with Bento is pretty simple. First import and initilize Bento and any plugins you wish to use. Then simply add the plugins to Bento. The below example assumes you have a directory called "components" in the same directory (relative) to it.
 
 ```ts
 import { Bento, FSComponentLoader } from '@ayana/bento';
@@ -58,9 +69,9 @@ const bento = new Bento();
 // Anonymous async function so we can use await
 (async () => {
 	// Create FSComponentLoader
-	// NOTE: Keep in mind all FSComponentLoader does is find components in a path
-	// Instantiates them and calls Bento.addComponent
-	// Behind the scenes
+	// NOTE: Keep in mind all FSComponentLoader does is
+	// find components in a path, instantiates them and
+	// calls Bento.addComponent() behind the scenes
 	const fsloader = new FSComponentLoader();
 	await fsloader.addDirectory(__dirname, 'components');
 

@@ -3,27 +3,27 @@ import {
 	Component,
 	ComponentAPI,
 	FSComponentLoader,
-	SubscribeEvent,
+	Subscribe,
 } from '@ayanaware/bento';
-
 import { Message, TextChannel } from 'eris';
+
+import { Logger } from '@ayana/logger';
 
 import { DiscordEvent } from '../../Constants';
 import { Discord } from '../Discord';
-import { Command, CommandExecute } from './interfaces';
 
-import { Logger } from '@ayana/logger';
+import { Command, CommandExecute } from './interfaces';
 const log = Logger.get(null);
 
 export class Commands {
 	public api: ComponentAPI;
 	public name: string = 'Commands';
 
-	public dependencies: Component[] = [Discord];
+	public dependencies: Array<Component> = [Discord];
 
-	private commands: Map<string, Command> = new Map();
+	private readonly commands: Map<string, Command> = new Map();
 
-	private prefix: string = '!';
+	private readonly prefix: string = '!';
 
 	public async onLoad() {
 		log.info(`Loading commands...`);
@@ -63,7 +63,7 @@ export class Commands {
 		if (this.commands.has(command.command)) this.commands.delete(command.command);
 	}
 
-	@SubscribeEvent(Discord, DiscordEvent.MESSAGE_CREATE)
+	@Subscribe(Discord, DiscordEvent.MESSAGE_CREATE)
 	private async handleMessageCreate(message: Message) {
 		const channel = message.channel;
 		const author = message.author;

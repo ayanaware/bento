@@ -1,17 +1,16 @@
 
-import * as Eris from 'eris';
-
 import {
 	ComponentAPI,
-	SubscribeEvent,
+	Subscribe,
 	Variable,
 	VariableDefinitionType,
 } from '@ayanaware/bento';
+import * as Eris from 'eris';
+
+import { Logger } from '@ayana/logger';
 
 import { Config } from '../Config';
 import { DiscordEvent } from '../Constants';
-
-import { Logger } from '@ayana/logger';
 const log = Logger.get('Discord');
 
 export class Discord {
@@ -21,7 +20,7 @@ export class Discord {
 	private cli: Eris.Client = null;
 
 	@Variable({ type: VariableDefinitionType.STRING, name: Config.BOT_TOKEN, default: null }) // Can be done via this.api.getVariable(definition) for non ts users
-	private token: string = null;
+	private readonly token: string = null;
 
 	public async onLoad() {
 		if (this.token == null) throw new Error(`Please set the BOT_TOKEN env variable to your token (ex: BOT_TOKEN='xxx' node build/bento-discord-eris)`);
@@ -49,17 +48,17 @@ export class Discord {
 		this.cli = null;
 	}
 
-	@SubscribeEvent(Discord, DiscordEvent.SHARD_READY)
+	@Subscribe(Discord, DiscordEvent.SHARD_READY)
 	private handleReady(id: number) {
 		log.info(`Shard ${id} Ready!`);
 	}
 
-	@SubscribeEvent(Discord, DiscordEvent.SHARD_RESUME)
+	@Subscribe(Discord, DiscordEvent.SHARD_RESUME)
 	private handleResume(id: number) {
 		log.info(`Shard ${id} Resumed!`);
 	}
 
-	@SubscribeEvent(Discord, DiscordEvent.SHARD_DISCONNECT)
+	@Subscribe(Discord, DiscordEvent.SHARD_DISCONNECT)
 	private handleDisconnect(id: number) {
 		log.info(`Shard ${id} Disconnected!`);
 	}

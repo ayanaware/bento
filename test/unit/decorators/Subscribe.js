@@ -5,8 +5,6 @@ const { SubscriptionType } = require('../../../build/constants/SubscriptionType'
 
 const {
 	Subscribe: subscribe,
-	SubscribeEvent: subscribeEvent,
-	SubscribeSubject: subscribeSubject,
 } = require('../../../build/decorators/Subscribe');
 
 describe('Subscribe', function() {
@@ -63,34 +61,6 @@ describe('Subscribe', function() {
 			object.constructor[Symbols.subscriptions][0],
 			'to have own properties',
 			properties
-		);
-	});
-});
-
-describe('SubscribeEvent', function() {
-	it('should use event as a subscription type', function() {
-		const object = new class SomeClass {}();
-
-		subscribeEvent()(object, null, {});
-
-		expect(
-			object.constructor[Symbols.subscriptions][0].type,
-			'to be',
-			SubscriptionType.EVENT
-		);
-	});
-});
-
-describe('SubscribeSubject', function() {
-	it('should use subject as a subscription type', function() {
-		const object = new class SomeClass {}();
-
-		subscribeSubject()(object, null, {});
-
-		expect(
-			object.constructor[Symbols.subscriptions][0].type,
-			'to be',
-			SubscriptionType.SUBJECT
 		);
 	});
 });

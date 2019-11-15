@@ -36,7 +36,7 @@ class Example2 {
 		const a = this.api.getComponent('example');
 		a.aFunction();
 
-		const id = await this.api.subscribeEvent('example', 'ready', msg => {
+		const id = await this.api.subscribe('example', 'ready', msg => {
 			console.log('hi im example2 and', msg);
 
 			console.log(this.api.subscriptions);

@@ -12,9 +12,9 @@ import {
 import { Plugin } from './plugins';
 import { PluginManager } from './plugins/internal';
 import { PropertyManager } from './properties/internal';
+import { ComponentReference, PluginReference } from './references';
 import { LiteEmitter } from './util';
 import { VariableManager } from './variables/internal';
-import { ComponentReference, PluginReference } from './references';
 
 export interface BentoOptions {
 	createID?(len?: number): string;

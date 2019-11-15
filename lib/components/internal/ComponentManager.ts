@@ -2,7 +2,13 @@
 import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
 
 import { Bento } from '../../Bento';
-import { DecoratorConsumer } from '../../decorators/internal';
+import {
+	getChildOfDecoratorInjection,
+	getInjectDecoratorInjections,
+	getParentDecoratorInjection,
+	getSubscribeDecoratorInjections,
+	getVariableDecoratorInjections,
+} from '../../decorators/internal';
 import { ComponentRegistrationError } from '../../errors';
 import { PluginHook } from '../../plugins/internal';
 import { ComponentReference } from '../../references';
@@ -262,26 +268,55 @@ export class ComponentManager {
 	}
 
 	/**
-	 * Handles the parent of a component if it exists.
-	 * This includes setting the parent as a dependency
+	 * Attach Decorator data to Component
 	 *
-	 * @param component The component to be handled
+	 * @param component Component
 	 */
-	private handleParent(component: Component) {
-		// Handle child component depending on a parent
-		const componentParent = component.parent;
-		const decoratorParent = DecoratorConsumer.getDecoratorParent(component);
+	private prepareDecorators(component: Component) {
+		// @ChildOf
+		if (getChildOfDecoratorInjection(component) != null) {
+			if (component.parent != null) throw new ComponentRegistrationError(component, 'Parent already defined. Can\'t prepare @ChildOf decorator');
 
-		// Throw an error if a user defines parent twice
-		if (componentParent != null && decoratorParent != null) throw new ComponentRegistrationError(component, 'Cannot define parent with both property and decorator');
+			component.parent = getChildOfDecoratorInjection(component).reference;
+		}
 
-		const parent = componentParent || decoratorParent || null;
+		// @Inject Decorator
+		getInjectDecoratorInjections(component).forEach(i => component.dependencies.push(i.reference));
 
-		// Abort here if there is no parent
-		if (parent == null) return;
+		// @Subscribe Decorator
+		getSubscribeDecoratorInjections(component).forEach(s => component.dependencies.push(s.reference));
+	}
 
-		// Make sure dependencies are loaded right
-		component.dependencies.push(component.parent);
+	/**
+	 * Handle Decorator Injections
+	 *
+	 * @param component Component
+	 */
+	private handleDecorators(component: Component) {
+		// @Inject Decorator
+		for (const injection of getInjectDecoratorInjections(component)) {
+			component.api.injectComponent(injection.reference, injection.propertyKey);
+		}
+
+		// @Parent Decorator
+		if (component.parent && getParentDecoratorInjection(component) != null) {
+			Object.defineProperty(component, getParentDecoratorInjection(component).propertyKey, {
+				configurable: true,
+				writable: false,
+				enumerable: true,
+				value: component.parent,
+			});
+		}
+
+		// @Subscribe Decorator
+		for (const injection of getSubscribeDecoratorInjections(component)) {
+			component.api.subscribe(injection.reference, injection.eventName, injection.handler, component);
+		}
+
+		// @Variable Decorator
+		for (const injection of getVariableDecoratorInjections(component)) {
+			component.api.injectVariable(injection.definition, injection.propertyKey);
+		}
 	}
 
 	/**
@@ -306,11 +341,10 @@ export class ComponentManager {
 			this.events.set(component.name, events);
 		}
 
-		this.handleParent(component);
+		this.prepareDecorators(component);
 
-		// Add all dependencies that come from decorators
-		DecoratorConsumer.getComponentInjections(component).forEach(i => component.dependencies.push(i.component));
-		DecoratorConsumer.getSubscriptions(component).forEach(s => component.dependencies.push(s.namespace));
+		// Append parent to dependencies
+		if (component.parent) component.dependencies.push(component.parent);
 
 		// remove any duplicates or self from dependencies
 		component.dependencies = component.dependencies.reduce((a, d) => {
@@ -331,9 +365,6 @@ export class ComponentManager {
 			enumerable: true,
 			value: api,
 		});
-
-		// Add property descriptors for all the decorated variables
-		DecoratorConsumer.handleVariables(component, api);
 	}
 
 	private async loadComponent(component: Component) {
@@ -345,11 +376,7 @@ export class ComponentManager {
 			parent = this.components.get(component.parent);
 		}
 
-		// Inject all components from decorator subscriptions
-		DecoratorConsumer.handleInjections(component, component.api);
-
-		// Subscribe to all events from decorator subscriptions
-		DecoratorConsumer.handleSubscriptions(component, component.api);
+		this.handleDecorators(component);
 
 		// onPreComponentLoad
 		await (this.bento.plugins as any).__handlePluginHook(PluginHook.onPreComponentLoad, component);
@@ -364,13 +391,11 @@ export class ComponentManager {
 		}
 
 		// if we just loaded a child component, lets inform the parent
-		if (parent != null) {
-			if (parent.onChildLoad) {
-				try {
-					await parent.onChildLoad(component);
-				} catch (e) {
-					throw new ComponentRegistrationError(component, `Parent "${component.parent}" failed to load child`).setCause(e);
-				}
+		if (parent != null && parent.onChildLoad) {
+			try {
+				await parent.onChildLoad(component);
+			} catch (e) {
+				throw new ComponentRegistrationError(component, `Parent "${component.parent}" failed to load child`).setCause(e);
 			}
 		}
 

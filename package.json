@@ -1,6 +1,6 @@
 {
 	"name": "@ayanaware/bento",
-	"version": "1.0.0-beta.8",
+	"version": "1.0.0-beta.9",
 	"description": "Modular runtime framework designed to solve complex tasks",
 	"main": "build/index.js",
 	"types": "build/index.d.ts",

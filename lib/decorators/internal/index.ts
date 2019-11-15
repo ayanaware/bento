@@ -1,5 +1,6 @@
 
-export * from './DecoratorConsumer';
-export * from './DecoratorSymbols';
-
-export * from './interfaces';
+export * from '../ChildOfDecorator';
+export * from '../InjectDecorator';
+export * from '../ParentDecorator';
+export * from '../SubscribeDecorator';
+export * from '../VariableDecorator';

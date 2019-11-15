@@ -1,6 +1,6 @@
-# Bento [![npm (scoped)](https://img.shields.io/npm/v/@ayana/bento.svg)](https://www.npmjs.com/package/@ayana/bento) [![Discord](https://discordapp.com/api/guilds/508903834853310474/embed.png)](https://discord.gg/eaa5pYf) [![install size](https://packagephobia.now.sh/badge?p=@ayana/bento)](https://packagephobia.now.sh/result?p=@ayana/bento)
+# @ayanaware/bento [![npm (scoped)](https://img.shields.io/npm/v/@ayanaware/bento.svg)](https://www.npmjs.com/package/@ayanaware/bento) [![Discord](https://discordapp.com/api/guilds/508903834853310474/embed.png)](https://discord.gg/eaa5pYf) [![install size](https://packagephobia.now.sh/badge?p=@ayanaware/bento)](https://packagephobia.now.sh/result?p=@ayanaware/bento)
 
-[Documentation](https://docs.ayana.io/modules/bento.html) • [Examples](https://gitlab.com/ayana/libs/bento/tree/master/examples)
+[Documentation](https://docs.ayana.io/modules/bento.html) • [Examples](https://gitlab.com/ayanaware/bento/tree/master/examples)
 
 Bento is an application framework designed to help with creating and maintaing modular projects.
 
@@ -23,6 +23,15 @@ of their way, minimal headaches, minimal debt.
 ## Stuff Bento does not do
 * Bento *should* work in the browser, but it is not a website framework.
 
+## Install
+```bash
+yarn add @ayanaware/bento
+```
+
+```bash
+npm i @ayanaware/bento
+```
+
 ## What is a Bento Component?
 Bento indroduces a concept of components. Components are logical chunks of code that all work together to provide your application to the world.
 
@@ -32,7 +41,7 @@ As a rule of thumb, components should not take on more then required. (IE: inste
 
 Here is a very basic example of a Bento component:
 ```ts
-import { Component, ComponentAPI } from '@ayana/bento';
+import { Component, ComponentAPI } from '@ayanaware/bento';
 
 export class Basic implements Component {
 	// this property becomes available after onLoad see ComponentAPI for more info
@@ -55,13 +64,13 @@ export class Basic implements Component {
 	}
 }
 ```
-A runnable version of this example is available on [Gitlab](https://gitlab.com/ayana/libs/bento/tree/master/examples/src/bento-basic)
+A runnable version of this example is available on [Gitlab](https://gitlab.com/ayanaware/bento/tree/master/examples/src/bento-basic)
 
 ## How to use Bento
 Getting started with Bento is pretty simple. First import and initilize Bento and any plugins you wish to use. Then simply add the plugins to Bento. The below example assumes you have a directory called "components" in the same directory (relative) to it.
 
 ```ts
-import { Bento, FSComponentLoader } from '@ayana/bento';
+import { Bento, FSComponentLoader } from '@ayanaware/bento';
 
 // Create a Bento instance
 const bento = new Bento();
@@ -86,4 +95,4 @@ const bento = new Bento();
 });
 ```
 
-More examples available [here](https://gitlab.com/ayana/libs/bento/tree/master/examples)
+More examples available [here](https://gitlab.com/ayanaware/bento/tree/master/examples)

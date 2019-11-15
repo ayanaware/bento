@@ -1,5 +1,5 @@
 
-import { Bento } from '@ayana/bento';
+import { Bento } from '@ayanaware/bento';
 
 import { EventEmitter } from 'eventemitter3';
 

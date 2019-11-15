@@ -1,5 +1,5 @@
 
-import { ConfigBuilder, ConfigDefinitionType } from '@ayana/bento';
+import { ConfigBuilder, ConfigDefinitionType } from '@ayanaware/bento';
 
 export enum Config {
 	BOT_TOKEN = 'botToken',

@@ -1,5 +1,5 @@
 
-import { Component } from '@ayana/bento';
+import { Component } from '@ayanaware/bento';
 import { CommandExecute } from './CommandExecute';
 
 export interface Command extends Component {

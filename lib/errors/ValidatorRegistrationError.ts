@@ -1,7 +1,7 @@
 
 import { AyanaError, GlobalInstanceOf } from '@ayana/errors';
 
-@GlobalInstanceOf('@ayana/bento', '1')
+@GlobalInstanceOf('@ayanaware/bento', '1')
 export class ValidatorRegistrationError extends AyanaError {
 	public readonly validator: string;
 

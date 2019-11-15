@@ -1,5 +1,5 @@
 
-import { Bento, FSComponentLoader } from '@ayana/bento';
+import { Bento, FSComponentLoader } from '@ayanaware/bento';
 
 import { Logger } from '@ayana/logger';
 const log = Logger.get(null);

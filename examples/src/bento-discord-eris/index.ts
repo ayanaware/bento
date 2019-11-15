@@ -1,5 +1,5 @@
 
-import { Bento, ConfigLoader, FSComponentLoader } from '@ayana/bento';
+import { Bento, ConfigLoader, FSComponentLoader } from '@ayanaware/bento';
 
 import { Definitions } from './Config';
 

@@ -5,7 +5,7 @@ import { Plugin } from '../plugins';
 
 import { PluginError } from './PluginError';
 
-@GlobalInstanceOf('@ayana/bento', '1')
+@GlobalInstanceOf('@ayanaware/bento', '1')
 export class PluginRegistrationError extends PluginError {
 	public readonly plugin: Plugin;
 

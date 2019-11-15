@@ -8,7 +8,7 @@ The @variable decorator is used to quickly bind Bento variables to your componen
 
 Example:
 ```ts
-import { ComponentAPI, Variable } from '@ayana/bento';
+import { ComponentAPI, Variable } from '@ayanaware/bento';
 
 class VariableComponent {
 	public api: ComponentAPI;
@@ -20,14 +20,6 @@ class VariableComponent {
 ```
 
 In the above example Bento will bind the bento variable `foo` to the component property `bar`. Additionally because there was no default defined in the @Variable declaration if the Bento variable `foo` does not exist an error will be thrown during the registration of this component.
-
-### @SubscribeEvent
-
-*TODO*
-
-### @SubscribeSubject
-
-*TODO*
 
 ### @Subscribe
 

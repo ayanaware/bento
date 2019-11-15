@@ -1,5 +1,5 @@
 
-import { ComponentAPI, SubscribeEvent } from '@ayana/bento';
+import { ComponentAPI, SubscribeEvent } from '@ayanaware/bento';
 
 import { Logger } from '@ayana/logger';
 const log = Logger.get('ExampleReferences');

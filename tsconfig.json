@@ -1,35 +1,3 @@
 {
-	"compileOnSave": false,
-	"compilerOptions": {
-		"module": "commonjs",
-		"moduleResolution": "node",
-		"target": "ES2017",
-		"outDir": "./build",
-		"lib": [
-			"es2017"
-		],
-		"types": [
-			"node"
-		],
-		"baseUrl": ".",
-		"paths": {},
-		"declaration": true,
-		"sourceMap": true,
-		"pretty": false,
-		"strict": true,
-		"strictNullChecks": false,
-		"skipLibCheck": false,
-		"allowJs": false,
-		"forceConsistentCasingInFileNames": true,
-		"disableSizeLimit": true,
-		"experimentalDecorators": true,
-		"emitDecoratorMetadata": true,
-	},
-	"include": [
-		"./lib/**/*"
-	],
-	"exclude": [
-		"./node_modules/**/*",
-		"./lib/**/*.spec.ts"
-	]
+    "extends": "@ayanaware/ts/config"
 }

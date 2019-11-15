@@ -1,5 +1,5 @@
 
-import { Bento, ComponentAPI, ConfigLoader, Variable, VariableDefinitionType } from '@ayana/bento';
+import { Bento, ComponentAPI, ConfigLoader, Variable, VariableDefinitionType } from '@ayanaware/bento';
 
 import { Logger } from '@ayana/logger';
 const log = Logger.get(null);

@@ -4,7 +4,7 @@ import {
 	ComponentAPI,
 	FSComponentLoader,
 	SubscribeEvent,
-} from '@ayana/bento';
+} from '@ayanaware/bento';
 
 import { Message, TextChannel } from 'eris';
 

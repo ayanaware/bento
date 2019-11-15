@@ -1,21 +1,21 @@
 {
-	"name": "@ayana/bento",
+	"name": "@ayanaware/bento",
 	"version": "1.0.0-beta.8",
 	"description": "Modular runtime framework designed to solve complex tasks",
-	"repository": "https://gitlab.com/ayana/libs/bento",
+	"main": "build/index.js",
+	"types": "build/index.d.ts",
+	"repository": "https://gitlab.com/ayanaware/bento",
 	"author": "Ayana Developers <devs@ayana.io>",
 	"contributors": [
 		"HcgRandon <me@randon.moe>",
 		"TheAkio <me@theak.io>"
 	],
-	"main": "build/index.js",
-	"types": "build/index.d.ts",
 	"scripts": {
 		"start": "node build/index.js",
-		"build": "rm -rf build/ && tsc",
-		"prepublishOnly": "rm -rf build/ && tsc",
-		"test": "rm -rf build && tsc && mocha",
-		"testcoverage": "rm -rf build && tsc && nyc mocha"
+		"build": "ayc build",
+		"prepublishOnly": "ayc clean build",
+		"test": "ayc clean build && mocha",
+		"testcoverage": "ayc clean build && nyc mocha"
 	},
 	"dependencies": {
 		"@ayana/errors": "^1.0.0",
@@ -23,13 +23,13 @@
 	},
 	"devDependencies": {
 		"@ayana/test": "^2.0.1",
-		"@ayana/tslint-config": "^1.2.4",
+		"@ayanaware/ts": "^1.1.2",
 		"@types/node": "^12.6.2",
-		"tslint": "^5.17.0",
-		"typescript": "^3.5.3"
+		"tslint": "^5.20.1",
+		"typescript": "^3.7.2"
 	},
 	"bugs": {
-		"url": "https://gitlab.com/ayana/libs/bento/issues"
+		"url": "https://gitlab.com/ayanaware/bento/issues"
 	},
 	"keywords": [
 		"bento",

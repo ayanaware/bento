@@ -1,5 +1,5 @@
 
-import { Component, ComponentAPI } from '@ayana/bento';
+import { Component, ComponentAPI } from '@ayanaware/bento';
 
 import { ComponentA } from './ComponentA';
 import { ComponentB } from './ComponentB';

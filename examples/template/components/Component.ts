@@ -1,5 +1,5 @@
 
-import { Component, ComponentAPI } from '@ayana/bento';
+import { Component, ComponentAPI } from '@ayanaware/bento';
 
 import { Logger } from '@ayana/logger';
 const log = Logger.get('ExampleComponent');

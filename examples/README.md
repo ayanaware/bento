@@ -3,16 +3,14 @@
 ### How do I run an example?
 
 Install and build Bento Examples:
-```sh
-npm install
-npm run build
+```bash
+yarn install && yarn run build
 # or
-yarn install
-yarn run build
+npm install && npm run build
 ```
 
 Determine the example you want to run (ex: `bento-variables`) then execute the following
-```sh
+```bash
 node build/{exampleName}
 
 # ex: if I wanted to run bento-variables

@@ -6,7 +6,7 @@ import {
 	SubscribeEvent,
 	Variable,
 	VariableDefinitionType,
-} from '@ayana/bento';
+} from '@ayanaware/bento';
 
 import { Config } from '../Config';
 import { DiscordEvent } from '../Constants';

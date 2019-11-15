@@ -1,5 +1,5 @@
 
-import { Component, ComponentAPI, SubscribeEvent } from '@ayana/bento';
+import { Component, ComponentAPI, SubscribeEvent } from '@ayanaware/bento';
 
 import { Clock } from './Clock';
 

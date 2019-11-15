@@ -5,7 +5,7 @@ import { Component } from '../components';
 
 import { ComponentError } from './ComponentError';
 
-@GlobalInstanceOf('@ayana/bento', '1')
+@GlobalInstanceOf('@ayanaware/bento', '1')
 export class ComponentRegistrationError extends ComponentError {
 	public readonly component: Component;
 

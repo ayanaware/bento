@@ -1,5 +1,5 @@
 
-import { Component, ComponentAPI } from '@ayana/bento';
+import { Component, ComponentAPI } from '@ayanaware/bento';
 
 export class Basic implements Component {
 	// this property becomes available after onLoad see ComponentAPI for more info

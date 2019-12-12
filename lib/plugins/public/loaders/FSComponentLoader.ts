@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
 
-import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
+import { IllegalArgumentError, IllegalStateError } from '@ayanaware/errors';
 
 import { Bento } from '../../../Bento';
 import { Component } from '../../../components';

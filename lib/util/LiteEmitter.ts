@@ -1,7 +1,7 @@
 
-import { AyanaError } from '@ayana/errors';
+import { GenericError } from '@ayanaware/errors';
 
-export class LiteEmitterError extends AyanaError {}
+export class LiteEmitterError extends GenericError {}
 
 export type LiteEmitterHandler = (...args: Array<any>) => void;
 

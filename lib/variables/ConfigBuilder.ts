@@ -1,5 +1,5 @@
 
-import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
+import { IllegalArgumentError, IllegalStateError } from '@ayanaware/errors';
 
 import { ConfigDefinition, ConfigDefinitionType } from '../interfaces';
 

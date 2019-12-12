@@ -1,5 +1,5 @@
 
-import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
+import { IllegalArgumentError, IllegalStateError } from '@ayanaware/errors';
 
 import { Bento } from '../../Bento';
 import { ValidatorRegistrationError } from '../../errors';
@@ -48,7 +48,7 @@ export class VariableManager {
 
 	/**
 	 * Get Key/Value Object of all variables
-	 * 
+	 *
 	 * @returns Object of Key/Value pairs
 	 */
 	public getVariables() {
@@ -92,7 +92,6 @@ export class VariableManager {
 	 *
 	 * @returns boolean
 	 */
-	// TODO: Needs tests
 	public hasSource(name: string) {
 		if (typeof name !== 'string' || name === '') throw new IllegalArgumentError('Variable name must be a string');
 
@@ -105,7 +104,6 @@ export class VariableManager {
 	 *
 	 * @returns variable source
 	 */
-	// TODO: Needs tests
 	public getSource(name: string): VariableSource {
 		if (typeof name !== 'string' || name === '') throw new IllegalArgumentError('Variable name must be a string');
 
@@ -120,7 +118,6 @@ export class VariableManager {
 	 * @param name Variable name
 	 * @param source VariableSource
 	 */
-	// TODO: Needs tests
 	public setSource(name: string, source: VariableSource) {
 		if (typeof name !== 'string' || name === '') throw new IllegalArgumentError('Variable name must be a string');
 		if (source == null || typeof source !== 'object') throw new IllegalArgumentError('VariableSource must be a object');
@@ -139,7 +136,6 @@ export class VariableManager {
 	 * Remove source information for a given variable name
 	 * @param name Variable name
 	 */
-	// TODO: Needs tests
 	private deleteSource(name: string) {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
 		if (this.sources.has(name)) this.sources.delete(name);

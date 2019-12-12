@@ -3,8 +3,7 @@ import {
 	IllegalAccessError,
 	IllegalArgumentError,
 	IllegalStateError,
-} from '@ayana/errors';
-import { Logger } from '@ayana/logger-api';
+} from '@ayanaware/errors';
 
 import { SharedAPI } from '../abstractions';
 import { Bento } from '../Bento';
@@ -13,12 +12,6 @@ import { ComponentReference, PluginReference } from '../references';
 import { VariableDefinition } from '../variables';
 
 import { Component } from './interfaces';
-/**
- * Logger instance for the ComponentAPI class
- *
- * @ignore
- */
-const log = Logger.get('ComponentAPI');
 
 /**
  * The gateway of a component to the rest of the application.
@@ -135,9 +128,9 @@ export class ComponentAPI extends SharedAPI {
 	 * @param eventName Name of event
 	 * @param args Ordered Array of args to emit
 	 */
-	public async emit(eventName: string, ...args: Array<any>) {
+	public emit(eventName: string, ...args: Array<any>) {
 		const emitter = this.bento.components.getComponentEvents(this.component.name);
-		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component emitter does not exist?');
+		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component events does not exist?');
 
 		emitter.emit(eventName, ...args);
 	}
@@ -147,9 +140,9 @@ export class ComponentAPI extends SharedAPI {
 	 * @param eventName Name of event
 	 * @param args Ordered Array of args to emit
 	 */
-	public async emitSubject(eventName: string, ...args: Array<any>) {
+	public emitSubject(eventName: string, ...args: Array<any>) {
 		const emitter = this.bento.components.getComponentEvents(this.component.name);
-		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component emitter does not exist?');
+		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component events does not exist?');
 
 		emitter.emitSubject(eventName, ...args);
 	}
@@ -166,7 +159,7 @@ export class ComponentAPI extends SharedAPI {
 	 */
 	public forwardEvents(fromEmitter: EventEmitterLike, events: Array<string>) {
 		const emitter = this.bento.components.getComponentEvents(this.component.name);
-		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component emitter does not exist?');
+		if (emitter == null) throw new IllegalStateError('PANIC! Something really bad has happened. Component events does not exist?');
 
 		if (events != null && !Array.isArray(events)) {
 			throw new IllegalArgumentError('events is not an array');
@@ -235,11 +228,7 @@ export class ComponentAPI extends SharedAPI {
 
 		// Check if the component events exists
 		const events = this.bento.components.getComponentEvents(componentName);
-		if (events == null) {
-			log.warn(`Could not find events for namespace "${componentName}" while trying to unsubscribe`, this.component.name);
-
-			return;
-		}
+		if (events == null) return;
 
 		// Check if this subscriber actually exists
 		const subscriber = this.subscriptions.get(componentName);
@@ -260,18 +249,12 @@ export class ComponentAPI extends SharedAPI {
 	 */
 	public unsubscribeAll(reference?: ComponentReference) {
 		if (reference != null) {
-			const name = this.bento.components.resolveName(reference);
-			// Get the namespace events
-			const events = this.bento.components.getComponentEvents(name);
-			if (events == null) {
-				log.warn(`Could not find events for namespace "${name}" while trying to unsubscribe`, this.component.name);
+			if (!this.bento.components.hasComponentEvents(reference)) return;
+			const componentName = this.bento.components.resolveName(reference);
+			const events = this.bento.components.getComponentEvents(componentName);
 
-				return;
-			}
-
-			// Get subscriptions on that namespace
-			const subscriptions = this.subscriptions.get(name);
-			// No subscriptions on that namespace exist
+			// Get subscriptions on that component
+			const subscriptions = this.subscriptions.get(componentName);
 			if (subscriptions == null) return;
 
 			// Unsubscribe from all events
@@ -280,9 +263,9 @@ export class ComponentAPI extends SharedAPI {
 			}
 
 			// Remove array
-			this.subscriptions.delete(name);
+			this.subscriptions.delete(componentName);
 		} else {
-			// No namespace was given so we unsubscribe everything
+			// No componentName was given so we unsubscribe everything
 			for (const ns of this.subscriptions.keys()) {
 				this.unsubscribeAll(ns);
 			}

@@ -1,7 +1,7 @@
 
 import * as crypto from 'crypto';
 
-import { IllegalStateError } from '@ayana/errors';
+import { IllegalStateError } from '@ayanaware/errors';
 
 import { Component } from './components';
 import { ComponentManager } from './components/internal';

@@ -1,5 +1,5 @@
 
-import { IllegalArgumentError } from '@ayana/errors';
+import { IllegalArgumentError } from '@ayanaware/errors';
 
 /**
  * ReferenceManager associates constructors with a id

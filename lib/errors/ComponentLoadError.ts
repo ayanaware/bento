@@ -1,5 +1,5 @@
 
-import { GlobalInstanceOf } from '@ayana/errors';
+import { GlobalInstanceOf } from '@ayanaware/errors';
 
 import { ComponentError } from './ComponentError';
 

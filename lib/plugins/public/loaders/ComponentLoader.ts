@@ -1,5 +1,5 @@
 
-import { ProcessingError } from '@ayana/errors';
+import { ProcessingError } from '@ayanaware/errors';
 
 import { Component } from '../../../components';
 import { PluginAPI } from '../../PluginAPI';
@@ -110,11 +110,10 @@ export abstract class ComponentLoader {
 
 			// Throw error if not
 			throw new ProcessingError('ESModule defines no component-like exports');
-		} else {
-			if (!this.componentLike(nodeModule)) throw new ProcessingError('CommonJS module export is not component-like');
-
-			return { classLike: this.classLike(nodeModule), obj: nodeModule, esModule: false };
 		}
+		if (!this.componentLike(nodeModule)) throw new ProcessingError('CommonJS module export is not component-like');
+
+		return { classLike: this.classLike(nodeModule), obj: nodeModule, esModule: false };
 	}
 
 	/**

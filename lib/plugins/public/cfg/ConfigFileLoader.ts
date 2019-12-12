@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
 
-import { ProcessingError } from '@ayana/errors';
+import { ProcessingError } from '@ayanaware/errors';
 
 import { Bento } from '../../../Bento';
 

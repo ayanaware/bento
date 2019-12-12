@@ -1,5 +1,5 @@
 
-import { AyanaError, GlobalInstanceOf } from '@ayana/errors';
+import { AyanaError, GlobalInstanceOf } from '@ayanaware/errors';
 
 @GlobalInstanceOf('@ayanaware/bento', '1')
 export class ValidatorRegistrationError extends AyanaError {

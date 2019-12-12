@@ -18,15 +18,14 @@
 		"testcoverage": "ayc clean build && nyc mocha"
 	},
 	"dependencies": {
-		"@ayana/errors": "^1.0.0",
-		"@ayana/logger-api": "^2.0.0"
+		"@ayanaware/errors": "^1.0.3"
 	},
 	"devDependencies": {
-		"@ayana/test": "^2.0.1",
-		"@ayanaware/ts": "^1.1.2",
-		"@types/node": "^12.6.2",
+		"@ayana/test": "^2.1.0",
+		"@ayanaware/ts": "^1.1.3",
+		"@types/node": "^12.12.14",
 		"tslint": "^5.20.1",
-		"typescript": "^3.7.2"
+		"typescript": "^3.7.3"
 	},
 	"bugs": {
 		"url": "https://gitlab.com/ayanaware/bento/issues"

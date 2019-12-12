@@ -1,5 +1,5 @@
 
-import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
+import { IllegalArgumentError, IllegalStateError } from '@ayanaware/errors';
 
 import { Bento } from '../Bento';
 import { Component } from '../components';

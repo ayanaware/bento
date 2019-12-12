@@ -1,5 +1,5 @@
 
-import { IllegalArgumentError, ProcessingError } from '@ayana/errors';
+import { IllegalArgumentError, ProcessingError } from '@ayanaware/errors';
 
 import { BentoOptions } from '../../Bento';
 import { EventEmitterLike } from '../../interfaces';

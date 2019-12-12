@@ -1,5 +1,5 @@
 
-import { IllegalArgumentError, IllegalStateError } from '@ayana/errors';
+import { IllegalArgumentError, IllegalStateError } from '@ayanaware/errors';
 
 import { Bento } from '../../Bento';
 import {
@@ -86,14 +86,31 @@ export class ComponentManager {
 	}
 
 	/**
-	 * Get component events instance
-	 * @param component - Component name or reference
+	 * Check if a given component events exists
+	 * @param reference - Component name or reference
+	 *
+	 * @returns boolean
+	 */
+	public hasComponentEvents(reference: ComponentReference) {
+		const name = this.resolveName(reference);
+
+		return this.events.has(name);
+	}
+
+	/**
+	 * Get component events instance or create it
+	 * @param reference - Component name or reference
 	 *
 	 * @returns Component events instance
 	 */
-	public getComponentEvents(component: ComponentReference) {
-		const name = this.resolveName(component);
-		if (!this.events.has(name)) return null;
+	public getComponentEvents(reference: ComponentReference) {
+		const name = this.resolveName(reference);
+		if (!this.hasComponentEvents(name)) {
+			const events = new ComponentEvents(name, this.bento.options);
+			this.events.set(name, events);
+
+			return events;
+		}
 
 		return this.events.get(name);
 	}
@@ -233,7 +250,7 @@ export class ComponentManager {
 			try {
 				await component.onUnload();
 			} catch (e) {
-				// force unload
+				// Ignore
 			}
 		}
 
@@ -248,12 +265,14 @@ export class ComponentManager {
 					try {
 						await parent.onChildUnload(component);
 					} catch (e) {
-						// throw new ComponentRegistrationError(component, `Parent "${component.parent}" failed to unload child`).setCause(e);
-						// what do we do here?
+						// Ignore
 					}
 				}
 			}
 		}
+
+		// remove all event subscriptions
+		component.api.unsubscribeAll();
 
 		// remove componentConstructor
 		this.references.removeReference(component);
@@ -334,12 +353,6 @@ export class ComponentManager {
 
 		// if component has constructor lets track it
 		this.references.addReference(component);
-
-		// Create component events if it does not already exist
-		if (!this.events.has(component.name)) {
-			const events = new ComponentEvents(component.name, this.bento.options);
-			this.events.set(component.name, events);
-		}
 
 		this.prepareDecorators(component);
 

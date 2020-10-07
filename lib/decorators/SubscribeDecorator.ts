@@ -1,9 +1,9 @@
-import { ComponentReference } from '../references';
+import { EntityReference } from '../entities';
 
 export const SUBSCRIBE_DECORATOR_SYMBOL = Symbol('subscribeDecorator');
 
 export interface SubscribeDecoratorInjection {
-	reference: ComponentReference;
+	reference: EntityReference;
 	eventName: string;
 	handler: (...args: Array<any>) => void;
 }
@@ -17,7 +17,7 @@ export function getSubscribeDecoratorInjections(target: any): Array<SubscribeDec
 	return subscriptions;
 }
 
-export function Subscribe(reference: ComponentReference, eventName: string): MethodDecorator {
+export function Subscribe(reference: EntityReference, eventName: string): MethodDecorator {
 	return function(target: any, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<any>) {
 		if (target.prototype !== undefined) throw new Error(`"${target.name}#${String(propertyKey)}": Subscribe can only be applied to non-static methods`);
 
@@ -38,7 +38,7 @@ export function Subscribe(reference: ComponentReference, eventName: string): Met
 	};
 }
 
-export function SubscribeEvent(reference: ComponentReference, eventName: string): MethodDecorator {
+export function SubscribeEvent(reference: EntityReference, eventName: string): MethodDecorator {
 	console.warn(`The @SubscribeEvent Decorator is deprecated. Please use @Subscribe. (eventName = ${eventName})`);
 
 	return Subscribe(reference, eventName);

@@ -1,5 +1,3 @@
-import { ComponentReference } from '../references';
-
 export const PARENT_DECORATOR_SYMBOL = Symbol('parentDecorator');
 
 export interface ParentDecoratorInjection {

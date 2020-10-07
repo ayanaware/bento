@@ -1,9 +1,7 @@
 
 export * from './Bento';
 
-export * from './references';
-
-export * from './components';
+export * from './entities';
 export * from './decorators';
 export * from './plugins';
 export * from './variables';

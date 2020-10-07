@@ -1,8 +1,6 @@
+import { BentoError } from './BentoError';
 
-import { AyanaError, GlobalInstanceOf } from '@ayanaware/errors';
-
-@GlobalInstanceOf('@ayanaware/bento', '1')
-export class ValidatorRegistrationError extends AyanaError {
+export class ValidatorRegistrationError extends BentoError {
 	public readonly validator: string;
 
 	public constructor(validator: string, msg: string) {

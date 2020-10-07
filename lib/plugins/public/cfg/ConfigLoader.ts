@@ -1,8 +1,8 @@
 
 import { IllegalArgumentError, IllegalStateError } from '@ayanaware/errors';
 
+import { PluginAPI } from '../../../entities';
 import { VariableSource, VariableSourceType } from '../../../interfaces';
-import { PluginAPI } from '../../PluginAPI';
 
 export interface ConfigLoaderDefinition {
 	name: string;

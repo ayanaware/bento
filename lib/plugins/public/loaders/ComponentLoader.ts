@@ -1,8 +1,7 @@
 
 import { ProcessingError } from '@ayanaware/errors';
 
-import { Component } from '../../../components';
-import { PluginAPI } from '../../PluginAPI';
+import { Component, PluginAPI } from '../../../entities';
 
 /**
  * Interface for the return value of the findComponent() method of the loader

@@ -4,21 +4,20 @@ import { IllegalArgumentError, ProcessingError } from '@ayanaware/errors';
 import { BentoOptions } from '../../Bento';
 import { EventEmitterLike } from '../../interfaces';
 
-export type ComponentEventHandler = (...args: Array<any>) => void;
-
-export interface ComponentEventSubscription {
+export type EntityEventHandler = (...args: Array<any>) => void;
+export interface EntityEventSubscription {
 	name: string;
-	handler: ComponentEventHandler;
+	handler: EntityEventHandler;
 }
 
-export class ComponentEvents {
+export class EntityEvents {
 	private readonly name: string;
 
 	private readonly emitter: EventEmitterLike;
 	private readonly subject: Map<string, Array<any>> = new Map();
 
 	private subCount: number = 0;
-	private readonly subscriptions: Map<number, ComponentEventSubscription> = new Map();
+	private readonly subscriptions: Map<number, EntityEventSubscription> = new Map();
 
 	private readonly options: BentoOptions;
 
@@ -60,7 +59,7 @@ export class ComponentEvents {
 		this.subject.delete(name);
 	}
 
-	public subscribe(name: string, handler: ComponentEventHandler, context?: any): number {
+	public subscribe(name: string, handler: EntityEventHandler, context?: any): number {
 		const id = this.subCount++;
 
 		// rewrap handler, if context provided

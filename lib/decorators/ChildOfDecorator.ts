@@ -1,9 +1,9 @@
-import { ComponentReference } from '../references';
+import { EntityReference } from '../entities';
 
 export const CHILDOF_DECORATOR_SYMBOL = Symbol('childOfDecorator');
 
 export interface ChildOfDecoratorInjection {
-	reference: ComponentReference;
+	reference: EntityReference;
 }
 
 export function getChildOfDecoratorInjection(target: any): ChildOfDecoratorInjection {
@@ -12,7 +12,7 @@ export function getChildOfDecoratorInjection(target: any): ChildOfDecoratorInjec
 	return target.constructor[CHILDOF_DECORATOR_SYMBOL] || null;
 }
 
-export function ChildOf(reference: ComponentReference): ClassDecorator {
+export function ChildOf(reference: EntityReference): ClassDecorator {
 	return function(target: any) {
 		if (target.prototype !== undefined) throw new Error(`"${target.name}": @ChildOf can only be applied to non-static classes`);
 

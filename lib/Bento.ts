@@ -3,16 +3,13 @@ import * as crypto from 'crypto';
 
 import { IllegalStateError } from '@ayanaware/errors';
 
-import { Component } from './components';
-import { ComponentManager } from './components/internal';
+import { Component, ComponentReference, Plugin, PluginReference } from './entities';
+import { EntityManager, EntityType } from './entities/internal';
 import {
 	BentoState,
 	EventEmitterLike,
 } from './interfaces';
-import { Plugin } from './plugins';
-import { PluginManager } from './plugins/internal';
 import { PropertyManager } from './properties/internal';
-import { ComponentReference, PluginReference } from './references';
 import { LiteEmitter } from './util';
 import { VariableManager } from './variables/internal';
 
@@ -24,8 +21,7 @@ export interface BentoOptions {
 export class Bento {
 	public readonly properties: PropertyManager;
 	public readonly variables: VariableManager;
-	public readonly plugins: PluginManager;
-	public readonly components: ComponentManager;
+	public readonly entities: EntityManager;
 
 	public readonly options: BentoOptions;
 
@@ -43,89 +39,88 @@ export class Bento {
 		// now that options has been defined, create our managers
 		this.properties = new PropertyManager(this);
 		this.variables = new VariableManager(this);
-		this.plugins = new PluginManager(this);
-		this.components = new ComponentManager(this);
+		this.entities = new EntityManager(this);
 	}
 
 	// COMPONENTS Aliases
 
 	/**
-	 * Alias for Bento.components.addComponent()
+	 * Alias for Bento.entities.addComponent()
 	 * @param component Component
 	 *
-	 * @see ComponentManager#addComponent
-	 * @returns See Bento.components.addComponent()
+	 * @see EntityManager#addComponent
+	 * @returns See Bento.entities.addComponent()
 	 */
 	public async addComponent(component: Component) {
-		return this.components.addComponent(component);
+		return this.entities.addComponent(component);
 	}
 
 	/**
-	 * Alias for Bento.components.getComponent()
+	 * Alias for Bento.entities.getComponent()
 	 * @param reference Component name or reference
 	 *
-	 * @see ComponentManager#getComponent
-	 * @returns See Bento.components.getComponent()
+	 * @see EntityManager#getComponent
+	 * @returns See Bento.entities.getComponent()
 	 */
 	public async getComponent<T extends Component>(reference: ComponentReference) {
-		return this.components.getComponent<T>(reference);
+		return this.entities.getComponent<T>(reference);
 	}
 
 	/**
-	 * Alias for Bento.components.removeComponent()
-	 * @param name Component name
+	 * Alias for Bento.entities.removeComponent()
+	 * @param reference Component name
 	 *
-	 * @see ComponentManager#removeComponent
-	 * @returns See Bento.components.removeComponent()
+	 * @see EntityManager#removeComponent
+	 * @returns See Bento.entities.removeComponent()
 	 */
-	public async removeComponent(name: string) {
-		return this.components.removeComponent(name);
+	public async removeComponent(reference: ComponentReference) {
+		return this.entities.removeComponent(reference);
 	}
 
 	// PLUGINS Aliases
 
 	/**
-	 * Alias for Bento.plugins.addPlugin()
+	 * Alias for Bento.entities.addPlugin()
 	 * @param plugin Plugin
 	 *
-	 * @see PluginManager#addPlugin
-	 * @returns See Bento.plugins.addPlugin()
+	 * @see EntityManager#addPlugin
+	 * @returns See Bento.entities.addPlugin()
 	 */
 	public async addPlugin(plugin: Plugin) {
-		return this.plugins.addPlugin(plugin);
+		return this.entities.addPlugin(plugin);
 	}
 
 	/**
-	 * Alias for Bento.plugins.getPlugin()
+	 * Alias for Bento.entities.getPlugin()
 	 * @param reference Plugin name or reference
 	 *
-	 * @see PluginManager#getPlugin
-	 * @returns See Bento.plugins.getPlugin()
+	 * @see EntityManager#getPlugin
+	 * @returns See Bento.entities.getPlugin()
 	 */
 	public async getPlugin<T extends Plugin>(reference: PluginReference) {
-		return this.plugins.getPlugin<T>(reference);
+		return this.entities.getPlugin<T>(reference);
 	}
 
 	/**
-	 * Alias for Bento.plugins.removePlugin()
-	 * @param name Plugin name
+	 * Alias for Bento.entities.removePlugin()
+	 * @param reference Plugin name or reference
 	 *
-	 * @see PluginManager#removePlugin
-	 * @returns See Bento.plugins.removePlugin()
+	 * @see EntityManager#removePlugin
+	 * @returns See Bento.entities.removePlugin()
 	 */
-	public async removePlugin(name: string) {
-		return this.plugins.removePlugin(name);
+	public async removePlugin(reference: PluginReference) {
+		return this.entities.removePlugin(reference);
 	}
 
 	/**
-	 * Alias for Bento.plugins.addPlugins()
+	 * Alias for Bento.entities.addPlugins()
 	 * @param plugins Array of Plugins
 	 *
-	 * @see PluginManager#addPlugins
-	 * @returns See Bento.plugins.addPlugins()
+	 * @see EntityManager#addPlugins
+	 * @returns See Bento.entities.addPlugins()
 	 */
 	public async addPlugins(plugins: Array<Plugin>) {
-		return this.plugins.addPlugins(plugins);
+		return this.entities.addPlugins(plugins);
 	}
 
 	// PROPERTIES Aliases
@@ -231,7 +226,7 @@ export class Bento {
 	 */
 	public async verify(): Promise<BentoState> {
 		// check for any pending components
-		const pending = this.components.getPendingComponents();
+		const pending = this.entities.getPendingEntities();
 		if (pending.length > 0) {
 			throw new IllegalStateError(`One or more components are still in a pending state: '${pending.map(p => p.name).join('\', \'')}'`);
 		}
@@ -239,11 +234,11 @@ export class Bento {
 		const state: BentoState = { components: [], plugins: [], variables: [] };
 
 		// add component names
-		const components = this.components.getComponents();
+		const components = this.entities.getEntities(EntityType.COMPONENT);
 		components.forEach(c => state.components.push(c.name));
 
 		// add plugin names
-		const plugins = this.plugins.getPlugins();
+		const plugins = this.entities.getEntities(EntityType.PLUGIN);
 		plugins.forEach(p => state.plugins.push(p.name));
 
 		// add variable names

@@ -1,10 +1,10 @@
-import { ComponentReference, PluginReference } from '../references';
+import { EntityReference } from '../entities';
 
 export const INJECT_DECORATOR_SYMBOL = Symbol('injectDecorator');
 
 export interface InjectDecoratorInjection {
 	propertyKey: string;
-	reference: ComponentReference;
+	reference: EntityReference;
 }
 
 export function getInjectDecoratorInjections(target: any): Array<InjectDecoratorInjection> {
@@ -16,7 +16,7 @@ export function getInjectDecoratorInjections(target: any): Array<InjectDecorator
 	return injections;
 }
 
-export function Inject(reference: ComponentReference): PropertyDecorator {
+export function Inject(reference: EntityReference): PropertyDecorator {
 	return function(target: any, propertyKey: string | symbol) {
 		if (target.prototype !== undefined) throw new Error(`"${target.name}#${String(propertyKey)}": @Inject can only be applied to non-static properties`);
 

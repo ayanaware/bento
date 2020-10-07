@@ -1,16 +1,12 @@
+import { PluginAPI } from '../api/PluginAPI';
+import { EntityType } from '../internal';
 
-import { Bento } from '../../Bento';
-import { Component } from '../../components';
-import { PluginAPI } from '../PluginAPI';
+import { Component } from './Component';
+import { Entity } from './Entity';
 
-export interface Plugin {
+export interface Plugin extends Entity {
+	type?: EntityType.PLUGIN;
 	api?: PluginAPI;
-
-	/**
-	 * The name of this plugin
-	 */
-	name: string;
-	version?: string;
 
 	/**
 	 * Plugin Lifecycle Hook, Plugin Entrypoint

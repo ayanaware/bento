@@ -5,9 +5,8 @@ import * as util from 'util';
 
 import { IllegalArgumentError, IllegalStateError } from '@ayanaware/errors';
 
-import { Bento } from '../../../Bento';
-import { Component } from '../../../components';
-import { ComponentLoadError } from '../../../errors';
+import { Component } from '../../../entities';
+import { EntityLoadError } from '../../../errors';
 
 import { ComponentLoader } from './ComponentLoader';
 
@@ -46,7 +45,7 @@ export class FSComponentLoader extends ComponentLoader {
 					const name = await this.api.getBento().addComponent(instance);
 					this.components.add(name);
 				} catch (e) {
-					throw new ComponentLoadError(file, `Failed to attach component "${file}"`).setCause(e);
+					throw new EntityLoadError(file, `Failed to attach component "${file}"`).setCause(e);
 				}
 			}
 
@@ -87,7 +86,7 @@ export class FSComponentLoader extends ComponentLoader {
 					const name = await this.api.getBento().addComponent(instance);
 					this.components.add(name);
 				} catch (e) {
-					throw new ComponentLoadError(file, `Failed to attach component "${file}"`).setCause(e);
+					throw new EntityLoadError(file, `Failed to attach component "${file}"`).setCause(e);
 				}
 			} else this.pending.push({ file, instance });
 		}
@@ -116,7 +115,7 @@ export class FSComponentLoader extends ComponentLoader {
 		try {
 			nodeModule = require(component);
 		} catch (e) {
-			throw new ComponentLoadError(component, `Failed to require module "${component}"`).setCause(e);
+			throw new EntityLoadError(component, `Failed to require module "${component}"`).setCause(e);
 		}
 
 		try {
@@ -124,7 +123,7 @@ export class FSComponentLoader extends ComponentLoader {
 
 			return this.instantiate(comp);
 		} catch (e) {
-			throw new ComponentLoadError(component, `Failed to create component instance "${component}"`).setCause(e);
+			throw new EntityLoadError(component, `Failed to create component instance "${component}"`).setCause(e);
 		}
 	}
 

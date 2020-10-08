@@ -1,12 +1,14 @@
+
 import { Entity } from '../entities';
 
-import { EntityError } from './EntityError';
+import { BentoError } from './BentoError';
 
-export class EntityRegistrationError extends EntityError {
+export class APIError extends BentoError {
 	public readonly entity: Entity;
 
 	public constructor(entity: Entity, msg: string) {
-		super(`${entity.name}(${entity.type}): ${msg}`);
+		super(`${entity.name}(${entity.type}) ${msg}`)
+
 		this.__define('entity', entity);
 	}
 }

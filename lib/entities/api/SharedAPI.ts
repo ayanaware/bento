@@ -2,9 +2,10 @@
 import { IllegalAccessError, IllegalArgumentError, IllegalStateError } from '@ayanaware/errors';
 
 import { Bento } from '../../Bento';
+import { APIError } from '../../errors';
 import { EventEmitterLike } from '../../interfaces';
 import { VariableDefinition } from '../../variables';
-import { Component, Plugin } from '../interfaces';
+import { Component, Entity, Plugin } from '../interfaces';
 import { ComponentReference, EntityReference, PluginReference } from '../references';
 
 /**
@@ -16,7 +17,7 @@ export class SharedAPI {
 	/**
 	 * Owner entity of this API instance
 	 */
-	protected entity: Plugin | Component;
+	protected entity: Entity;
 
 	/**
 	 * Currently existing subscriptions of this component.
@@ -82,12 +83,12 @@ export class SharedAPI {
 		}
 
 		// validate definition
-		if (!definition.name) throw new IllegalArgumentError('VariableDefinition must define a name');
+		if (!definition.name) throw new APIError(this.entity, 'VariableDefinition must define a name');
 
 		const value = this.bento.variables.getVariable<T>(definition.name, definition.default);
 
 		// if undefined. then is a required variable that is not in bento
-		if (value === undefined) throw new IllegalStateError(`Failed to find a value for "${definition.name}" variable`);
+		if (value === undefined) throw new APIError(this.entity, `No value available for "${definition.name}" variable`);
 
 		return value;
 	}
@@ -113,7 +114,7 @@ export class SharedAPI {
 	public getPlugin<T extends Plugin>(reference: PluginReference): T {
 		const name = this.bento.entities.resolveName(reference);
 		const plugin = this.bento.entities.getPlugin<T>(name);
-		if (!plugin) throw new IllegalStateError(`Plugin "${name}" does not exist`);
+		if (!plugin) throw new APIError(this.entity, `Plugin "${name}" does not exist`);
 
 		return plugin;
 	}
@@ -139,7 +140,7 @@ export class SharedAPI {
 	public getComponent<T extends Component>(reference: ComponentReference): T {
 		const name = this.bento.entities.resolveName(reference);
 		const component = this.bento.entities.getComponent<T>(name);
-		if (!component) throw new IllegalStateError(`Component "${name}" does not exist`);
+		if (!component) throw new APIError(this.entity, `Component "${name}" does not exist`);
 
 		return component;
 	}
@@ -150,8 +151,8 @@ export class SharedAPI {
 	 * @param injectName property name to inject into
 	 */
 	public injectComponent(reference: ComponentReference, injectName: string) {
-		if (this.entity.hasOwnProperty(injectName)) throw new IllegalStateError(`Entity already has property "${injectName}" defined.`);
-		if (!this.hasComponent(reference)) throw new IllegalStateError('Unable to inject non-existent component');
+		if (this.entity.hasOwnProperty(injectName)) throw new APIError(this.entity, `Cannot inject component, ${this.entity.name}.${injectName} is already defined`);
+		if (!this.hasComponent(reference)) throw new APIError(this.entity, `Unable to inject non-existent component "${reference}"`);
 
 		Object.defineProperty(this.entity, injectName, {
 			configurable: true,
@@ -169,8 +170,8 @@ export class SharedAPI {
 	 * @param injectName property name to inject into
 	 */
 	public injectPlugin(reference: PluginReference, injectName: string) {
-		if (this.entity.hasOwnProperty(injectName)) throw new IllegalStateError(`Entity already has property "${injectName}" defined.`);
-		if (!this.hasPlugin(reference)) throw new IllegalStateError('Unable to inject non-existent plugin');
+		if (this.entity.hasOwnProperty(injectName)) throw new APIError(this.entity, `Cannot inject plugin, ${this.entity.name}.${injectName} is already defined`);
+		if (!this.hasPlugin(reference)) throw new APIError(this.entity, 'Unable to inject non-existent plugin');
 
 		Object.defineProperty(this.entity, injectName, {
 			configurable: true,
@@ -188,13 +189,13 @@ export class SharedAPI {
 	 * @param injectName Property name to inject to
 	 */
 	public injectEntity(reference: EntityReference, injectName: string) {
-		if (this.entity.hasOwnProperty(injectName)) throw new IllegalStateError(`Entity already has property "${injectName}" defined.`);
+		if (this.entity.hasOwnProperty(injectName)) throw new APIError(this.entity, `Cannot inject entity, ${this.entity.name}.${injectName} is already defined`);
 
 		const name = this.bento.entities.resolveName(reference);
 
 		if (this.hasPlugin(name)) this.injectPlugin(name, injectName);
 		else if (this.hasComponent(name)) this.injectComponent(name, injectName);
-		else throw new IllegalStateError('Unable to inject non-existent entity');
+		else throw new APIError(this.entity, 'Unable to inject non-existent entity');
 	}
 
 	/**
@@ -205,17 +206,17 @@ export class SharedAPI {
 	 * @returns Plugin.loadComponents() result
 	 */
 	public async loadComponents(reference: PluginReference, ...args: Array<any>) {
-		if (reference == null) throw new IllegalArgumentError('Pluginreference must be defined');
+		if (reference == null) throw new APIError(this.entity, 'Pluginreference must be defined');
 
 		// verify that the plugin exists in bento
 		let plugin = null;
 		try {
 			plugin = this.getPlugin<any>(reference);
 		} catch (e) {
-			throw new IllegalStateError(`Failed to find requested component`).setCause(e);
+			throw new IllegalStateError(`Failed to find requested plugin`).setCause(e);
 		}
 
-		if (typeof plugin.loadComponents !== 'function') throw new IllegalStateError(`Plugin "${plugin.name}" does not define loadComponents method`);
+		if (typeof plugin.loadComponents !== 'function') throw new APIError(this.entity, `Plugin ${plugin.name}.loadComponents() method does not exist`);
 
 		return plugin.loadComponents(...args);
 	}
@@ -226,11 +227,11 @@ export class SharedAPI {
 	 * @param injectName property name to inject into
 	 */
 	public injectVariable(definition: VariableDefinition, injectName?: string) {
-		if (!definition.name) throw new IllegalArgumentError('A VariableDefinition must define a name');
+		if (!definition.name) throw new APIError(this.entity, 'VariableDefinition must have a name');
 
 		// if variable not in bento, and no default defined. Throw an error
 		if (!this.hasVariable(definition.name) && definition.default === undefined) {
-			throw new IllegalStateError(`Cannot inject undefined variable "${definition.name}"`);
+			throw new APIError(this.entity, `Cannot inject non-existant variable "${definition.name}"`);
 		}
 
 		const property = injectName || definition.name;
@@ -276,7 +277,7 @@ export class SharedAPI {
 	 * @throws IllegalArgumentError if fromEmitter is not an EventEmitter or events is not an array
 	 */
 	public forwardEvents(fromEmitter: EventEmitterLike, events: Array<string>) {
-		if (events != null && !Array.isArray(events)) throw new IllegalArgumentError('events is not an array');
+		if (events != null && !Array.isArray(events)) throw new APIError(this.entity, 'Events is not an array');
 
 		const emitter = this.bento.entities.getEvents(this.entity.name);
 		events.forEach(event => {
@@ -302,7 +303,7 @@ export class SharedAPI {
 	// tslint:disable-next-line:max-params
 	public subscribe(reference: EntityReference, event: string, handler: (...args: Array<any>) => void, context?: any) {
 		const name = this.bento.entities.resolveName(reference);
-		if (!name) throw new IllegalStateError(`Unable to subscribe to non-existant entity`);
+		if (!name) throw new APIError(this.entity, `Unable to subscribe to non-existant entity`);
 
 		// Get the namespace
 		const events = this.bento.entities.getEvents(name);
@@ -338,7 +339,7 @@ export class SharedAPI {
 	 */
 	public unsubscribe(reference: EntityReference, id: number) {
 		const name = this.bento.entities.resolveName(reference);
-		if (!name) throw new IllegalStateError('Unable to unsibscribe from non-existant entity');
+		if (!name) throw new APIError(this.entity, 'Unable to unsubscribe from non-existant entity');
 
 		// Check if the component events exists
 		const events = this.bento.entities.getEvents(name);
@@ -364,7 +365,7 @@ export class SharedAPI {
 	public unsubscribeAll(reference?: EntityReference) {
 		if (reference != null) {
 			const name = this.bento.entities.resolveName(reference);
-			if (!name) throw new IllegalStateError(`Unable to ubsubscribeAll to non-existant entity`);
+			if (!name) throw new APIError(this.entity, `Unable to ubsubscribeAll to non-existant entity`);
 
 			if (!this.bento.entities.hasEvents(name)) return;
 			const events = this.bento.entities.getEvents(name);

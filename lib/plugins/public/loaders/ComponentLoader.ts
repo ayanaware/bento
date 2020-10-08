@@ -22,7 +22,6 @@ export interface DetectedComponent {
 	esModule: boolean;
 }
 
-
 /**
  * Abstract loader class containing an interface to the outside and core functionality
  */

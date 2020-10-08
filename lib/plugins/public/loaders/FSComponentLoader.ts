@@ -40,13 +40,9 @@ export class FSComponentLoader extends ComponentLoader {
 	public async onLoad() {
 		// handle any pending components
 		if (this.pending.length > 0) {
-			for (const { file, instance } of this.pending) {
-				try {
-					const name = await this.api.getBento().addComponent(instance);
-					this.components.add(name);
-				} catch (e) {
-					throw new EntityLoadError(file, `Failed to attach component "${file}"`).setCause(e);
-				}
+			for (const { instance } of this.pending) {
+				const name = await this.api.getBento().addComponent(instance);
+				this.components.add(name);
 			}
 
 			// reset array

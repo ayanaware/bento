@@ -8,7 +8,7 @@ import {
 	getSubscribeDecoratorInjections,
 	getVariableDecoratorInjections,
 } from '../../decorators/internal';
-import { EntityRegistrationError } from '../../errors';
+import { EntityLoadError, EntityRegistrationError } from '../../errors';
 import { ComponentAPI, PluginAPI } from '../api';
 import { Component, Entity, Plugin } from '../interfaces';
 import { ComponentReference, EntityReference, PluginReference, ReferenceManager } from '../references';
@@ -262,20 +262,26 @@ export class EntityManager {
 
 	/**
 	 * Handle pending entities
+	 *
+	 * @returns Promise
 	 */
 	private async handlePendingEntities(): Promise<void> {
-		for (const entity of Array.from(this.pending.values())) {
+		let loaded = 0;
+		for (const entity of this.pending.values()) {
 			const missing = this.getMissingDependencies(entity);
-			if (missing.length > 0) return;
+			if (missing.length > 0) continue;
 
 			this.pending.delete(entity.name);
 			try {
 				await this.loadEntity(entity);
+				loaded++;
 			} catch (e) {
 				this.pending.set(entity.name, entity);
 				throw e;
 			}
 		}
+
+		if (loaded > 0) return this.handlePendingEntities();
 	}
 
 	/**
@@ -413,7 +419,7 @@ export class EntityManager {
 		if (typeof entity.type !== 'string') throw new IllegalArgumentError('Entity type must be a string');
 		if (!entity.type) throw new EntityRegistrationError(entity, 'Entity type must be specificed');
 
-		if (this.hasEntity(entity.name)) throw new EntityRegistrationError(entity, `Entity name "${entity.name}" must be unique`);
+		if (this.hasEntity(entity.name)) throw new IllegalArgumentError(`Entity name "${entity.name}" is already in use`);
 
 		return this.prepareEntity(entity);
 	}
@@ -425,7 +431,7 @@ export class EntityManager {
 	public async removeEntity(reference: EntityReference) {
 		const name = this.resolveName(reference);
 		const entity = this.getEntity(name);
-		if (!entity) throw new Error(`Entity '${name}' is not currently loaded.`);
+		if (!entity) throw new IllegalStateError(`Entity "${name}" is not currently loaded.`);
 
 		// if we have any children lets unload them first
 		const children = this.getEntityChildren(entity);
@@ -501,7 +507,7 @@ export class EntityManager {
 		// Check dependencies
 		if (entity.dependencies == null) entity.dependencies = [];
 		if (entity.dependencies != null && !Array.isArray(entity.dependencies)) {
-			throw new EntityRegistrationError(entity, `"${entity.name}" Entity dependencies is not an array`);
+			throw new EntityRegistrationError(entity, `${entity.name}.dependencies must be an array`);
 		}
 
 		// if entity has constructor track it
@@ -537,6 +543,9 @@ export class EntityManager {
 		if (missing.length === 0) {
 			// All dependencies are already loaded, go ahead and load the entity
 			await this.loadEntity(entity);
+
+			// loaded successfuly, if any pending entities, attempt to handle them now
+			if (this.pending.size > 0) await this.handlePendingEntities();
 		} else {
 			// not able to load this entity yet :c
 			this.pending.set(entity.name, entity);
@@ -551,7 +560,7 @@ export class EntityManager {
 			for (const reference of entity.dependencies) {
 				const dependency = this.getEntity(reference);
 
-				if (dependency.type === EntityType.COMPONENT) throw new IllegalStateError(`Plugin "${entity.name}" cannot depend on Component "${dependency.name}".`);
+				if (dependency.type === EntityType.COMPONENT) throw new EntityRegistrationError(entity, `Cannot depend on Component "${dependency.name}"`);
 			}
 		}
 
@@ -559,7 +568,7 @@ export class EntityManager {
 		let parent = null;
 		if (entity.parent) {
 			entity.parent = this.resolveName(entity.parent);
-			if (!this.hasEntity(entity.parent)) throw new IllegalStateError(`Somehow a child entity loaded before their parent!`); // aka, universe bork
+			if (!this.hasEntity(entity.parent)) throw new IllegalStateError(`Child entity "${entity.name}" loaded prior to Parent entity "${entity.parent}"`); // aka, universe bork
 
 			parent = this.getEntity(entity.parent);
 		}
@@ -581,7 +590,7 @@ export class EntityManager {
 			try {
 				await entity.onLoad(entity.api);
 			} catch (e) {
-				throw new EntityRegistrationError(entity, `Entity "${entity.name}" failed to load`).setCause(e);
+				throw new EntityRegistrationError(entity, `${entity.name}.onLoad() threw error`).setCause(e);
 			}
 		}
 
@@ -590,7 +599,7 @@ export class EntityManager {
 			try {
 				await parent.onChildLoad(entity);
 			} catch (e) {
-				throw new EntityRegistrationError(entity, `Parent "${entity.parent}" failed to load child`).setCause(e);
+				throw new EntityRegistrationError(parent, `Failed to load child entity "${entity.name}"`).setCause(e);
 			}
 		}
 
@@ -598,8 +607,5 @@ export class EntityManager {
 		if (entity.type === EntityType.COMPONENT) {
 			await this.handlePluginHook(PluginHook.onPostComponentLoad, entity as Component);
 		}
-
-		// loaded successfuly, if any pending entities, attempt to handle them now
-		if (this.pending.size > 0) return this.handlePendingEntities();
 	}
 }

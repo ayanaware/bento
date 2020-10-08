@@ -8,7 +8,7 @@ import {
 	getSubscribeDecoratorInjections,
 	getVariableDecoratorInjections,
 } from '../../decorators/internal';
-import { EntityLoadError, EntityRegistrationError } from '../../errors';
+import { EntityRegistrationError } from '../../errors';
 import { ComponentAPI, PluginAPI } from '../api';
 import { Component, Entity, Plugin } from '../interfaces';
 import { ComponentReference, EntityReference, PluginReference, ReferenceManager } from '../references';

@@ -6,6 +6,7 @@ import { APIError } from '../../errors';
 import { EventEmitterLike } from '../../interfaces';
 import { VariableDefinition } from '../../variables';
 import { Component, Entity, Plugin } from '../interfaces';
+import { EntityType } from '../internal';
 import { ComponentReference, EntityReference, PluginReference } from '../references';
 
 /**
@@ -146,6 +147,24 @@ export class SharedAPI {
 	}
 
 	/**
+	 * Check Plugin Depend on Component
+	 * @param reference EntityReference
+	 *
+	 * @throws APIError if this.entity is plugin and reference is component
+	 * @returns void
+	 */
+	protected checkPDC(reference: EntityReference) {
+		if (this.entity.type !== EntityType.PLUGIN) return;
+
+		const entity = this.bento.entities.getEntity(reference);
+		if (!entity) return;
+
+		if (entity.type === EntityType.COMPONENT) {
+			throw new APIError(this.entity, `Plugin cannot depend on ${entity.name}(component)`);
+		}
+	}
+
+	/**
 	 * Inject component dependency into invoking entity
 	 * @param reference Component name or reference
 	 * @param injectName property name to inject into
@@ -153,6 +172,9 @@ export class SharedAPI {
 	public injectComponent(reference: ComponentReference, injectName: string) {
 		if (this.entity.hasOwnProperty(injectName)) throw new APIError(this.entity, `Cannot inject component, ${this.entity.name}.${injectName} is already defined`);
 		if (!this.hasComponent(reference)) throw new APIError(this.entity, `Unable to inject non-existent component "${reference}"`);
+
+		// prevent inject of component into plugin
+		this.checkPDC(reference);
 
 		Object.defineProperty(this.entity, injectName, {
 			configurable: true,
@@ -304,6 +326,9 @@ export class SharedAPI {
 	public subscribe(reference: EntityReference, event: string, handler: (...args: Array<any>) => void, context?: any) {
 		const name = this.bento.entities.resolveName(reference);
 		if (!name) throw new APIError(this.entity, `Unable to subscribe to non-existant entity`);
+
+		// prevent plugin subscribing to component events
+		this.checkPDC(reference);
 
 		// Get the namespace
 		const events = this.bento.entities.getEvents(name);

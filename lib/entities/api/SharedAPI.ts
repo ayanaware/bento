@@ -293,24 +293,25 @@ export class SharedAPI {
 	/**
 	 * Subscribe to Bento events
 	 * @param reference Entity Reference / Name
-	 * @param name Name of the event
+	 * @param event Name of the event
 	 * @param handler The function to be called
 	 * @param context Optional `this` context for prior handler function
 	 *
 	 * @returns Subscription ID
 	 */
 	// tslint:disable-next-line:max-params
-	public subscribe(reference: EntityReference, name: string, handler: (...args: Array<any>) => void, context?: any) {
-		const entityName = this.bento.entities.resolveName(reference);
+	public subscribe(reference: EntityReference, event: string, handler: (...args: Array<any>) => void, context?: any) {
+		const name = this.bento.entities.resolveName(reference);
+		if (!name) throw new IllegalStateError(`Unable to subscribe to non-existant entity`);
 
 		// Get the namespace
-		const events = this.bento.entities.getEvents(entityName);
-		const id = events.subscribe(name, handler, context);
+		const events = this.bento.entities.getEvents(name);
+		const id = events.subscribe(event, handler, context);
 
 		// Register subscription so if the current component unloads we can remove all events
 		// TODO: If the componentName component unloads we need to remove that array
-		if (!this.subscriptions.has(entityName)) this.subscriptions.set(entityName, []);
-		this.subscriptions.get(entityName).push(id);
+		if (!this.subscriptions.has(name)) this.subscriptions.set(name, []);
+		this.subscriptions.get(name).push(id);
 
 		return id;
 	}
@@ -318,7 +319,7 @@ export class SharedAPI {
 	/**
 	 * Alias for subscribe with normal event
 	 * @param reference Entity Reference / Name
-	 * @param eventName Name of the event
+	 * @param event Name of the event
 	 * @param handler The function to be called
 	 * @param context Optional `this` context for above handler function
 	 *
@@ -326,8 +327,8 @@ export class SharedAPI {
 	 *
 	 * @returns Subscription ID
 	 */
-	public subscribeEvent(reference: EntityReference, eventName: string, handler: (...args: Array<any>) => void, context?: any) {
-		return this.subscribe(reference, eventName, handler, context);
+	public subscribeEvent(reference: EntityReference, event: string, handler: (...args: Array<any>) => void, context?: any) {
+		return this.subscribe(reference, event, handler, context);
 	}
 
 	/**
@@ -336,14 +337,15 @@ export class SharedAPI {
 	 * @param id - subscription id provided by subscribe
 	 */
 	public unsubscribe(reference: EntityReference, id: number) {
-		const entityName = this.bento.entities.resolveName(reference);
+		const name = this.bento.entities.resolveName(reference);
+		if (!name) throw new IllegalStateError('Unable to unsibscribe from non-existant entity');
 
 		// Check if the component events exists
-		const events = this.bento.entities.getEvents(entityName);
+		const events = this.bento.entities.getEvents(name);
 		if (events == null) return;
 
 		// Check if this subscriber actually exists
-		const subscriber = this.subscriptions.get(entityName);
+		const subscriber = this.subscriptions.get(name);
 		if (subscriber == null || !subscriber.includes(id)) throw new IllegalArgumentError(`Tried to unsubscribe from unknown id "${id}"`);
 
 		// Unsubscribe
@@ -361,13 +363,14 @@ export class SharedAPI {
 	 */
 	public unsubscribeAll(reference?: EntityReference) {
 		if (reference != null) {
-			const entityName = this.bento.entities.resolveName(reference);
+			const name = this.bento.entities.resolveName(reference);
+			if (!name) throw new IllegalStateError(`Unable to ubsubscribeAll to non-existant entity`);
 
-			if (!this.bento.entities.hasEvents(entityName)) return;
-			const events = this.bento.entities.getEvents(entityName);
+			if (!this.bento.entities.hasEvents(name)) return;
+			const events = this.bento.entities.getEvents(name);
 
 			// Get subscriptions on that component
-			const subscriptions = this.subscriptions.get(entityName);
+			const subscriptions = this.subscriptions.get(name);
 			if (subscriptions == null) return;
 
 			// Unsubscribe from all events
@@ -376,7 +379,7 @@ export class SharedAPI {
 			}
 
 			// Remove array
-			this.subscriptions.delete(entityName);
+			this.subscriptions.delete(name);
 		} else {
 			// No componentName was given so we unsubscribe everything
 			for (const ns of this.subscriptions.keys()) {

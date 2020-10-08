@@ -1,4 +1,3 @@
-
 import { IllegalArgumentError, IllegalStateError, ProcessingError } from '@ayanaware/errors';
 
 import { Bento } from '../../Bento';
@@ -50,33 +49,32 @@ export class EntityManager {
 
 	/**
 	 * Delegate for the resolveName function
-	 *
-	 * @param reference Entity instance, name or reference
+	 * @param reference EntityReference
+	 * @param error Throw Error on Failure
 	 *
 	 * @see ReferenceManager#resolveName
-	 * @returns resolved entity name
+	 * @returns Entity Name or null
 	 */
-	public resolveName(reference: EntityReference): string {
-		return this.references.resolveName(reference);
+	public resolveName(reference: EntityReference, error: boolean = false): string {
+		return this.references.resolveName(reference, error);
 	}
 
 	/**
-	 * Get instances of all currently loaded entities
-	 * @param type - EntityType
+	 * Get loaded entities
+	 * @param type EntityType
 	 *
-	 * @returns Array of entity instances
+	 * @returns Entity Map
 	 */
 	public getEntities<T extends Entity>(type?: EntityType): Map<string, T> {
 		const entities = Array.from(this.entities.entries())
-		.filter(([name, entity]) => type && entity.type === type);
+		.filter(([name, entity]) => !type || entity.type === type);
 
 		return new Map(entities) as Map<string, T>;
 	}
 
 	/**
-	 * Check if a given entity exists
-	 *
-	 * @param reference Entity instance, name or reference
+	 * Check if Entity exists
+	 * @param reference EntityReference
 	 *
 	 * @returns boolean
 	 */
@@ -87,10 +85,10 @@ export class EntityManager {
 	}
 
 	/**
-	 * Get entity instance
-	 * @param reference - Entity name or reference
+	 * Get Entity
+	 * @param reference EntityReference
 	 *
-	 * @returns Entity instance
+	 * @returns Entity or null
 	 */
 	public getEntity<T extends Entity>(reference: EntityReference): T {
 		const name = this.resolveName(reference);
@@ -98,116 +96,70 @@ export class EntityManager {
 		return (this.getEntities().get(name) || null) as T;
 	}
 
+	/**
+	 * Check if Plugin exists
+	 * @param reference PluginReference
+	 *
+	 * @returns boolean
+	 */
 	public hasPlugin(reference: PluginReference): boolean {
 		const name = this.resolveName(reference);
 
 		return this.getEntities<Plugin>(EntityType.PLUGIN).has(name);
 	}
 
+	/**
+	 * Get Plugin
+	 * @param reference PluginReference
+	 *
+	 * @returns Plugin or null
+	 */
 	public getPlugin<T extends Plugin>(reference: PluginReference): T {
 		const name = this.resolveName(reference);
 
 		return (this.getEntities<Plugin>(EntityType.PLUGIN).get(name) || null) as T;
 	}
 
+	/**
+	 * Get all Plugins
+	 *
+	 * @returns Plugin Map
+	 */
 	public getPlugins(): Map<string, Plugin> {
 		return this.getEntities<Plugin>(EntityType.PLUGIN);
 	}
 
+	/**
+	 * Check if Component exists
+	 * @param reference ComponentReference
+	 *
+	 * @returns boolean
+	 */
 	public hasComponent(reference: ComponentReference): boolean {
 		const name = this.resolveName(reference);
 
 		return this.getEntities<Component>(EntityType.COMPONENT).has(name);
 	}
 
+	/**
+	 * Get Component
+	 * @param reference ComponentReference
+	 *
+	 * @returns Component or null
+	 */
 	public getComponent<T extends Component>(reference: ComponentReference): T {
 		const name = this.resolveName(reference);
 
 		return (this.getEntities<Component>(EntityType.COMPONENT).get(name) || null) as T;
 	}
 
+	/**
+	 * Get all Components
+	 *
+	 * @returns Component Map
+	 */
 	public getComponents(): Map<string, Component> {
 		return this.getEntities<Component>(EntityType.COMPONENT);
-	}
-
-	/**
-	 * Check if a given entity events exists
-	 * @param reference - Entity name or reference
-	 *
-	 * @returns boolean
-	 */
-	public hasEvents(reference: EntityReference) {
-		const name = this.resolveName(reference);
-
-		return this.events.has(name);
-	}
-
-	/**
-	 * Get entity events instance or create it
-	 * @param reference - Entity name or reference
-	 *
-	 * @returns Entity events instance
-	 */
-	public getEvents(reference: EntityReference) {
-		const name = this.resolveName(reference);
-		if (!this.hasEvents(name)) {
-			const events = new EntityEvents(name, this.bento.options);
-			this.events.set(name, events);
-
-			return events;
-		}
-
-		return this.events.get(name);
-	}
-
-	/**
-	 * Fetches all child entities of a given parent entity
-	 * @param parent - Parent entity name or reference
-	 *
-	 * @returns Array of child entities
-	 */
-	public getEntityChildren<T extends Entity>(parent: EntityReference): Array<T> {
-		const name = this.resolveName(parent);
-		if (!this.entities.has(name)) throw new IllegalStateError(`Parent "${name}" is not loaded`);
-
-		const children: Array<T> = [];
-		for (const entity of this.entities.values()) {
-			if (entity.parent != null && name === this.resolveName(entity.parent)) {
-				children.push(entity as T);
-			}
-		}
-
-		return children;
-	}
-
-	/**
-	 * Returns an array of dependencies requested but not loaded yet.
-	 *
-	 * @param entity EntityReference
-	 *
-	 * @returns An array of dependencies requested but not loaded
-	 */
-	public getMissingDependencies(entity: EntityReference): Array<string> {
-		try {
-			const name = this.resolveName(entity);
-			if (this.entities.has(name)) entity = this.getEntity(name);
-		} catch (e) {
-			// 00f
-		}
-
-		if (entity == null || typeof entity !== 'object') throw new IllegalArgumentError(`Entity must be an object`);
-		if (entity.dependencies == null || !Array.isArray(entity.dependencies)) throw new IllegalArgumentError(`Entity dependencies must be an array`);
-
-		return entity.dependencies.reduce((a: Array<string>, d: any) => {
-			try {
-				const name = this.resolveName(d);
-				if (!this.entities.has(name)) a.push(name);
-			} catch (e) {
-				a.push(d);
-			}
-
-			return a;
-		}, []);
 	}
 
 	/**
@@ -232,22 +184,98 @@ export class EntityManager {
 	}
 
 	/**
-	 * Handle pending entities
+	 * Check if EntityEvents exists
+	 * @param reference EntityReference
+	 *
+	 * @returns boolean
 	 */
-	private async handlePendingEntities(): Promise<void> {
-		let loaded = 0;
+	public hasEvents(reference: EntityReference) {
+		const name = this.resolveName(reference);
 
-		for (const entity of this.pending.values()) {
-			const missing = this.getMissingDependencies(entity);
-			if (missing.length === 0) {
-				this.pending.delete(entity.name);
+		return this.events.has(name);
+	}
 
-				await this.loadEntity(entity);
-				loaded++;
+	/**
+	 * Get EntityEvents or create it
+	 * @param reference EntityReference
+	 *
+	 * @returns EntityEvents
+	 */
+	public getEvents(reference: EntityReference) {
+		const name = this.resolveName(reference, true);
+		if (!this.hasEvents(name)) {
+			const events = new EntityEvents(name, this.bento.options);
+			this.events.set(name, events);
+
+			return events;
+		}
+
+		return this.events.get(name);
+	}
+
+	/**
+	 * Get all children of parent Entity
+	 * @param parent - EntityReference
+	 *
+	 * @returns Array of child Entities
+	 */
+	public getEntityChildren<T extends Entity>(parent: EntityReference): Array<T> {
+		const name = this.resolveName(parent);
+		if (!this.hasEntity(name)) throw new IllegalStateError(`Parent "${name}" is not loaded`);
+
+		const children: Array<T> = [];
+		for (const entity of this.getEntities().values()) {
+			if (entity.parent != null && name === this.resolveName(entity.parent)) {
+				children.push(entity as T);
 			}
 		}
 
-		if (loaded > 0) await this.handlePendingEntities();
+		return children;
+	}
+
+	/**
+	 * Get missing depenencies of an Entity
+	 * @param entityOrReference EntityReference
+	 *
+	 * @returns EntityReference Array
+	 */
+	public getMissingDependencies(entityOrReference: Entity | EntityReference): Array<string> {
+		if (this.hasEntity(entityOrReference)) entityOrReference = this.getEntity(entityOrReference);
+
+		// by this point we should have a entity instance, verify
+		if (entityOrReference == null || typeof entityOrReference !== 'object') throw new IllegalArgumentError(`Entity must be an object`);
+		if (entityOrReference.dependencies == null || !Array.isArray(entityOrReference.dependencies)) throw new IllegalArgumentError(`Entity dependencies must be an array`);
+
+		return entityOrReference.dependencies.reduce((a: Array<any>, d: any) => {
+			const name = this.resolveName(d);
+
+			// name did not resolve
+			if (!name) a.push(d);
+
+			// name resolved, entity not loaded
+			if (!this.hasEntity(name)) a.push(name);
+
+			// if neither of these above cases are encountered then dependency is resolved
+			return a;
+		}, []);
+	}
+
+	/**
+	 * Handle pending entities
+	 */
+	private async handlePendingEntities(): Promise<void> {
+		for (const entity of Array.from(this.pending.values())) {
+			const missing = this.getMissingDependencies(entity);
+			if (missing.length > 0) return;
+
+			this.pending.delete(entity.name);
+			try {
+				await this.loadEntity(entity);
+			} catch (e) {
+				this.pending.set(entity.name, entity);
+				throw e;
+			}
+		}
 	}
 
 	/**
@@ -385,31 +413,9 @@ export class EntityManager {
 		if (typeof entity.type !== 'string') throw new IllegalArgumentError('Entity type must be a string');
 		if (!entity.type) throw new EntityRegistrationError(entity, 'Entity type must be specificed');
 
-		if (this.entities.has(entity.name)) throw new EntityRegistrationError(entity, `Entity name "${entity.name}" must be unique`);
+		if (this.hasEntity(entity.name)) throw new EntityRegistrationError(entity, `Entity name "${entity.name}" must be unique`);
 
-		// Check dependencies
-		if (entity.dependencies == null) entity.dependencies = [];
-		if (entity.dependencies != null && !Array.isArray(entity.dependencies)) {
-			throw new EntityRegistrationError(entity, `"${entity.name}" Entity dependencies is not an array`);
-		}
-
-		// prepare entity
-		this.prepareEntity(entity);
-
-		// determine dependencies
-		const missing = this.getMissingDependencies(entity);
-		if (missing.length === 0) {
-			// All dependencies are already loaded, go ahead and load the entity
-			await this.loadEntity(entity);
-
-			// loaded successfuly, if any pending entities, attempt to handle them now
-			if (this.pending.size > 0) await this.handlePendingEntities();
-		} else {
-			// not able to load this entity yet :c
-			this.pending.set(entity.name, entity);
-		}
-
-		return entity.name;
+		return this.prepareEntity(entity);
 	}
 
 	/**
@@ -418,10 +424,7 @@ export class EntityManager {
 	 */
 	public async removeEntity(reference: EntityReference) {
 		const name = this.resolveName(reference);
-		if (typeof name !== 'string') throw new IllegalArgumentError('Name must be a string');
-		if (!name) throw new IllegalArgumentError('Name must not be empty');
-
-		const entity = this.entities.get(name);
+		const entity = this.getEntity(name);
 		if (!entity) throw new Error(`Entity '${name}' is not currently loaded.`);
 
 		// if we have any children lets unload them first
@@ -450,8 +453,8 @@ export class EntityManager {
 		if (entity.parent) {
 			entity.parent = this.resolveName(entity.parent);
 
-			if (this.entities.has(entity.parent)) {
-				const parent = this.entities.get(entity.parent);
+			if (this.hasEntity(entity.parent)) {
+				const parent = this.getEntity(entity.parent);
 
 				if (parent.onChildUnload) {
 					try {
@@ -470,7 +473,7 @@ export class EntityManager {
 		this.references.removeReference(entity);
 
 		// delete entity
-		if (this.entities.has(entity.name)) {
+		if (this.hasEntity(entity.name)) {
 			this.entities.delete(entity.name);
 		}
 
@@ -481,10 +484,12 @@ export class EntityManager {
 	}
 
 	/**
-	 * Enforces Bento API and prepares entity to be loaded
-	 * @param entity - Entity to be prepared
+	 * Enforces Bento API and prepares entity for loading
+	 * @param entity - Entity
+	 *
+	 * @returns Entity Name
 	 */
-	private prepareEntity(entity: Entity) {
+	private async prepareEntity(entity: Entity): Promise<string> {
 		// take control and redefine entity name
 		Object.defineProperty(entity, 'name', {
 			configurable: true,
@@ -493,7 +498,13 @@ export class EntityManager {
 			value: entity.name,
 		});
 
-		// if entity has constructor lets track it
+		// Check dependencies
+		if (entity.dependencies == null) entity.dependencies = [];
+		if (entity.dependencies != null && !Array.isArray(entity.dependencies)) {
+			throw new EntityRegistrationError(entity, `"${entity.name}" Entity dependencies is not an array`);
+		}
+
+		// if entity has constructor track it
 		this.references.addReference(entity);
 
 		this.prepareDecorators(entity);
@@ -504,7 +515,7 @@ export class EntityManager {
 		// remove any duplicates or self from dependencies
 		entity.dependencies = entity.dependencies.reduce((a, d) => {
 			// prevent any dependencies to self
-			if (this.references.resolveNameSafe(d) === entity.name) return a;
+			if (this.resolveName(d) === entity.name) return a;
 
 			// ensure zero duplicates
 			if (!Array.prototype.includes.call(a, d)) a.push(d);
@@ -520,15 +531,37 @@ export class EntityManager {
 			enumerable: true,
 			value: api,
 		});
+
+		// determine dependencies
+		const missing = this.getMissingDependencies(entity);
+		if (missing.length === 0) {
+			// All dependencies are already loaded, go ahead and load the entity
+			await this.loadEntity(entity);
+		} else {
+			// not able to load this entity yet :c
+			this.pending.set(entity.name, entity);
+		}
+
+		return entity.name;
 	}
 
 	private async loadEntity(entity: Entity) {
+		// if we are a plugin verify we are not depending on a component
+		if (entity.type === EntityType.PLUGIN) {
+			for (const reference of entity.dependencies) {
+				const dependency = this.getEntity(reference);
+
+				if (dependency.type === EntityType.COMPONENT) throw new IllegalStateError(`Plugin "${entity.name}" cannot depend on Component "${dependency.name}".`);
+			}
+		}
+
+		// handle parent
 		let parent = null;
 		if (entity.parent) {
 			entity.parent = this.resolveName(entity.parent);
-			if (!this.entities.has(entity.parent)) throw new IllegalStateError(`Somehow a child entity loaded before their parent!`); // aka, universe bork
+			if (!this.hasEntity(entity.parent)) throw new IllegalStateError(`Somehow a child entity loaded before their parent!`); // aka, universe bork
 
-			parent = this.entities.get(entity.parent);
+			parent = this.getEntity(entity.parent);
 		}
 
 		this.handleDecorators(entity);
@@ -565,5 +598,8 @@ export class EntityManager {
 		if (entity.type === EntityType.COMPONENT) {
 			await this.handlePluginHook(PluginHook.onPostComponentLoad, entity as Component);
 		}
+
+		// loaded successfuly, if any pending entities, attempt to handle them now
+		if (this.pending.size > 0) return this.handlePendingEntities();
 	}
 }

@@ -225,10 +225,10 @@ export class Bento {
 	 * @returns Application state Object
 	 */
 	public async verify(): Promise<BentoState> {
-		// check for any pending components
+		// check for any pending entities
 		const pending = this.entities.getPendingEntities();
 		if (pending.length > 0) {
-			throw new IllegalStateError(`One or more components are still in a pending state: '${pending.map(p => p.name).join('\', \'')}'`);
+			throw new IllegalStateError(`One or more entities are still in a pending state: '${pending.map(p => p.name).join('\', \'')}'`);
 		}
 
 		const state: BentoState = { components: [], plugins: [], variables: [] };

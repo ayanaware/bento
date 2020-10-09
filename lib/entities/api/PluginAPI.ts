@@ -4,6 +4,9 @@ import { Plugin } from '../interfaces';
 import { SharedAPI } from './SharedAPI';
 
 export class PluginAPI extends SharedAPI {
+	// Make bento public as this is a plugin api
+	public readonly bento: Bento;
+
 	public constructor(bento: Bento, plugin: Plugin) {
 		super(bento);
 

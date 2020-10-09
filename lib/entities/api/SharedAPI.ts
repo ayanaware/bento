@@ -95,9 +95,8 @@ export class SharedAPI {
 	}
 
 	/**
-	 * Check if Bento has a given plugin
-	 *
-	 * @param reference Plugin instance, name or reference
+	 * Check if Plugin exists
+	 * @param reference PluginReference
 	 *
 	 * @returns boolean
 	 */
@@ -106,11 +105,10 @@ export class SharedAPI {
 	}
 
 	/**
-	 * Fetch the provided plugin instance
+	 * Get Plugin
+	 * @param reference PluginReference
 	 *
-	 * @param reference Plugin name or reference
-	 *
-	 * @returns Plugin instance
+	 * @returns Plugin
 	 */
 	public getPlugin<T extends Plugin>(reference: PluginReference): T {
 		const name = this.bento.entities.resolveName(reference);
@@ -121,9 +119,8 @@ export class SharedAPI {
 	}
 
 	/**
-	 * Checks if Bento has a given component
-	 *
-	 * @param reference Component instance, name or reference
+	 * Check if Component exists
+	 * @param reference ComponentReference
 	 *
 	 * @returns boolean
 	 */
@@ -132,11 +129,10 @@ export class SharedAPI {
 	}
 
 	/**
-	 * Fetch the provided component instance
+	 * Get Component
+	 * @param reference ComponentReference
 	 *
-	 * @param reference Component name or reference
-	 *
-	 * @returns Component instance
+	 * @returns Component
 	 */
 	public getComponent<T extends Component>(reference: ComponentReference): T {
 		const name = this.bento.entities.resolveName(reference);
@@ -144,6 +140,31 @@ export class SharedAPI {
 		if (!component) throw new APIError(this.entity, `Component "${name}" does not exist`);
 
 		return component;
+	}
+
+	/**
+	 * Check if Entity exists
+	 * @param reference EntityReference
+	 *
+	 * @returns boolean
+	 */
+	public hasEntity(reference: EntityReference) {
+		return this.bento.entities.hasEntity(reference);
+	}
+
+
+	/**
+	 * Get Entity
+	 * @param reference EntityReference
+	 *
+	 * @returns Entity
+	 */
+	public getEntity<T extends Entity>(reference: EntityReference): T {
+		const name = this.bento.entities.resolveName(reference);
+		const entity = this.bento.entities.getEntity<T>(name);
+		if (!entity) throw new APIError(this.entity, `Entity "${name}" does not exist`);
+
+		return entity;
 	}
 
 	/**

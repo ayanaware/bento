@@ -2,25 +2,16 @@
 	"name": "bento-examples",
 	"version": "1.0.0",
 	"description": "Learning how Bento works 101",
-	"author": "Ayana Developers <devs@ayana.io>",
-	"contributors": [
-		"HcgRandon <me@randon.moe>",
-		"TheAkio <me@theak.io>"
-	],
 	"scripts": {
 		"build": "ayc clean build"
 	},
 	"dependencies": {
 		"@ayana/logger": "^2.0.0-beta.3",
-		"@ayanaware/bento": "latest",
-		"eventemitter3": "^3.1.0"
-	},
-	"optionalDependencies": {
-		"eris": "^0.9.0"
-	},
-	"devDependencies": {
+		"@ayanaware/bento": "../build",
 		"@ayanaware/ts": "^1.1.2",
 		"@types/node": "^10.12.7",
+		"eventemitter3": "^3.1.0",
+		"eris": "^0.9.0",
 		"tslint": "^5.20.1",
 		"typescript": "^3.7.2"
 	},

@@ -96,3 +96,10 @@ const bento = new Bento();
 ```
 
 More examples available [here](https://gitlab.com/ayanaware/bento/tree/master/examples)
+
+## Testimonials
+Below are a few people raving about using Bento!
+
+>So far Bento has been nothing but good memories in production, it does its job very very well,
+ we've scaled to 40k Guilds, 10 shards a cluster and Bento makes life with scaling less scary.
+ -- Plexi Development ([captchabot.xyz](https://captchabot.xyz/))

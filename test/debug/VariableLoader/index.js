@@ -3,7 +3,7 @@ const { Bento, VariableFileLoader } = require('../../../build');
 const bento = new Bento();
 
 (async () => {
-	const vfl = new VariableFileLoader();
+	const vfl = new VariableFileLoader(true);
 	await vfl.addDefaultsFile(__dirname, 'defaults.json');
 
 	await bento.addPlugin(vfl);

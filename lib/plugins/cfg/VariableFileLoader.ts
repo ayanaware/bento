@@ -30,7 +30,7 @@ export class VariableFileLoader extends VariableLoader {
 	/**
 	 * @param watching Enable file watching? (Automatic hot-loading of variables in files)
 	 */
-	public constructor(watching: boolean) {
+	public constructor(watching: boolean = true) {
 		super();
 
 		this.watching = watching;

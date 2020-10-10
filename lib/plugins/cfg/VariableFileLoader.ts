@@ -48,6 +48,20 @@ export class VariableFileLoader extends VariableLoader {
 
 
 	/**
+	 * Add Multiple Variable Files
+	 * @param files Array of File Locations
+	 */
+	public async addFiles(files: Array<Array<string>>) {
+		const results: Array<string> = [];
+		for (const file of files) {
+			const location = await this.addFile(...file);
+			results.push(location);
+		}
+
+		return results;
+	}
+
+	/**
 	 * Add Variables File
 	 * @param location File Location
 	 */
@@ -57,6 +71,8 @@ export class VariableFileLoader extends VariableLoader {
 
 		// start watcher
 		if (this.watching) this.addWatcher(abs);
+
+		return abs;
 	}
 
 	/**
@@ -85,6 +101,20 @@ export class VariableFileLoader extends VariableLoader {
 	}
 
 	/**
+	 * Add Multiple Default Variable Files
+	 * @param files Array of File Locations
+	 */
+	public async addDefaultsFiles(files: Array<Array<string>>) {
+		const results: Array<string> = [];
+		for (const file of files) {
+			const location = await this.addDefaultsFile(...file);
+			results.push(location);
+		}
+
+		return results;
+	}
+
+	/**
 	 * Add Default Variables File
 	 * If no value is found for a key the value from this file will be used
 	 * @param location 
@@ -95,6 +125,8 @@ export class VariableFileLoader extends VariableLoader {
 
 		// start watcher
 		if (this.watching) this.addWatcher(abs, true);
+
+		return abs;
 	}
 
 	public async removeDefaultsFile(purge: boolean, ...location: Array<string>) {

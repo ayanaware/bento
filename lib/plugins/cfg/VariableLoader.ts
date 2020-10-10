@@ -1,3 +1,4 @@
+import { IllegalArgumentError } from '@ayanaware/errors';
 import { Plugin, PluginAPI } from '../../entities';
 
 /**
@@ -40,6 +41,24 @@ export class VariableLoader implements Plugin {
 	}
 
 	/**
+	 * Add multiple variables at once
+	 * @param kv String Array or Key/Value Object
+	 */
+	public addVariables(kv: Array<string> | {[key: string]: any}) {
+		if (typeof kv !== 'object') throw new IllegalArgumentError('kv must be an Object or Array');
+
+		if (Array.isArray(kv)) {
+			for (const key of kv) this.addVariable(key);
+
+			return;
+		}
+
+		for (const [key, value] of Object.entries(kv)) this.addVariable(key, value);
+
+		return this;
+	}
+
+	/**
 	 * Add Variable
 	 * @param key Key
 	 * @param def Default Value
@@ -51,6 +70,8 @@ export class VariableLoader implements Plugin {
 
 		// findVariableValue and loadVariable
 		this.processVariable(key);
+
+		return this;
 	}
 
 	/**

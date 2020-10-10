@@ -30,7 +30,7 @@ export class VariableLoader implements Plugin {
 	}
 
 	private handlePending() {
-		if (this.pending.size < 0) return;
+		if (this.pending.size == 0) return;
 
 		for (const [pendingKey, pendingValue] of this.pending.entries()) {
 			this.api.bento.setVariable(pendingKey, pendingValue);

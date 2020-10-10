@@ -9,6 +9,9 @@ import { Bento } from '../../../Bento';
 
 import { ConfigLoader } from './ConfigLoader';
 
+import { Logger } from '@ayanaware/logger-api';
+const log = Logger.get();
+
 /**
  * @ignore
  */
@@ -19,6 +22,9 @@ const access = util.promisify(fs.access);
  */
 const readFile = util.promisify(fs.readFile);
 
+/**
+ * @deprecated Please use VariableFileLoader instead
+ */
 export class ConfigFileLoader extends ConfigLoader {
 	public bento: Bento;
 	public name: string = 'ConfigFileLoader';
@@ -26,6 +32,7 @@ export class ConfigFileLoader extends ConfigLoader {
 	private readonly files: Set<string> = new Set();
 
 	public async onLoad() {
+		log.warn('ConfigFileLoader has been deprecated in favor of VariableFileLoader');
 		return this.reloadFiles();
 	}
 

@@ -4,12 +4,18 @@ import { IllegalArgumentError, IllegalStateError } from '@ayanaware/errors';
 import { PluginAPI } from '../../../entities';
 import { VariableSource, VariableSourceType } from '../../../interfaces';
 
+import { Logger } from '@ayanaware/logger-api';
+const log = Logger.get();
+
 export interface ConfigLoaderDefinition {
 	name: string;
 	env?: string;
 	value?: any;
 }
 
+/**
+ * @deprecated Please use VariableLoader instead
+ */
 export class ConfigLoader {
 	public api: PluginAPI;
 	public name: string = 'ConfigLoader';
@@ -17,6 +23,7 @@ export class ConfigLoader {
 	private readonly definitions: Map<string, ConfigLoaderDefinition> = new Map();
 
 	public async onLoad() {
+		log.warn('ConfigLoader has been deprecated in favor of VariableLoader');
 		return this.reloadValues();
 	}
 

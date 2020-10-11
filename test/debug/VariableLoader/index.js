@@ -4,24 +4,17 @@ const bento = new Bento();
 
 (async () => {
 	const vfl = new VariableFileLoader(true);
-	await vfl.addDefaultsFile(__dirname, 'defaults.json');
+	await vfl.addFile([__dirname, 'defaults.json'], true);
+	await vfl.addFile([__dirname, 'values.json']);
 
 	await bento.addPlugin(vfl);
 
 	await bento.verify();
 
-	console.log('Go try editing defaults.json. Add a new key. Ctrl-C to exit');
-
-	let lastKeys = Object.keys(bento.variables.getVariables());
-	console.log(lastKeys);
+	console.log('Go try editing defaults.json. Update a Value. Add a new key. Whatever Ctrl-C to exit');
 
 	while(1) {
-		let currentKeys = Object.keys(bento.variables.getVariables());
-
-		if (currentKeys.length > lastKeys.length) {
-			console.log('New Variable Loaded!', currentKeys);
-			lastKeys = currentKeys;
-		}
+		console.log(bento.variables.getVariables());
 
 		// wait 1s each pass
 		await new Promise((resolve, reject) => {

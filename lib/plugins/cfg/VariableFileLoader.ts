@@ -50,11 +50,12 @@ export class VariableFileLoader extends VariableLoader {
 	/**
 	 * Add Multiple Variable Files
 	 * @param files Array of File Locations
+	 * @param defaults Defaults Mode
 	 */
-	public async addFiles(files: Array<Array<string>>) {
+	public async addFiles(files: Array<Array<string>>, defaults: boolean) {
 		const results: Array<string> = [];
 		for (const file of files) {
-			const location = await this.addFile(...file);
+			const location = await this.addFile(file, defaults);
 			results.push(location);
 		}
 
@@ -64,13 +65,14 @@ export class VariableFileLoader extends VariableLoader {
 	/**
 	 * Add Variables File
 	 * @param location File Location
+	 * @param defaults Defaults Mode
 	 */
-	public async addFile(...location: Array<string>) {
+	public async addFile(location: Array<string>, defaults: boolean = false) {
 		const abs = path.resolve(...location);
-		await this.processFile(abs);
+		await this.processFile(abs, defaults);
 
 		// start watcher
-		if (this.watching) this.addWatcher(abs);
+		if (this.watching) this.addWatcher(abs, defaults);
 
 		return abs;
 	}
@@ -80,7 +82,7 @@ export class VariableFileLoader extends VariableLoader {
 	 * @param purge Purge Variables that this file Added
 	 * @param location File Location
 	 */
-	public async removeFile(purge: boolean, ...location: Array<string>) {
+	public async removeFile(location: Array<string>, purge: boolean) {
 		const abs = path.resolve(...location);
 		if (!this.files.has(abs)) return;
 
@@ -100,55 +102,7 @@ export class VariableFileLoader extends VariableLoader {
 		this.files.delete(abs);
 	}
 
-	/**
-	 * Add Multiple Default Variable Files
-	 * @param files Array of File Locations
-	 */
-	public async addDefaultsFiles(files: Array<Array<string>>) {
-		const results: Array<string> = [];
-		for (const file of files) {
-			const location = await this.addDefaultsFile(...file);
-			results.push(location);
-		}
-
-		return results;
-	}
-
-	/**
-	 * Add Default Variables File
-	 * If no value is found for a key the value from this file will be used
-	 * @param location 
-	 */
-	public async addDefaultsFile(...location: Array<string>) {
-		const abs = path.resolve(...location);
-		await this.processFile(abs, true);
-
-		// start watcher
-		if (this.watching) this.addWatcher(abs, true);
-
-		return abs;
-	}
-
-	public async removeDefaultsFile(purge: boolean, ...location: Array<string>) {
-		const abs = path.resolve(...location);
-
-		// purge requested, unload all variables we contributed
-		if (purge) {
-			const variables = this.files.get(abs);
-			for (const variable of variables) this.unloadVariable(variable);
-		}
-
-		// close watcher if exist
-		const watcher = this.watchers.get(abs)
-		if (watcher) {
-			watcher.close();
-			this.watchers.delete(abs);
-		}
-
-		this.files.delete(abs);
-	}
-
-	private addWatcher(location: string, defaults: boolean = false) {
+	private addWatcher(location: string, defaults: boolean) {
 		try {
 			const watcher = fs.watch(location, (event, filename) => {
 				if (event !== 'change') return;
@@ -190,52 +144,35 @@ export class VariableFileLoader extends VariableLoader {
 	 * @returns Key/Value Pairings Object
 	 */
 	public async parseFileContents(data: Buffer): Promise<{[key: string]: any}> {
-		return JSON.parse(data.toString());
-	}
-
-	protected async processFile(location: string, defaults: boolean = false) {
-		const data = await this.getFileContents(location);
-		const pairings = await this.parseFileContents(data);
-
-		if (!this.files.has(location)) this.files.set(location, new Set());
-
-		for (const [key, def] of Object.entries(pairings)) {
-			// mark file as owning this variable
-			this.files.get(location).add(key);
-
-			if (defaults) this.addVariable(key, def);
-			else this.processVariable(key, pairings);
+		try {
+			return JSON.parse(data.toString());
+		} catch (e) {
+			throw new ProcessingError('Failed to parse JSON').setCause(e);
 		}
 	}
 
-	/**
-	 * Process Variable Key including from Key/Value Pairings Object
-	 * @param key Key
-	 * @param pairings Key/Value Pairings Object
-	 */
-	protected processVariable(key: string, pairings?: {[key: string]: any}) {
-		let value = this.findVariableValue(key, pairings);
-		if (value == null) value = this.variables.get(key);
+	protected async processFile(location: string, defaults: boolean) {
+		const data = await this.getFileContents(location);
+		const pairings = await this.parseFileContents(data);
 
-		return this.loadVariable(key, value);
-	}
+		// file/variable ownership
+		if (!this.files.has(location)) this.files.set(location, new Set());
 
-	/**
-	 * Grab Key value from pairings object. Defer to super
-	 * @param key Key
-	 * @param pairings Key/Value Pairings Object
-	 */
-	protected findVariableValue(key: string, pairings?: {[key: string]: any}) {
-		if (typeof pairings !== 'object') return super.findVariableValue(key);
+		for (const [key, value] of Object.entries(pairings)) {
+			// register variable
+			this.variables.add(key);
+			this.files.get(location).add(key);
 
-		// fetch value from pairings
-		let value = null;
-		if (pairings[key]) value = pairings[key];
+			// add default if eligable
+			if (defaults && value != null) {
+				this.defaults.set(key, value);
 
-		// defer to super
-		const overrideValue = super.findVariableValue(key);
-		if (overrideValue) value = overrideValue;
+				this.processVariable(key);
+				continue;
+			}
 
-		return value;
+			// process variable. overriding values and defaults
+			this.processVariable(key, pairings[key]);
+		}
 	}
 }

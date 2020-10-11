@@ -1,6 +1,8 @@
 import { IllegalArgumentError } from '@ayanaware/errors';
 import { Plugin, PluginAPI } from '../../entities';
 
+export type VariableValue = any;
+
 /**
  * A Simple Bento Variable Loader. Automatically looks to the enviorment for values.
  * If you `VariableLoader.addVariable('HELLO_WORLD')` this Plugin will automatically
@@ -11,9 +13,14 @@ export class VariableLoader implements Plugin {
 	public api!: PluginAPI
 
 	/**
-	 * Variables that this Loader is handling and their defaults
+	 * Variables that this Loader is handling
 	 */
-	protected readonly variables: Map<string, any> = new Map();
+	protected readonly variables: Set<string> = new Set();
+
+	/**
+	 * Variable defaults if exist
+	 */
+	protected readonly defaults: Map<string, VariableValue> = new Map();
 
 	/**
 	 * A cache of pending Variable Keys and Values
@@ -41,18 +48,20 @@ export class VariableLoader implements Plugin {
 	}
 
 	/**
-	 * Add multiple variables at once
+	 * Add multiple Variables
 	 * @param kv String Array or Key/Value Object
 	 */
-	public addVariables(kv: Array<string> | {[key: string]: any}) {
+	public addVariables(kv: Array<string> | {[key: string]: VariableValue}) {
 		if (typeof kv !== 'object') throw new IllegalArgumentError('kv must be an Object or Array');
 
+		// Handle Array
 		if (Array.isArray(kv)) {
 			for (const key of kv) this.addVariable(key);
 
 			return;
 		}
 
+		// Must be Object
 		for (const [key, value] of Object.entries(kv)) this.addVariable(key, value);
 
 		return this;
@@ -61,14 +70,34 @@ export class VariableLoader implements Plugin {
 	/**
 	 * Add Variable
 	 * @param key Key
-	 * @param def Default Value
+	 * @param value Value
 	 */
-	public addVariable(key: string, def: any = null) {
-		if (this.variables.has(key)) return;
+	public addVariable(key: string, value?: VariableValue) {
+		if (!this.variables.has(key)) this.variables.add(key);
+		this.processVariable(key, value);
 
-		this.variables.set(key, def);
+		return this;
+	}
 
-		// findVariableValue and loadVariable
+	/**
+	 * Add multiple default values
+	 * @param kv Key/Default Object
+	 */
+	public addDefaults(kv: {[key: string]: VariableValue}) {
+		if (typeof kv !== 'object') throw new IllegalArgumentError('Must be an Object');
+
+		for (const [key, def] of Object.entries(kv)) this.addDefault(key, def);
+	}
+
+	/**
+	 * Add Default Value for Variable
+	 * @param key Key
+	 * @param def Default
+	 */
+	public addDefault(key: string, def: VariableValue) {
+		if (!this.variables.has(key)) this.variables.add(key);
+		this.defaults.set(key, def);
+
 		this.processVariable(key);
 
 		return this;
@@ -79,20 +108,22 @@ export class VariableLoader implements Plugin {
 	 * @param key Key
 	 */
 	public removeVariable(key: string)  {
-		if (!this.variables.has(key)) return;
+		if (this.variables.has(key)) this.variables.delete(key);
+		if (this.defaults.has(key)) this.defaults.delete(key);
 
 		this.unloadVariable(key);
-
-		this.variables.delete(key);
 	}
 
 	/**
 	 * Process Variable Key
 	 * @param key Variable Key
+	 * @param override Force variable to value
 	 */
-	protected processVariable(key: string) {
+	protected processVariable(key: string, override?: VariableValue) {
 		let value = this.findVariableValue(key);
-		if (value == null) value = this.variables.get(key);
+		if (value == null && this.defaults.has(key)) value = this.defaults.get(key);
+
+		if (override != undefined) value = override;
 
 		return this.loadVariable(key, value);
 	}

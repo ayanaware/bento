@@ -3,7 +3,7 @@ import { IllegalAccessError, IllegalArgumentError, IllegalStateError } from '@ay
 
 import { Bento } from '../../Bento';
 import { APIError } from '../../errors';
-import { EventEmitterLike } from '../../interfaces';
+import { EventEmitterLike, Type } from '../../interfaces';
 import { VariableDefinition } from '../../variables';
 import { Component, Entity, Plugin } from '../interfaces';
 import { EntityType } from '../internal';
@@ -95,6 +95,31 @@ export class SharedAPI {
 	}
 
 	/**
+	 * Check if Entity exists
+	 * @param reference EntityReference
+	 *
+	 * @returns boolean
+	 */
+	public hasEntity(reference: EntityReference) {
+		return this.bento.entities.hasEntity(reference);
+	}
+
+
+	/**
+	 * Get Entity
+	 * @param reference EntityReference
+	 *
+	 * @returns Entity
+	 */
+	public getEntity<T extends Entity>(reference: Type<T> | EntityReference): T {
+		const name = this.bento.entities.resolveName(reference);
+		const entity = this.bento.entities.getEntity<T>(name);
+		if (!entity) throw new APIError(this.entity, `Entity "${name}" does not exist`);
+
+		return entity;
+	}
+
+	/**
 	 * Check if Plugin exists
 	 * @param reference PluginReference
 	 *
@@ -110,7 +135,7 @@ export class SharedAPI {
 	 *
 	 * @returns Plugin
 	 */
-	public getPlugin<T extends Plugin>(reference: T | PluginReference): T {
+	public getPlugin<T extends Plugin>(reference: Type<T> | PluginReference): T {
 		const name = this.bento.entities.resolveName(reference);
 		const plugin = this.bento.entities.getPlugin<T>(name);
 		if (!plugin) throw new APIError(this.entity, `Plugin "${name}" does not exist`);
@@ -134,37 +159,12 @@ export class SharedAPI {
 	 *
 	 * @returns Component
 	 */
-	public getComponent<T extends Component>(reference: T | ComponentReference): T {
+	public getComponent<T extends Component>(reference: Type<T> | ComponentReference): T {
 		const name = this.bento.entities.resolveName(reference);
 		const component = this.bento.entities.getComponent<T>(name);
 		if (!component) throw new APIError(this.entity, `Component "${name}" does not exist`);
 
 		return component;
-	}
-
-	/**
-	 * Check if Entity exists
-	 * @param reference EntityReference
-	 *
-	 * @returns boolean
-	 */
-	public hasEntity(reference: EntityReference) {
-		return this.bento.entities.hasEntity(reference);
-	}
-
-
-	/**
-	 * Get Entity
-	 * @param reference EntityReference
-	 *
-	 * @returns Entity
-	 */
-	public getEntity<T extends Entity>(reference: T | EntityReference): T {
-		const name = this.bento.entities.resolveName(reference);
-		const entity = this.bento.entities.getEntity<T>(name);
-		if (!entity) throw new APIError(this.entity, `Entity "${name}" does not exist`);
-
-		return entity;
 	}
 
 	/**

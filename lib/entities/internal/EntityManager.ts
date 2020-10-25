@@ -9,6 +9,7 @@ import {
 	getVariableDecoratorInjections,
 } from '../../decorators/internal';
 import { EntityRegistrationError } from '../../errors';
+import { Type } from '../../interfaces';
 import { ComponentAPI, PluginAPI } from '../api';
 import { Component, Entity, Plugin } from '../interfaces';
 import { ComponentReference, EntityReference, PluginReference, ReferenceManager } from '../references';
@@ -90,7 +91,7 @@ export class EntityManager {
 	 *
 	 * @returns Entity or null
 	 */
-	public getEntity<T extends Entity>(reference: T | EntityReference): T {
+	public getEntity<T extends Entity>(reference: Type<T> | EntityReference): T {
 		const name = this.resolveName(reference);
 
 		return (this.getEntities().get(name) || null) as T;
@@ -114,7 +115,7 @@ export class EntityManager {
 	 *
 	 * @returns Plugin or null
 	 */
-	public getPlugin<T extends Plugin>(reference: T | PluginReference): T {
+	public getPlugin<T extends Plugin>(reference: Type<T> | PluginReference): T {
 		const name = this.resolveName(reference);
 
 		return (this.getEntities<Plugin>(EntityType.PLUGIN).get(name) || null) as T;
@@ -147,7 +148,7 @@ export class EntityManager {
 	 *
 	 * @returns Component or null
 	 */
-	public getComponent<T extends Component>(reference: T | ComponentReference): T {
+	public getComponent<T extends Component>(reference: Type<T> | ComponentReference): T {
 		const name = this.resolveName(reference);
 
 		return (this.getEntities<Component>(EntityType.COMPONENT).get(name) || null) as T;

@@ -5,10 +5,7 @@ import { IllegalStateError } from '@ayanaware/errors';
 
 import { Component, ComponentReference, Entity, EntityReference, Plugin, PluginReference } from './entities';
 import { EntityManager, EntityType } from './entities/internal';
-import {
-	BentoState,
-	EventEmitterLike,
-} from './interfaces';
+import { BentoState, EventEmitterLike, Type } from './interfaces';
 import { PropertyManager } from './properties/internal';
 import { LiteEmitter } from './util';
 import { VariableManager } from './variables/internal';
@@ -62,7 +59,7 @@ export class Bento {
 	 * @see EntityManager#getEntity
 	 * @returns See Bento.entities.getEntity()
 	 */
-	public async getEntity<T extends Entity>(reference: T | EntityReference) {
+	public async getEntity<T extends Entity>(reference: Type<T> | EntityReference) {
 		return this.entities.getEntity<T>(reference);
 	}
 
@@ -108,7 +105,7 @@ export class Bento {
 	 * @see EntityManager#getPlugin
 	 * @returns See Bento.entities.getPlugin()
 	 */
-	public async getPlugin<T extends Plugin>(reference: T | PluginReference) {
+	public async getPlugin<T extends Plugin>(reference: Type<T> | PluginReference) {
 		return this.entities.getPlugin<T>(reference);
 	}
 
@@ -143,7 +140,7 @@ export class Bento {
 	 * @see EntityManager#getComponent
 	 * @returns See Bento.entities.getComponent()
 	 */
-	public async getComponent<T extends Component>(reference: T | ComponentReference) {
+	public async getComponent<T extends Component>(reference: Type<T> | ComponentReference) {
 		return this.entities.getComponent<T>(reference);
 	}
 

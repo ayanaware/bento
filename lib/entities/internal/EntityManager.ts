@@ -90,7 +90,7 @@ export class EntityManager {
 	 *
 	 * @returns Entity or null
 	 */
-	public getEntity<T extends Entity>(reference: EntityReference): T {
+	public getEntity<T extends Entity>(reference: T | EntityReference): T {
 		const name = this.resolveName(reference);
 
 		return (this.getEntities().get(name) || null) as T;
@@ -114,7 +114,7 @@ export class EntityManager {
 	 *
 	 * @returns Plugin or null
 	 */
-	public getPlugin<T extends Plugin>(reference: PluginReference): T {
+	public getPlugin<T extends Plugin>(reference: T | PluginReference): T {
 		const name = this.resolveName(reference);
 
 		return (this.getEntities<Plugin>(EntityType.PLUGIN).get(name) || null) as T;
@@ -147,7 +147,7 @@ export class EntityManager {
 	 *
 	 * @returns Component or null
 	 */
-	public getComponent<T extends Component>(reference: ComponentReference): T {
+	public getComponent<T extends Component>(reference: T | ComponentReference): T {
 		const name = this.resolveName(reference);
 
 		return (this.getEntities<Component>(EntityType.COMPONENT).get(name) || null) as T;

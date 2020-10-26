@@ -12,14 +12,15 @@
 	],
 	"scripts": {
 		"start": "node build/index.js",
-		"build": "ayc build",
+		"build": "ayc clean build",
 		"prepublishOnly": "ayc clean build",
 		"test": "ayc clean build && mocha",
 		"testcoverage": "ayc clean build && nyc mocha"
 	},
 	"dependencies": {
 		"@ayanaware/errors": "^1.1.0",
-		"@ayanaware/logger-api": "^2.0.0"
+		"@ayanaware/logger-api": "^2.0.0",
+		"reflect-metadata": "^0.1.13"
 	},
 	"devDependencies": {
 		"@ayana/test": "^2.1.0",

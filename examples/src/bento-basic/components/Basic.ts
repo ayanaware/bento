@@ -2,10 +2,10 @@
 import { Component, ComponentAPI } from '@ayanaware/bento';
 
 export class Basic implements Component {
-	// this property becomes available after onLoad see ComponentAPI for more info
-	public api!: ComponentAPI;
 	// required for all components, must be unique
 	public name: string = 'Basic';
+	// this property becomes available after onLoad see ComponentAPI for more info
+	public api!: ComponentAPI;
 
 	// Optionally define other components we depend upon
 	// Some decorators auto append to this array such as @Subscribe

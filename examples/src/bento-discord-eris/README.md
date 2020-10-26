@@ -1,3 +1,6 @@
+# Consider this example deprecated in favor of Bentocord
+Bentocord is a Bento plugin built by us for creating Discord bots. You can find it [here](https://www.npmjs.com/package/@ayanaware/bentocord)
+
 # Example bento-discord-eris
 
 This is a robust example of using Bento in a [Discord](https://discordapp.com) bot.

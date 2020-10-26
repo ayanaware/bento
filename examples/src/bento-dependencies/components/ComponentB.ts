@@ -7,8 +7,8 @@ import { Logger } from '@ayana/logger';
 const log = Logger.get('ComponentB');
 
 export class ComponentB {
-	public api: ComponentAPI;
 	public name: string = 'ComponentB';
+	public api: ComponentAPI;
 
 	public dependencies: Array<Component> = [ComponentA];
 

@@ -1,5 +1,5 @@
 export { ChildOf } from './ChildOfDecorator';
-export { Inject } from './InjectDecorator';
+export { Inject } from './Inject';
 export { Parent } from './ParentDecorator';
-export { Subscribe, SubscribeEvent } from './SubscribeDecorator';
+export { Subscribe } from './Subscribe';
 export { Variable } from './VariableDecorator';

@@ -1,6 +1,8 @@
 
+export * from './MetadataSymbols';
+
 export * from '../ChildOfDecorator';
-export * from '../InjectDecorator';
+export * from '../Inject';
 export * from '../ParentDecorator';
-export * from '../SubscribeDecorator';
+export * from '../Subscribe';
 export * from '../VariableDecorator';

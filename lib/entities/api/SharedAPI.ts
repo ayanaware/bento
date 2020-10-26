@@ -190,8 +190,8 @@ export class SharedAPI {
 	 * @param reference Component name or reference
 	 * @param injectName property name to inject into
 	 */
-	public injectComponent(reference: ComponentReference, injectName: string) {
-		if (this.entity.hasOwnProperty(injectName)) throw new APIError(this.entity, `Cannot inject component, ${this.entity.name}.${injectName} is already defined`);
+	public injectComponent(reference: ComponentReference, injectName: string | symbol) {
+		if (this.entity.hasOwnProperty(injectName)) throw new APIError(this.entity, `Cannot inject component, ${this.entity.name}.${injectName.toString()} is already defined`);
 		if (!this.hasComponent(reference)) throw new APIError(this.entity, `Unable to inject non-existent component "${reference}"`);
 
 		// prevent inject of component into plugin
@@ -212,8 +212,8 @@ export class SharedAPI {
 	 * @param reference Plugin name or reference
 	 * @param injectName property name to inject into
 	 */
-	public injectPlugin(reference: PluginReference, injectName: string) {
-		if (this.entity.hasOwnProperty(injectName)) throw new APIError(this.entity, `Cannot inject plugin, ${this.entity.name}.${injectName} is already defined`);
+	public injectPlugin(reference: PluginReference, injectName: string | symbol) {
+		if (this.entity.hasOwnProperty(injectName)) throw new APIError(this.entity, `Cannot inject plugin, ${this.entity.name}.${injectName.toString()} is already defined`);
 		if (!this.hasPlugin(reference)) throw new APIError(this.entity, 'Unable to inject non-existent plugin');
 
 		Object.defineProperty(this.entity, injectName, {
@@ -231,8 +231,8 @@ export class SharedAPI {
 	 * @param reference Entity name or reference
 	 * @param injectName Property name to inject to
 	 */
-	public injectEntity(reference: EntityReference, injectName: string) {
-		if (this.entity.hasOwnProperty(injectName)) throw new APIError(this.entity, `Cannot inject entity, ${this.entity.name}.${injectName} is already defined`);
+	public injectEntity(reference: EntityReference, injectName: string | symbol) {
+		if (this.entity.hasOwnProperty(injectName)) throw new APIError(this.entity, `Cannot inject entity, ${this.entity.name}.${injectName.toString()} is already defined`);
 
 		const name = this.bento.entities.resolveName(reference);
 

@@ -7,8 +7,8 @@ import { Logger } from '@ayana/logger';
 const log = Logger.get('Clock');
 
 export class Clock {
-	public api: ComponentAPI;
 	public name: string = 'Clock';
+	public api: ComponentAPI;
 
 	// While not required in this instance. Still a good habit to get into including
 	public dependencies: Array<Component> = [];

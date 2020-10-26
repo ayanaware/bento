@@ -7,8 +7,8 @@ import { Clock } from './Clock';
 const log = Logger.get('ClockListener');
 
 export class ClockListener {
-	public api: ComponentAPI;
 	public name: string = 'ClockListener';
+	public api: ComponentAPI;
 
 	// The below @Subscribe actually automatically appends the dependency to this array.
 	// So you actually don't need to include this line at all. However for the sake of the example

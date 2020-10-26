@@ -3,14 +3,13 @@ import {
 	ComponentAPI,
 	Subscribe,
 	Variable,
-	VariableDefinitionType,
 } from '@ayanaware/bento';
 import * as Eris from 'eris';
 
-import { Logger } from '@ayana/logger';
-
-import { Config } from '../Config';
+import { Variables } from '../Variables';
 import { DiscordEvent } from '../Constants';
+
+import { Logger } from '@ayana/logger';
 const log = Logger.get('Discord');
 
 export class Discord {
@@ -19,7 +18,7 @@ export class Discord {
 
 	private cli: Eris.Client = null;
 
-	@Variable({ type: VariableDefinitionType.STRING, name: Config.BOT_TOKEN, default: null }) // Can be done via this.api.getVariable(definition) for non ts users
+	@Variable({ name: Variables.BOT_TOKEN, default: null }) // Can be done via this.api.getVariable(definition) for non ts users
 	private readonly token: string = null;
 
 	public async onLoad() {

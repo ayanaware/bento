@@ -5,8 +5,8 @@ import { Logger } from '@ayana/logger';
 const log = Logger.get('ExampleComponent');
 
 export class ExampleComponent {
-	public api: ComponentAPI;
 	public name: string = 'ExampleComponent';
+	public api: ComponentAPI;
 
 	public dependencies: Array<Component> = [];
 

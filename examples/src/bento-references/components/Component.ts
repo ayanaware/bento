@@ -5,8 +5,8 @@ import { Logger } from '@ayana/logger';
 const log = Logger.get('ExampleReferences');
 
 export class ExampleReferences {
-	public api: ComponentAPI;
 	public name: string = 'ExampleReferences';
+	public api: ComponentAPI;
 
 	public async onLoad() {
 		this.api.emit('someEvent', 'hello', 'world');

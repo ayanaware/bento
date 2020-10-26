@@ -3,9 +3,9 @@ import { IllegalArgumentError, IllegalStateError, ProcessingError } from '@ayana
 import { Bento } from '../../Bento';
 import {
 	getChildOfDecoratorInjection,
-	getInjectDecoratorInjections,
+	getInjections,
 	getParentDecoratorInjection,
-	getSubscribeDecoratorInjections,
+	getSubscriptions,
 	getVariableDecoratorInjections,
 } from '../../decorators/internal';
 import { EntityRegistrationError } from '../../errors';
@@ -291,18 +291,18 @@ export class EntityManager {
 	 * @param entity Entity
 	 */
 	private prepareDecorators(entity: Entity) {
+		// @Inject
+		getInjections(entity).forEach(i => entity.dependencies.push(i.reference));
+
+		// @Subscribe
+		getSubscriptions(entity).forEach(s => entity.dependencies.push(s.reference));
+
 		// @ChildOf
 		if (getChildOfDecoratorInjection(entity) != null) {
 			if (entity.parent != null) throw new EntityRegistrationError(entity, 'Parent already defined. Can\'t prepare @ChildOf decorator');
 
 			entity.parent = getChildOfDecoratorInjection(entity).reference;
 		}
-
-		// @Inject Decorator
-		getInjectDecoratorInjections(entity).forEach(i => entity.dependencies.push(i.reference));
-
-		// @Subscribe Decorator
-		getSubscribeDecoratorInjections(entity).forEach(s => entity.dependencies.push(s.reference));
 	}
 
 	/**
@@ -311,10 +311,11 @@ export class EntityManager {
 	 * @param entity Entity
 	 */
 	private handleDecorators(entity: Entity) {
-		// @Inject Decorator
-		for (const injection of getInjectDecoratorInjections(entity)) {
-			entity.api.injectEntity(injection.reference, injection.propertyKey);
-		}
+		// @Inject 
+		getInjections(entity).forEach(i => entity.api.injectEntity(i.reference, i.key));
+
+		// @Subscribe Decorator
+		getSubscriptions(entity).forEach(s => entity.api.subscribe(s.reference, s.event, s.handler, entity));
 
 		// @Parent Decorator
 		if (entity.parent && getParentDecoratorInjection(entity) != null) {
@@ -324,11 +325,6 @@ export class EntityManager {
 				enumerable: true,
 				value: entity.parent,
 			});
-		}
-
-		// @Subscribe Decorator
-		for (const injection of getSubscribeDecoratorInjections(entity)) {
-			entity.api.subscribe(injection.reference, injection.eventName, injection.handler, entity);
 		}
 
 		// @Variable Decorator

@@ -1,5 +1,5 @@
 
-import { Bento, ComponentAPI, ConfigLoader, Variable, VariableDefinitionType } from '@ayanaware/bento';
+import { Bento, ComponentAPI, Variable, VariableLoader } from '@ayanaware/bento';
 
 import { Logger } from '@ayana/logger';
 const log = Logger.get(null);
@@ -12,19 +12,13 @@ const bento = new Bento();
 	log.info('Setting bento variable "hello" equal to "world"');
 	bento.setVariable('hello', 'world');
 
-	// using config loader plugin to map an ENV variable to a bento variable
-	log.info('Mapping bento variable "foo" to env variable "BAR"');
-	const config = new ConfigLoader();
+	// using variable loader plugin to map an ENV variable to a bento variable
+	log.info('Mapping env variable "FOO" to bento variable "FOO"');
+	const vl = new VariableLoader();
+	vl.addVariable('FOO', 'Try running this example with `FOO=mystring` appended to the front')
 
-	// tell config loader to do the mapping
-	config.addDefinition({
-		name: 'foo', // the name of the bento variable to map to
-		env: 'BAR', // the name of the env variable
-		value: 'TRY RUNNING THIS EXAMPLE WITH `BAR=mystring` IN FRONT', // You dont need this, just setting this to hopefully get users to test `FOO=mystring node ...`
-	});
-
-	// load config loader plugin into bento
-	await bento.addPlugin(config);
+	// load variable loader plugin into bento
+	await bento.addPlugin(vl);
 
 	// our variable is now available!
 
@@ -35,7 +29,7 @@ const bento = new Bento();
 		public name: string = 'ExampleComponent';
 
 		// You can either use a decorator to define the variable
-		@Variable({ type: VariableDefinitionType.STRING, name: 'hello' }) // name is the name of the bento variable
+		@Variable({ name: 'hello' }) // name is the name of the bento variable
 		private hello: string;
 
 		async onLoad() {
@@ -43,9 +37,7 @@ const bento = new Bento();
 
 			// inject variables onLoad
 			this.api.injectVariable({
-				type: VariableDefinitionType.STRING,
-				name: 'foo', // Name of bento variable
-				property: 'foo', // Property name on component to inject to
+				name: 'FOO', // Name of bento variable
 				default: 'bar', // Optional default
 			});
 
@@ -53,7 +45,7 @@ const bento = new Bento();
 			// it will return the default
 
 			// or just grab it
-			const foo = await this.api.getVariable('foo');
+			const foo = await this.api.getVariable('FOO');
 			log2.info(`Variable foo = "${foo}"`);
 		}
 	}

@@ -1,5 +1,5 @@
 
-export * from './MetadataSymbols';
+export * from './MetadataKeys';
 
 export * from '../ChildOfDecorator';
 export * from '../Inject';

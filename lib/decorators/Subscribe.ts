@@ -1,5 +1,3 @@
-import { IllegalAccessError } from '@ayanaware/errors';
-
 import { EntityReference } from '../entities';
 import { MetadataSymbols } from './internal';
 

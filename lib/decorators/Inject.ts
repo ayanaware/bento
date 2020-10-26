@@ -1,5 +1,3 @@
-import 'reflect-metadata';
-
 import { IllegalAccessError, IllegalArgumentError } from '@ayanaware/errors';
 
 import { EntityReference } from '../entities';

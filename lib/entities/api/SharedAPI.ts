@@ -269,7 +269,7 @@ export class SharedAPI {
 	 * @param definition Variable definition
 	 * @param injectName property name to inject into
 	 */
-	public injectVariable(definition: VariableDefinition, injectName?: string) {
+	public injectVariable(definition: VariableDefinition, injectName?: string | symbol) {
 		if (!definition.name) throw new APIError(this.entity, 'VariableDefinition must have a name');
 
 		// if variable not in bento, and no default defined. Throw an error

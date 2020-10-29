@@ -16,7 +16,7 @@ export function getInjections(target: any): Array<Injections> {
 }
 
 export function Inject(reference?: EntityReference): PropertyDecorator {
-	return function(target: any, propertyKey: string | symbol, parameterIndex?: number) {
+	return (target: any, propertyKey: string | symbol, parameterIndex?: number) => {
 		if (typeof parameterIndex === 'number' && propertyKey != null) throw new IllegalAccessError('Inject(): cannot be used on method parameters outside of constructor');
 
 		// If no reference, attempt infer from Typescript

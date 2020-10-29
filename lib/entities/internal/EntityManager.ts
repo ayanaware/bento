@@ -6,7 +6,7 @@ import {
 	getInjections,
 	getParentDecoratorInjection,
 	getSubscriptions,
-	getVariableDecoratorInjections,
+	getVariables,
 } from '../../decorators/internal';
 import { EntityRegistrationError } from '../../errors';
 import { Type } from '../../interfaces';
@@ -317,6 +317,9 @@ export class EntityManager {
 		// @Subscribe Decorator
 		getSubscriptions(entity).forEach(s => entity.api.subscribe(s.reference, s.event, s.handler, entity));
 
+		// @Variable Decorator
+		getVariables(entity).forEach(v => entity.api.injectVariable(v.definition, v.key));
+
 		// @Parent Decorator
 		if (entity.parent && getParentDecoratorInjection(entity) != null) {
 			Object.defineProperty(entity, getParentDecoratorInjection(entity).propertyKey, {
@@ -325,11 +328,6 @@ export class EntityManager {
 				enumerable: true,
 				value: entity.parent,
 			});
-		}
-
-		// @Variable Decorator
-		for (const injection of getVariableDecoratorInjections(entity)) {
-			entity.api.injectVariable(injection.definition, injection.propertyKey);
 		}
 	}
 

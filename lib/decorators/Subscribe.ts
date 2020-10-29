@@ -15,7 +15,7 @@ export function getSubscriptions(target: any): Array<Subscriptions> {
 }
 
 export function Subscribe(reference: EntityReference, event: string): MethodDecorator {
-	return function(target: any, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<any>) {
+	return (target: any, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<any>) => {
 		if (target.prototype === undefined) target = target.constructor;
 
 		const subscriptions: Array<Subscriptions> = Reflect.getMetadata(MetadataKeys.SUBSCRIBE, target) || [];
@@ -23,5 +23,5 @@ export function Subscribe(reference: EntityReference, event: string): MethodDeco
 		subscriptions.push({ reference, event, handler: descriptor.value });
 
 		Reflect.defineMetadata(MetadataKeys.SUBSCRIBE, subscriptions, target);
-	}
+	};
 }

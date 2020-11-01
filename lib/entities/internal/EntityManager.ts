@@ -11,15 +11,10 @@ import {
 import { EntityRegistrationError } from '../../errors';
 import { Type } from '../../interfaces';
 import { ComponentAPI, PluginAPI } from '../api';
-import { Component, Entity, Plugin } from '../interfaces';
+import { Component, Entity, EntityType, Plugin } from '../interfaces';
 import { ComponentReference, EntityReference, PluginReference, ReferenceManager } from '../references';
 
 import { EntityEvents } from './EntityEvents';
-
-export enum EntityType {
-	PLUGIN = 'plugin',
-	COMPONENT = 'component',
-}
 
 export enum PluginHook {
 	onPreComponentLoad = 'onPreComponentLoad',

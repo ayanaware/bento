@@ -1,6 +1,10 @@
 import { SharedAPI } from '../api';
-import { EntityType } from '../internal';
 import { EntityReference } from '../references/types';
+
+export enum EntityType {
+	PLUGIN = 'plugin',
+	COMPONENT = 'component',
+}
 
 export interface Entity {
 	type?: EntityType;

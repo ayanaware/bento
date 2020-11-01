@@ -6,8 +6,8 @@ import { APIError } from '../../errors';
 import { EventEmitterLike, Type } from '../../interfaces';
 import { VariableDefinition } from '../../variables';
 import { Component, Entity, Plugin } from '../interfaces';
-import { EntityType } from '../internal';
 import { ComponentReference, EntityReference, PluginReference } from '../references';
+import { EntityType } from '../';
 
 /**
  * Shared functions for ComponentAPI and PluginAPI

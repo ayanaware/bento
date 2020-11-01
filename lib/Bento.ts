@@ -3,8 +3,16 @@ import * as crypto from 'crypto';
 
 import { IllegalStateError } from '@ayanaware/errors';
 
-import { Component, ComponentReference, Entity, EntityReference, Plugin, PluginReference } from './entities';
-import { EntityManager, EntityType } from './entities/internal';
+import {
+	Component,
+	ComponentReference,
+	Entity,
+	EntityType,
+	EntityReference,
+	Plugin,
+	PluginReference
+} from './entities';
+import { EntityManager } from './entities/internal';
 import { BentoState, EventEmitterLike, Type } from './interfaces';
 import { PropertyManager } from './properties/internal';
 import { LiteEmitter } from './util';

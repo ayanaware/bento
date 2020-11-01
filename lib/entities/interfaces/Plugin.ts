@@ -1,5 +1,5 @@
 import { PluginAPI } from '../api/PluginAPI';
-import { EntityType } from '../internal';
+import { EntityType } from '../';
 
 import { Component } from './Component';
 import { Entity } from './Entity';

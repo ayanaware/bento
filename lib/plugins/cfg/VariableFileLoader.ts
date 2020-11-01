@@ -66,9 +66,22 @@ export class VariableFileLoader extends VariableLoader {
 	 * Add Variables File
 	 * @param location File Location
 	 * @param defaults Defaults Mode
+	 * 
+	 * @throws ProcessingError If `fs.access` check fails and `defaults` is true
 	 */
 	public async addFile(location: Array<string>, defaults: boolean = false) {
 		const abs = path.resolve(...location);
+		try {
+			await accessAsync(abs, fs.constants.F_OK);
+		} catch (e) {
+			// defaults files are "required", so bubble error
+			if (defaults) throw new ProcessingError(`addFile(): Defaults file "${abs}" access check failed`).setCause(e);
+
+			log.warn(`addFile(): Ignoring File "${abs}", access check failed`);
+
+			return;
+		}
+
 		await this.processFile(abs, defaults);
 
 		// start watcher
@@ -133,7 +146,7 @@ export class VariableFileLoader extends VariableLoader {
 
 			return readFileAsync(location);
 		} catch(e) {
-			throw new ProcessingError(`Failed to getFileContents of "${location}"`).setCause(e);
+			throw new ProcessingError(`getFileContents(): Failed for "${location}"`).setCause(e);
 		}
 	}
 

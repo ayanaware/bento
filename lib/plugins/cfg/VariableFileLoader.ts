@@ -1,9 +1,11 @@
-import { ProcessingError } from '@ayanaware/errors';
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 
+import { ProcessingError } from '@ayanaware/errors';
+
 import { PluginAPI } from '../../entities';
+
 import { VariableLoader } from './VariableLoader';
 
 import { Logger } from '@ayanaware/logger-api';
@@ -17,7 +19,7 @@ const readFileAsync = promisify(fs.readFile);
  * If you have a custom file format or prefer to use something other than JSON
  * You can provide a custom `parseFileContents` function. Just return Key/Value pairs
  * derived from the file Buffer.
- * 
+ *
  * Keep in mind that if you have key `HELLO_WORLD` in a file or defaults file and `HELLO_WORLD` in the enviorment
  * the value from the enviorment will take priority
  */
@@ -25,7 +27,7 @@ export class VariableFileLoader extends VariableLoader {
 	public name = 'VariableFileLoader';
 	public api!: PluginAPI;
 
-	private watching: boolean;
+	private readonly watching: boolean;
 
 	/**
 	 * @param watching Enable file watching? (Automatic hot-loading of variables in files)
@@ -46,11 +48,12 @@ export class VariableFileLoader extends VariableLoader {
 	 */
 	private readonly watchers: Map<string, fs.FSWatcher> = new Map();
 
-
 	/**
 	 * Add Multiple Variable Files
 	 * @param files Array of File Locations
 	 * @param defaults Defaults Mode
+	 *
+	 * @returns Array<Path>
 	 */
 	public async addFiles(files: Array<Array<string>>, defaults: boolean) {
 		const results: Array<string> = [];
@@ -66,8 +69,9 @@ export class VariableFileLoader extends VariableLoader {
 	 * Add Variables File
 	 * @param location File Location
 	 * @param defaults Defaults Mode
-	 * 
+	 *
 	 * @throws ProcessingError If `fs.access` check fails and `defaults` is true
+	 * @returns Path
 	 */
 	public async addFile(location: Array<string>, defaults: boolean = false) {
 		const abs = path.resolve(...location);
@@ -92,8 +96,8 @@ export class VariableFileLoader extends VariableLoader {
 
 	/**
 	 * Remove Variables file
-	 * @param purge Purge Variables that this file Added
 	 * @param location File Location
+	 * @param purge Purge Variables that this file Added
 	 */
 	public async removeFile(location: Array<string>, purge: boolean) {
 		const abs = path.resolve(...location);
@@ -106,7 +110,7 @@ export class VariableFileLoader extends VariableLoader {
 		}
 
 		// close watcher if exist
-		const watcher = this.watchers.get(abs)
+		const watcher = this.watchers.get(abs);
 		if (watcher) {
 			watcher.close();
 			this.watchers.delete(abs);
@@ -126,7 +130,7 @@ export class VariableFileLoader extends VariableLoader {
 				}).catch(e => {
 					log.error(`Watcher "${location}" Error: ${e}`);
 				});
-			})
+			});
 
 			this.watchers.set(location, watcher);
 		} catch (e) {
@@ -145,7 +149,7 @@ export class VariableFileLoader extends VariableLoader {
 			await accessAsync(location, fs.constants.F_OK);
 
 			return readFileAsync(location);
-		} catch(e) {
+		} catch (e) {
 			throw new ProcessingError(`getFileContents(): Failed for "${location}"`).setCause(e);
 		}
 	}

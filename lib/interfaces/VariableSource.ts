@@ -1,4 +1,3 @@
-
 export enum VariableSourceType {
 	ENV = 'env',
 	INLINE = 'inline',

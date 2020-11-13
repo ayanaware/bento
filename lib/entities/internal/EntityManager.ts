@@ -306,7 +306,7 @@ export class EntityManager {
 	 * @param entity Entity
 	 */
 	private handleDecorators(entity: Entity) {
-		// @Inject 
+		// @Inject Decorator
 		getInjections(entity).forEach(i => entity.api.injectEntity(i.reference, i.key));
 
 		// @Subscribe Decorator

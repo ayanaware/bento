@@ -1,4 +1,3 @@
-
 import { IllegalArgumentError, IllegalStateError } from '@ayanaware/errors';
 
 import { PluginAPI } from '../../../entities';

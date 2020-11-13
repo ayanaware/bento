@@ -7,8 +7,8 @@ import {
 	Component,
 	ComponentReference,
 	Entity,
-	EntityType,
 	EntityReference,
+	EntityType,
 	Plugin,
 	PluginReference
 } from './entities';

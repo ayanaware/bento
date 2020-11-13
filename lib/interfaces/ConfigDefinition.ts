@@ -1,4 +1,3 @@
-
 export enum ConfigDefinitionType {
 	STRING = 'string',
 	NUMBER = 'number',

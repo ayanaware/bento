@@ -1,4 +1,3 @@
-
 import { ProcessingError } from '@ayanaware/errors';
 
 import { Component, PluginAPI } from '../../../entities';

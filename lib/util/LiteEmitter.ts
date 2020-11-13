@@ -1,4 +1,3 @@
-
 import { GenericError } from '@ayanaware/errors';
 
 export class LiteEmitterError extends GenericError {}

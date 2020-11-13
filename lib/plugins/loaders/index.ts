@@ -1,1 +1,1 @@
-export * from './EntityLoader'
+export * from './EntityLoader';

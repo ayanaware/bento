@@ -1,4 +1,3 @@
-
 import { IllegalArgumentError } from '@ayanaware/errors';
 
 import { Bento } from '../../Bento';

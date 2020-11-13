@@ -1,4 +1,5 @@
 import { IllegalArgumentError, ProcessingError } from '@ayanaware/errors';
+
 import { Entity, EntityType, Plugin, PluginAPI } from '../../entities';
 
 export class EntityLoader implements Plugin {
@@ -10,7 +11,7 @@ export class EntityLoader implements Plugin {
 	 */
 	protected entities: Set<string> = new Set();
 
-	private pending: Set<Entity> = new Set();
+	private readonly pending: Set<Entity> = new Set();
 
 	public async onLoad() {
 		return this.handlePending();
@@ -18,7 +19,7 @@ export class EntityLoader implements Plugin {
 
 	public async onUnload() {
 		// unload entities we manage
-		for (const name of this.entities) this.api.bento.removeEntity(name);
+		for (const name of this.entities) await this.api.bento.removeEntity(name);
 	}
 
 	protected async handlePending() {
@@ -46,7 +47,7 @@ export class EntityLoader implements Plugin {
 	/**
 	 * Detects if a value is Classlike.
 	 * Classlike values are functions that have a prototype object
-	 * 
+	 *
 	 * @param v Value
 	 * @returns boolean
 	 */
@@ -67,9 +68,9 @@ export class EntityLoader implements Plugin {
 
 	/**
 	 * Tries to find Entity and then instantiate it. An Entity can be a class or an object.
-	 * 
+	 *
 	 * @param entity Uninstantiated Entity
-	 * 
+	 *
 	 * @throws ProcessingError If no Entity found or fails to instantiate
 	 * @returns EntityInstance
 	 */
@@ -88,7 +89,7 @@ export class EntityLoader implements Plugin {
 		if (typeof instance.name !== 'string') throw new ProcessingError(`instantiate(): Instance does not have the name property`);
 
 		return instance;
-	} 
+	}
 
 	/**
 	 * Bulk Instantiate Entities and add them to Bento
@@ -102,7 +103,7 @@ export class EntityLoader implements Plugin {
 
 	/**
 	 * Instantiate Entity and add to Bento
-	 * 
+	 *
 	 * @param entity Class or Object
 	 * @param type EntityType
 	 */
@@ -111,7 +112,7 @@ export class EntityLoader implements Plugin {
 
 		const instance = this.instantiate(entity);
 		instance.type = type;
-		
+
 		// API not available. Add to pending
 		if (!this.api) {
 			this.pending.add(instance);
@@ -135,6 +136,8 @@ export class EntityLoader implements Plugin {
 	/**
 	 * Instantiate Plugin and add to Bento
 	 * @param plugin Class or Object
+	 *
+	 * @returns Promise
 	 */
 	public async addPlugin(plugin: object | Function) {
 		return this.addEntity(plugin, EntityType.PLUGIN);
@@ -152,6 +155,8 @@ export class EntityLoader implements Plugin {
 	/**
 	 * Instantiate Component and add to Bento
 	 * @param component Class or Object
+	 *
+	 * @returns Promise
 	 */
 	public async addComponent(component: any) {
 		return this.addEntity(component, EntityType.COMPONENT);

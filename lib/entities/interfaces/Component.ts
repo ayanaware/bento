@@ -1,5 +1,5 @@
 import { ComponentAPI } from '../api/ComponentAPI';
-import { EntityType } from '../';
+import { EntityType } from '../interfaces';
 
 import { Entity } from './Entity';
 

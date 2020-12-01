@@ -191,7 +191,7 @@ export class SharedAPI {
 	 * @param injectName property name to inject into
 	 */
 	public injectComponent(reference: ComponentReference, injectName: string | symbol) {
-		if (this.entity.hasOwnProperty(injectName)) throw new APIError(this.entity, `Cannot inject component, ${this.entity.name}.${injectName.toString()} is already defined`);
+		if (this.entity.hasOwnProperty(injectName) && (this.entity as any)[injectName] != null) throw new APIError(this.entity, `Cannot inject component, ${this.entity.name}.${injectName.toString()} is already defined`);
 		if (!this.hasComponent(reference)) throw new APIError(this.entity, `Unable to inject non-existent component "${reference}"`);
 
 		// prevent inject of component into plugin
@@ -213,7 +213,7 @@ export class SharedAPI {
 	 * @param injectName property name to inject into
 	 */
 	public injectPlugin(reference: PluginReference, injectName: string | symbol) {
-		if (this.entity.hasOwnProperty(injectName)) throw new APIError(this.entity, `Cannot inject plugin, ${this.entity.name}.${injectName.toString()} is already defined`);
+		if (this.entity.hasOwnProperty(injectName) && (this.entity as any)[injectName] != null) throw new APIError(this.entity, `Cannot inject plugin, ${this.entity.name}.${injectName.toString()} is already defined`);
 		if (!this.hasPlugin(reference)) throw new APIError(this.entity, 'Unable to inject non-existent plugin');
 
 		Object.defineProperty(this.entity, injectName, {
@@ -232,7 +232,7 @@ export class SharedAPI {
 	 * @param injectName Property name to inject to
 	 */
 	public injectEntity(reference: EntityReference, injectName: string | symbol) {
-		if (this.entity.hasOwnProperty(injectName)) throw new APIError(this.entity, `Cannot inject entity, ${this.entity.name}.${injectName.toString()} is already defined`);
+		if (this.entity.hasOwnProperty(injectName) && (this.entity as any)[injectName] != null) throw new APIError(this.entity, `Cannot inject entity, ${this.entity.name}.${injectName.toString()} is already defined`);
 
 		const name = this.bento.entities.resolveName(reference);
 
@@ -247,6 +247,8 @@ export class SharedAPI {
 	 * @param args Arguments to be passed to Plugin.loadComponents() method
 	 *
 	 * @returns Plugin.loadComponents() result
+	 * 
+	 * @deprecated This is now an anti-pattern. Use FSEntityLoader to load all components from bootstrap file
 	 */
 	public async loadComponents(reference: PluginReference, ...args: Array<any>) {
 		if (reference == null) throw new APIError(this.entity, 'Pluginreference must be defined');

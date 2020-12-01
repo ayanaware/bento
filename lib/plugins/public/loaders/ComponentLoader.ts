@@ -23,6 +23,7 @@ export interface DetectedComponent {
 
 /**
  * Abstract loader class containing an interface to the outside and core functionality
+ * @deprecated Please use EntityLoader instead
  */
 export abstract class ComponentLoader {
 	/**

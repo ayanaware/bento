@@ -6,15 +6,16 @@
 		"build": "ayc clean build"
 	},
 	"dependencies": {
-		"@ayana/logger": "^2.0.0-beta.3",
 		"@ayanaware/bento": "../",
+		"@ayanaware/logger": "^2.2.1",
 		"@ayanaware/ts": "^1.1.2",
-		"@types/node": "^10.12.7",
-		"eris": "^0.9.0",
-		"eventemitter3": "^3.1.0",
-		"reflect-metadata": "^0.1.13",
-		"tslint": "^5.20.1",
-		"typescript": "^3.7.2"
+		"@types/node": "^14.14.10",
+		"eris": "^0.14.0",
+		"eventemitter3": "^4.0.7",
+		"reflect-metadata": "^0.1.13"
+	},
+	"devDependencies": {
+		"typescript": "^4.1.2"
 	},
 	"license": "MIT"
 }

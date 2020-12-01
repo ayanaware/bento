@@ -35,8 +35,9 @@ export abstract class ComponentLoader {
 	 * This method can and will be called by components desiring to load peer components
 	 *
 	 * @param args Loader specific implementation
+	 * @deprecated Anti-pattern please use FSEntityLoader instead
 	 */
-	public abstract async loadComponents(...args: Array<any>): Promise<void>;
+	public abstract loadComponents(...args: Array<any>): Promise<void>;
 
 	/**
 	 * Detects if a value is component-like.

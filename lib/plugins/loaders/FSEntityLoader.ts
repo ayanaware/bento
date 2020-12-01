@@ -48,6 +48,11 @@ export class FSEntityLoader extends EntityLoader {
 		const files = await fs.readdir(directory);
 
 		for (let file of files) {
+			// TODO: Add support for .fselignore/.bentoignore
+
+			// ignore node_modules & .git
+			if (file.match(/node_modules|\.git/i)) continue;
+
 			file = path.resolve(directory, file);
 
 			const stat = await fs.stat(file);
@@ -69,7 +74,12 @@ export class FSEntityLoader extends EntityLoader {
 		// Check file
 		try {
 			const content = await fs.readFile(file, { encoding: 'utf8' });
-			if (content.match(/@ayanaware\/bento|FSEntityLoader/mi)) return true;
+			
+			// @fs-entity-ignore
+			if (content.match(/@fs-entity-ignore/mi)) return false;
+
+			// @ayanaware/bento and @fs-entity
+			if (content.match(/@ayanaware\/bento|@fs-entity/mi)) return true;
 		} catch (e) {
 			log.warn(`checkFile(): Failed to read "${file}". ${e}`);
 		}
@@ -127,13 +137,15 @@ export class FSEntityLoader extends EntityLoader {
 	 * A file will be eligiable for loading in the following circumstances:
 	 * 
 	 * - Extension ends with `.e.ts` or `.e.js`
-	 * - File contents include `FSEntityLoader`
+	 * - File contents include `@fs-entity`
 	 * - File contents include `@ayanaware/bento`
 	 * - Associated types file `.d.ts` contents include `@ayanaware/bento`
 	 * 
 	 * If none of these conditions are met then the file will be skipped.
 	 *
-	 * **If all else fails, add the comment `// FSEntityLoader` and it will be loaded**
+	 * **If all else fails, add the comment `// @fs-entity` and it will be loaded**
+	 * 
+	 * **To prevent loading add the comment `// @fs-entity-ignore`**
 	 * 
 	 * @param directory Directory Path
 	 * @param type EntityType

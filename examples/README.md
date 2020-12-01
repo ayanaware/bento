@@ -9,10 +9,10 @@ yarn install && yarn run build
 npm install && npm run build
 ```
 
-Determine the example you want to run (ex: `bento-variables`) then execute the following
+Determine the example you want to run (ex: `variables`) then execute the following
 ```bash
 node build/{exampleName}
 
-# ex: if I wanted to run bento-variables
-node build/bento-variables
+# ex: if I wanted to run variables
+node build/variables
 ```

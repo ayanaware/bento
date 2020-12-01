@@ -97,8 +97,10 @@ export class EntityLoader implements Plugin {
 	 * @param entities Class or Object Array
 	 * @param type EntityType
 	 */
-	public async addEntities(entities: Array<object | Function>, type: EntityType) {
-		for (const entity of entities) await this.addEntity(entity, type);
+	public async addEntities(entities: Array<object | Function>, type: EntityType): Promise<Array<void>> {
+		const promises = entities.map(entity => this.addEntity(entity, type));
+
+		return Promise.all(promises);
 	}
 
 	/**
@@ -107,7 +109,7 @@ export class EntityLoader implements Plugin {
 	 * @param entity Class or Object
 	 * @param type EntityType
 	 */
-	public async addEntity(entity: object | Function, type: EntityType) {
+	public async addEntity(entity: object | Function, type: EntityType): Promise<void> {
 		if (!this.isEntitylike(entity)) throw new IllegalArgumentError(`addEntity(): Value not Entitylike`);
 
 		const instance = this.instantiate(entity);
@@ -129,8 +131,10 @@ export class EntityLoader implements Plugin {
 	 *
 	 * @param plugins Class or Object Array
 	 */
-	public async addPlugins(plugins: Array<object | Function>) {
-		for (const plugin of plugins) await this.addPlugin(plugin);
+	public async addPlugins(plugins: Array<object | Function>): Promise<Array<void>> {
+		const promises = plugins.map(plugin => this.addPlugin(plugin));
+
+		return Promise.all(promises);
 	}
 
 	/**
@@ -148,8 +152,10 @@ export class EntityLoader implements Plugin {
 	 *
 	 * @param components Class or Object Array
 	 */
-	public async addComponents(components: Array<object | Function>) {
-		for (const component of components) await this.addComponent(component);
+	public async addComponents(components: Array<object | Function>): Promise<Array<void>> {
+		const promises = components.map(component => this.addComponent(component));
+
+		return Promise.all(promises);
 	}
 
 	/**

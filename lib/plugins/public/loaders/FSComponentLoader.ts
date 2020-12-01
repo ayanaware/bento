@@ -26,6 +26,9 @@ interface DirectoryItem {
 	parent: string;
 }
 
+/**
+ * @deprecated Please use FSEntityLoader instead
+ */
 export class FSComponentLoader extends ComponentLoader {
 	public name: string = 'FSComponentLoader';
 

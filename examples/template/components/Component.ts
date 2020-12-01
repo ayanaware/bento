@@ -1,14 +1,11 @@
-
 import { Component, ComponentAPI } from '@ayanaware/bento';
 
-import { Logger } from '@ayana/logger';
+import { Logger } from '@ayanaware/logger';
 const log = Logger.get('ExampleComponent');
 
-export class ExampleComponent {
+export class ExampleComponent implements Component {
 	public api: ComponentAPI;
 	public name: string = 'ExampleComponent';
-
-	public dependencies: Array<Component> = [];
 
 	public async onLoad() {
 		log.info('Hello world!');

@@ -12,36 +12,45 @@ import { FSEntityLoader, VariableFileLoader } from '../plugins';
 const CALLER_LINE_REGEX = /(?:at (?:.+?\()|at )(.+?):[0-9]+:[0-9]+/;
 
 /**
- * Bento Application is a wrapper for common use case Bootstrap files
- * It abstracts away the use of built in plugins such as `FSEntityLoader` and `FSVariableLoader`
- * into an easy to digest Configuration Object. Get up and running even faster then before!
+ * See constructor for more information
  * 
- * You can override pretty much everything via the `ApplicationConfig` but here are the defaults:
+ * Example usage:
  * 
- * - Default Variables File: `../env.example.json` or `env.example.json`
- * - Variables File: `../env.json` or `./env.json`
- * - Plugins Directory: `./plugins`
- * - Components Directory: `./components`
- * 
- * The above paths will only be used if they actually exist on the filesystem.
- * 
- * Please note: The relative path is determined by the caller of `new Application();`
- * If you need a custom relative path / working directory you can pass it via
- * the 2nd argument. ex: `new Application({}, __dirname);`
- * 
- * **The above is only relevant if you are using the defaults, if you specify paths in config they must be absolute and won't be prefixed**
+ * ```ts
+ * const app = new Application();
+ * await app.start();
+ * await app.verify();
+ * ```
  */
 export class Application {
 	public readonly cfg: ApplicationConfig;
-	protected readonly directory: string;
+	public readonly directory: string;
 
 	/** Bento Instance */
 	public readonly bento: Bento;
+	public readonly vfl: VariableFileLoader;
+	public readonly fsel: FSEntityLoader;
 
-	protected readonly vfl: VariableFileLoader;
-	protected readonly fsel: FSEntityLoader;
-
-
+	/**
+	 * Bento Application is a wrapper for common use case Bootstrap files
+	 * It abstracts away the use of built in plugins such as `FSEntityLoader` and `FSVariableLoader`
+	 * into an easy to digest Configuration Object. Get up and running even faster then before!
+	 * 
+	 * You can override pretty much everything via the `ApplicationConfig` but here are the defaults:
+	 * 
+	 * - Default Variables File: `../env.example.json` or `env.example.json`
+	 * - Variables File: `../env.json` or `./env.json`
+	 * - Plugins Directory: `./plugins`
+	 * - Components Directory: `./components`
+	 * 
+	 * The above paths will only be used if they actually exist on the filesystem.
+	 * 
+	 * Please note: The relative path is determined by the caller of `new Application();`
+	 * If you need a custom relative path / working directory you can pass it via
+	 * the 2nd argument. ex: `new Application({}, __dirname);`
+	 * 
+	 * **The above is only relevant if you are using the defaults, if you specify paths in config they must be absolute and won't be prefixed**
+	 */
 	public constructor(cfg: ApplicationConfig, directory?: string) {
 		this.cfg = cfg;
 		this.directory = directory || this.getCallerDirectory();
@@ -102,9 +111,11 @@ export class Application {
 	}
 
 	/**
-	 * See JSDoc documentation on the class for more information.
+	 * See JSDoc documentation on constructor for more information.
+	 * 
+	 * **Don't forget to call `Application.verify();` after this**
 	 */
-	public async start(): Promise<ApplicationState> {
+	public async start() {
 		// add plugins
 		await this.bento.addPlugins([this.vfl, this.fsel]);
 
@@ -117,14 +128,14 @@ export class Application {
 		if (this.cfg.version) this.bento.setProperty('APPLICATION_VERSION', this.cfg.version);
 
 		// Default Variables
-		let defaultVariables = this.cfg.variables;
-		if (!Array.isArray(defaultVariables)) {
+		let defaults = this.cfg.defaults;
+		if (!Array.isArray(defaults)) {
 			if (!this.directory) throwDiretoryError();
-			defaultVariables = [];
+			defaults = [];
 
 			const defs = [[this.directory, '..', 'env.example.json'], [this.directory, 'env.example.json']];
 			for (const def of defs) {
-				if (await this.exists(def)) defaultVariables.push(def);
+				if (await this.exists(def)) defaults.push(def);
 			}
 		}
 
@@ -164,12 +175,17 @@ export class Application {
 			}
 		}
 
-		await this.vfl.addFiles(defaultVariables, true);
+		await this.vfl.addFiles(defaults, true);
 		await this.vfl.addFiles(variables, false);
 
 		await this.fsel.addDirectories(plugins, EntityType.PLUGIN);
 		await this.fsel.addDirectories(components, EntityType.COMPONENT);
+	}
 
+	/**
+	 * **Always call this**. It does sanity checks and makes sure your applicaton is not in a broken state.
+	 */
+	public async verify(): Promise<ApplicationState> {
 		const state = await this.bento.verify();
 
 		const entityFiles = Array.from(this.fsel.files);

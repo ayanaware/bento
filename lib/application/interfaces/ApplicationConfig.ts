@@ -12,5 +12,5 @@ export interface ApplicationConfig {
 	/** Plugin Directories */
 	plugins?: Array<Array<string>>; 
 	/** Component Directories */
-    components?: Array<Array<string>>;
+	components?: Array<Array<string>>;
 }

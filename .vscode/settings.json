@@ -2,5 +2,6 @@
 	"editor.comments.insertSpace": false,
 	"editor.detectIndentation": false,
 	"javascript.preferences.quoteStyle": "single",
-	"typescript.preferences.quoteStyle": "single"
+    "typescript.preferences.quoteStyle": "single",
+    "editor.insertSpaces": false
 }

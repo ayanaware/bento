@@ -38,7 +38,7 @@ export class FSEntityLoader extends EntityLoader {
 			}
 		} else {
 			// CommonJS module.exports
-			if (!this.isEntitylike(item)) object = item;
+			if (this.isEntitylike(item)) object = item;
 		}
 
 		return object;
@@ -126,9 +126,23 @@ export class FSEntityLoader extends EntityLoader {
 		}
 
 		const entity = this.findEntity(nodeModule);
-		await this.addEntity(entity, type);
+		if (!entity) {
+			log.warn(`addFile(): Could not find entity in "${file}"`);
+			return;
+		}
 
+		await this.addEntity(entity, type);
 		this.files.add(file);
+	}
+
+	/**
+	 * Bulk addDirectory(), please see that function documentation for more details
+	 * @param directories Array of Directory Paths
+	 * @param type EntityType
+	 * @param recursive recursive?
+	 */
+	public async addDirectories(directories: Array<string | Array<string>>, type: EntityType = EntityType.COMPONENT, recursive: boolean = true) {
+		for (const directory of directories) await this.addDirectory(directory, type, recursive);
 	}
 
 	/**
@@ -158,12 +172,7 @@ export class FSEntityLoader extends EntityLoader {
 		for (const file of files) {
 			if (!(await this.checkFile(file))) continue;
 
-			try {
-				await this.addFile(file, type);
-			} catch (e) {
-				log.warn(`addDirectory(): Failed to addFile "${file}". ${e}`);
-				continue;
-			}
+			await this.addFile(file, type);
 		}
 	}
 }

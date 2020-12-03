@@ -2,6 +2,7 @@ import 'reflect-metadata';
 
 export * from './Bento';
 
+export * from './application';
 export * from './entities';
 export * from './decorators';
 export * from './plugins';

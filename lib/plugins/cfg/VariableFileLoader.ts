@@ -41,7 +41,7 @@ export class VariableFileLoader extends VariableLoader {
 	/**
 	 * Registered files and Variables they loaded
 	 */
-	private readonly files: Map<string, Set<string>> = new Map();
+	public readonly files: Map<string, Set<string>> = new Map();
 
 	/**
 	 * Registered fs Watchers

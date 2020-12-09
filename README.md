@@ -44,10 +44,10 @@ Here is a very basic example of a Bento component:
 import { Component, ComponentAPI } from '@ayanaware/bento';
 
 export class Basic implements Component {
+	// required for all components, must be unique
+	public name = 'Basic';
 	// this property becomes available after onLoad see ComponentAPI for more info
 	public api!: ComponentAPI;
-	// required for all components, must be unique
-	public name: string = 'Basic';
 
 	// Optionally define other components we depend upon
 	// Some decorators auto append to this array such as @Subscribe
@@ -70,19 +70,19 @@ A runnable version of this example is available on [Gitlab](https://gitlab.com/a
 Getting started with Bento is pretty simple. First import and initilize Bento and any plugins you wish to use. Then simply add the plugins to Bento. The below example assumes you have a directory called "components" in the same directory (relative) to it.
 
 ```ts
-import { Bento, FSComponentLoader } from '@ayanaware/bento';
+import { Bento, EntityType, FSEntityLoader } from '@ayanaware/bento';
 
 // Create a Bento instance
 const bento = new Bento();
 
 // Anonymous async function so we can use await
 (async () => {
-	// Create FSComponentLoader
-	// NOTE: Keep in mind all FSComponentLoader does is
+	// Create FSEntityLoader
+	// NOTE: Keep in mind all FSEntityLoader does is
 	// find components in a path, instantiates them and
 	// calls Bento.addComponent() behind the scenes
-	const fsloader = new FSComponentLoader();
-	await fsloader.addDirectory(__dirname, 'components');
+	const fsel = new FSEntityLoader();
+	await fsel.addDirectory([__dirname, 'components'], EntityType.COMPONENT);
 
 	// Apply plugin to Bento.
 	await bento.addPlugin(fsloader);
@@ -91,6 +91,35 @@ const bento = new Bento();
 	await bento.verify();
 })().catch(e => {
 	console.error(`Error while starting Bento:\n${e}`);
+	process.exit(1);
+});
+```
+
+## Bento Application
+Application makes it even easier to bootstrap Bento Applications. Behind the scenes
+FSEntityLoader is used to find plugins and components in `./plugins` and `./components` respectively.
+Variables are also loaded using VariableFileLoader from `../env.example.json` and `../env.json`.
+Finally bento instance and afformentioned plugins are completely exposed in cases when you need them.
+
+```ts
+import { Application } from '@ayanaware/bento';
+
+// Bento Application Helper
+const app = new Application();
+
+// Anonymous async function so we can use await
+(async () => {
+	// Default Variables are loaded from `../env.example.json`
+	// Variables are loaded from `../env.json`
+	// Plugins in `./plugins` are instantiated and added to Bento
+	// Components in `./components` are instantiated and added to Bento
+	// All this behavior can be modifed using cfg in Application constructor
+	await app.start();
+
+	// Must be called, calls `bento.verify();` and returns `ApplicationState`
+	await app.verify();
+})().catch(e => {
+	console.error(`Error while starting Application:\n${e}`);
 	process.exit(1);
 });
 ```

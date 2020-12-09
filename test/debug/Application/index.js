@@ -1,10 +1,11 @@
 const { Application } = require('../../../build');
 
+const app = new Application({ name: 'test' });
+
 (async () => {
-	const app = new Application({ name: 'test' });
+	await app.start();
 
-	const state = await app.start();
-
+	const state = await app.verify();
 	console.log(state);
 })().catch(e => {
 	console.error(e);

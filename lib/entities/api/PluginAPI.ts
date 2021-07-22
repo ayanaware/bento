@@ -1,9 +1,9 @@
 import { Bento } from '../../Bento';
-import { Plugin } from '../interfaces';
+import { Plugin } from '../interfaces/Plugin';
 
-import { SharedAPI } from './SharedAPI';
+import { EntityAPI } from './EntityAPI';
 
-export class PluginAPI extends SharedAPI {
+export class PluginAPI extends EntityAPI {
 	// Make bento public as this is a plugin api
 	public readonly bento: Bento;
 

@@ -1,15 +1,7 @@
 import { IllegalArgumentError } from '@ayanaware/errors';
 
-import { Bento } from '../../Bento';
-
 export class PropertyManager {
-	private readonly bento: Bento;
-
 	private readonly properties: Map<string, any> = new Map();
-
-	public constructor(bento: Bento) {
-		this.bento = bento;
-	}
 
 	/**
 	 * Checks if a given property exists in bento
@@ -29,7 +21,7 @@ export class PropertyManager {
 	 *
 	 * @returns Property value
 	 */
-	public getProperty(name: string) {
+	public getProperty<T>(name: string, def?: T): T {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Property name must be a string');
 
 		return this.properties.get(name);
@@ -40,17 +32,18 @@ export class PropertyManager {
 	 * @param name name of variable to update
 	 * @param value new value
 	 */
-	public setProperty(name: string, value: any) {
+	public setProperty<T>(name: string, value: T): T {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Property name must be a string');
 
 		this.properties.set(name, value);
+		return value;
 	}
 
 	/**
 	 * Define multiple application properties at once
 	 * @param properties SetProperties object
 	 */
-	public setProperties(properties: { [key: string]: any }) {
+	public setProperties(properties: { [key: string]: any }): void {
 		for (const [name, value] of Object.entries(properties)) {
 			this.setProperty(name, value);
 		}

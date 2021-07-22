@@ -1,6 +1,7 @@
 import { IllegalArgumentError, IllegalStateError, ProcessingError } from '@ayanaware/errors';
 
 import { Bento } from '../../Bento';
+import { EntityRegistrationError } from '../../errors';
 import {
 	getChildOfDecoratorInjection,
 	getInjections,
@@ -8,13 +9,17 @@ import {
 	getSubscriptions,
 	getVariables,
 } from '../../decorators/internal';
-import { EntityRegistrationError } from '../../errors';
-import { Type } from '../../interfaces';
-import { ComponentAPI, PluginAPI } from '../api';
-import { Component, Entity, EntityType, Plugin } from '../interfaces';
-import { ComponentReference, EntityReference, PluginReference, ReferenceManager } from '../references';
+import { PluginAPI } from '../api/PluginAPI';
+import { ComponentAPI } from '../api/ComponentAPI';
+import { Component } from '../interfaces/Component';
+import { Entity, EntityType } from '../interfaces/Entity';
+import { Plugin } from '../interfaces/Plugin';
+import { ComponentReference } from '../types/ComponentReference';
+import { EntityReference } from '../types/EntityReference';
+import { PluginReference } from '../types/PluginReference';
 
 import { EntityEvents } from './EntityEvents';
+import { ReferenceManager } from './ReferenceManager';
 
 export enum PluginHook {
 	onPreComponentLoad = 'onPreComponentLoad',
@@ -86,7 +91,7 @@ export class EntityManager {
 	 *
 	 * @returns Entity or null
 	 */
-	public getEntity<T extends Entity>(reference: Type<T> | EntityReference): T {
+	public getEntity<T extends Entity>(reference: EntityReference<T>): T {
 		const name = this.resolveName(reference);
 
 		return (this.getEntities().get(name) || null) as T;
@@ -110,7 +115,7 @@ export class EntityManager {
 	 *
 	 * @returns Plugin or null
 	 */
-	public getPlugin<T extends Plugin>(reference: Type<T> | PluginReference): T {
+	public getPlugin<T extends Plugin>(reference: PluginReference<T>): T {
 		const name = this.resolveName(reference);
 
 		return (this.getEntities<Plugin>(EntityType.PLUGIN).get(name) || null) as T;
@@ -143,7 +148,7 @@ export class EntityManager {
 	 *
 	 * @returns Component or null
 	 */
-	public getComponent<T extends Component>(reference: Type<T> | ComponentReference): T {
+	public getComponent<T extends Component>(reference: ComponentReference<T>): T {
 		const name = this.resolveName(reference);
 
 		return (this.getEntities<Component>(EntityType.COMPONENT).get(name) || null) as T;

@@ -1,32 +1,28 @@
-
-import * as crypto from 'crypto';
-
 import { IllegalStateError } from '@ayanaware/errors';
 
 import {
-	Component,
-	ComponentReference,
-	Entity,
-	EntityReference,
-	EntityType,
-	Plugin,
-	PluginReference
+	Component, ComponentReference,
+	Entity, EntityReference, EntityType,
+	Plugin, PluginReference
 } from './entities';
 import { EntityManager } from './entities/internal';
-import { BentoState, EventEmitterLike, Type } from './interfaces';
 import { PropertyManager } from './properties/internal';
-import { LiteEmitter } from './util';
 import { VariableManager } from './variables/internal';
 
+import { BentoState, EventEmitterLike } from './interfaces';
+import { LiteEmitter } from './util';
+
+import { getInstance } from './Container';
+import { useBento } from './Globals';
+
 export interface BentoOptions {
-	createID?(len?: number): string;
 	eventEmitter?(): EventEmitterLike;
 }
 
 export class Bento {
-	public readonly properties: PropertyManager;
-	public readonly variables: VariableManager;
-	public readonly entities: EntityManager;
+	public readonly properties = getInstance(PropertyManager, this);
+	public readonly variables = getInstance(VariableManager, this);
+	public readonly entities = getInstance(EntityManager, this);
 
 	public readonly options: BentoOptions;
 
@@ -37,14 +33,13 @@ export class Bento {
 		this.version = version;
 
 		this.options = {...{
-			createID: (len = 16) => crypto.randomBytes(len).toString('base64').replace(/[^a-z0-9]/gi, '').slice(0, len),
 			eventEmitter: () => new LiteEmitter(),
 		} as BentoOptions, ...options};
 
-		// now that options has been defined, create our managers
-		this.properties = new PropertyManager(this);
-		this.variables = new VariableManager(this);
-		this.entities = new EntityManager(this);
+		try{
+			useBento(this);
+		} catch(e) {}
+		// We ignore this as somebody, somewhere, might want to run multiple Bento instances.
 	}
 
 	// ENTITY Aliases
@@ -61,17 +56,6 @@ export class Bento {
 	}
 
 	/**
-	 * Alias for Bento.entities.getEntity()
-	 * @param reference EntityReference
-	 *
-	 * @see EntityManager#getEntity
-	 * @returns See Bento.entities.getEntity()
-	 */
-	public async getEntity<T extends Entity>(reference: Type<T> | EntityReference) {
-		return this.entities.getEntity<T>(reference);
-	}
-
-	/**
 	 * Alias for Bento.entities.removeEntity()
 	 * @param reference EntityReference
 	 *
@@ -80,6 +64,17 @@ export class Bento {
 	 */
 	public async removeEntity(reference: EntityReference) {
 		return this.entities.removeEntity(reference);
+	}
+
+	/**
+	 * Alias for Bento.entities.getEntity()
+	 * @param reference EntityReference
+	 *
+	 * @see EntityManager#getEntity
+	 * @returns See Bento.entities.getEntity()
+	 */
+	public async getEntity<T extends Entity>(reference: EntityReference<T>) {
+		return this.entities.getEntity<T>(reference);
 	}
 
 	// PLUGINS Aliases
@@ -107,17 +102,6 @@ export class Bento {
 	}
 
 	/**
-	 * Alias for Bento.entities.getPlugin()
-	 * @param reference PluginReference
-	 *
-	 * @see EntityManager#getPlugin
-	 * @returns See Bento.entities.getPlugin()
-	 */
-	public async getPlugin<T extends Plugin>(reference: Type<T> | PluginReference) {
-		return this.entities.getPlugin<T>(reference);
-	}
-
-	/**
 	 * Alias for Bento.entities.removePlugin()
 	 * @param reference PluginReference
 	 *
@@ -126,6 +110,17 @@ export class Bento {
 	 */
 	public async removePlugin(reference: PluginReference) {
 		return this.entities.removePlugin(reference);
+	}
+
+	/**
+	 * Alias for Bento.entities.getPlugin()
+	 * @param reference PluginReference
+	 *
+	 * @see EntityManager#getPlugin
+	 * @returns See Bento.entities.getPlugin()
+	 */
+	public async getPlugin<T extends Plugin>(reference: PluginReference<T>) {
+		return this.entities.getPlugin<T>(reference);
 	}
 
 	// COMPONENTS Aliases
@@ -142,17 +137,6 @@ export class Bento {
 	}
 
 	/**
-	 * Alias for Bento.entities.getComponent()
-	 * @param reference ComponentReference
-	 *
-	 * @see EntityManager#getComponent
-	 * @returns See Bento.entities.getComponent()
-	 */
-	public async getComponent<T extends Component>(reference: Type<T> | ComponentReference) {
-		return this.entities.getComponent<T>(reference);
-	}
-
-	/**
 	 * Alias for Bento.entities.removeComponent()
 	 * @param reference ComponentReference
 	 *
@@ -161,6 +145,17 @@ export class Bento {
 	 */
 	public async removeComponent(reference: ComponentReference) {
 		return this.entities.removeComponent(reference);
+	}
+
+	/**
+	 * Alias for Bento.entities.getComponent()
+	 * @param reference ComponentReference
+	 *
+	 * @see EntityManager#getComponent
+	 * @returns See Bento.entities.getComponent()
+	 */
+	public async getComponent<T extends Component>(reference: ComponentReference<T>) {
+		return this.entities.getComponent<T>(reference);
 	}
 
 	// PROPERTIES Aliases

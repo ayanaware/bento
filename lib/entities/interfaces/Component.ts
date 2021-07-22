@@ -1,7 +1,6 @@
 import { ComponentAPI } from '../api/ComponentAPI';
-import { EntityType } from '../interfaces';
 
-import { Entity } from './Entity';
+import { Entity, EntityType } from './Entity';
 
 export interface Component extends Entity {
 	type?: EntityType.COMPONENT;

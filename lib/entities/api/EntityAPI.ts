@@ -1,18 +1,22 @@
-
 import { IllegalAccessError, IllegalArgumentError, IllegalStateError } from '@ayanaware/errors';
 
 import { Bento } from '../../Bento';
 import { APIError } from '../../errors';
-import { EventEmitterLike, Type } from '../../interfaces';
+import { EventEmitterLike } from '../../interfaces';
 import { VariableDefinition } from '../../variables';
-import { Component, Entity, Plugin } from '../interfaces';
-import { ComponentReference, EntityReference, PluginReference } from '../references';
-import { EntityType } from '../';
+
+import { Entity, EntityType } from '../interfaces/Entity';
+import { Plugin } from '../interfaces/Plugin';
+import { Component } from '../interfaces/Component';
+
+import { EntityReference } from '../types/EntityReference';
+import { PluginReference } from '../types/PluginReference';
+import { ComponentReference } from '../types/ComponentReference';
 
 /**
  * Shared functions for ComponentAPI and PluginAPI
  */
-export class SharedAPI {
+export class EntityAPI {
 	protected readonly bento: Bento;
 
 	/**
@@ -55,8 +59,8 @@ export class SharedAPI {
 	 *
 	 * @returns Property value
 	 */
-	public getProperty(name: string) {
-		return this.bento.getProperty(name);
+	public getProperty<T>(name: string): T {
+		return this.bento.properties.getProperty<T>(name);
 	}
 
 	/**
@@ -111,7 +115,7 @@ export class SharedAPI {
 	 *
 	 * @returns Entity
 	 */
-	public getEntity<T extends Entity>(reference: Type<T> | EntityReference): T {
+	public getEntity<T extends Entity>(reference: EntityReference<T>): T {
 		const name = this.bento.entities.resolveName(reference);
 		const entity = this.bento.entities.getEntity<T>(name);
 		if (!entity) throw new APIError(this.entity, `Entity "${name}" does not exist`);
@@ -135,7 +139,7 @@ export class SharedAPI {
 	 *
 	 * @returns Plugin
 	 */
-	public getPlugin<T extends Plugin>(reference: Type<T> | PluginReference): T {
+	public getPlugin<T extends Plugin>(reference: PluginReference<T>): T {
 		const name = this.bento.entities.resolveName(reference);
 		const plugin = this.bento.entities.getPlugin<T>(name);
 		if (!plugin) throw new APIError(this.entity, `Plugin "${name}" does not exist`);
@@ -159,7 +163,7 @@ export class SharedAPI {
 	 *
 	 * @returns Component
 	 */
-	public getComponent<T extends Component>(reference: Type<T> | ComponentReference): T {
+	public getComponent<T extends Component>(reference: ComponentReference<T>): T {
 		const name = this.bento.entities.resolveName(reference);
 		const component = this.bento.entities.getComponent<T>(name);
 		if (!component) throw new APIError(this.entity, `Component "${name}" does not exist`);

@@ -1,7 +1,6 @@
 import { IllegalArgumentError, IllegalStateError } from '@ayanaware/errors';
 
 import { PluginAPI } from '../../../entities';
-import { VariableSource, VariableSourceType } from '../../../interfaces';
 
 import { Logger } from '@ayanaware/logger-api';
 const log = Logger.get();
@@ -85,14 +84,7 @@ export class ConfigLoader {
 		for (const definition of this.definitions.values()) {
 			const value = await this.getValue(definition);
 
-			// define source
-			const source: VariableSource = { type: VariableSourceType.INLINE };
-			if (definition.env != null) {
-				source.type = VariableSourceType.ENV;
-				source.source = definition.env;
-			}
-
-			this.api.getBento().variables.setVariable(definition.name, value, source);
+			this.api.getBento().variables.setVariable(definition.name, value);
 		}
 	}
 

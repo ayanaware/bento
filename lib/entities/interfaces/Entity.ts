@@ -1,5 +1,5 @@
-import { SharedAPI } from '../api';
-import { EntityReference } from '../references/types';
+import { EntityAPI } from '../api/EntityAPI';
+import { EntityReference } from '../types/EntityReference';
 
 export enum EntityType {
 	PLUGIN = 'plugin',
@@ -8,16 +8,16 @@ export enum EntityType {
 
 export interface Entity {
 	type?: EntityType;
-	api?: SharedAPI;
+	api?: EntityAPI;
 
 	name: string;
 	version?: string;
 
-	dependencies?: Array<EntityReference>;
-	parent?: EntityReference;
+	dependencies?: Array<EntityReference<Entity>>;
+	parent?: EntityReference<Entity>;
 
 	// General lifecycle events
-	onLoad?(api?: SharedAPI): Promise<void>;
+	onLoad?(api?: EntityAPI): Promise<void>;
 	onUnload?(): Promise<void>;
 
 	// Parent lifecycle events

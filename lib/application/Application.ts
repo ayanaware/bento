@@ -8,6 +8,7 @@ import { EntityType } from '../entities';
 import { FSEntityLoader, VariableFileLoader } from '../plugins';
 
 import { ApplicationConfig, ApplicationState } from './interfaces';
+import { useApplication, useBento } from '../Globals';
 
 /** @ignore */
 const CALLER_LINE_REGEX = /(?:at (?:.+?\()|at )(.+?):[0-9]+:[0-9]+/;
@@ -29,8 +30,6 @@ export class Application {
 
 	/** Bento Instance */
 	public readonly bento: Bento;
-	public readonly vfl: VariableFileLoader;
-	public readonly fsel: FSEntityLoader;
 
 	/**
 	 * Bento Application is a wrapper for common use case Bootstrap files
@@ -59,14 +58,12 @@ export class Application {
 		this.cfg = cfg || {};
 		this.directory = directory || this.getCallerDirectory();
 
+		// Register Application for `getApplication();`
+		useApplication(this);
+
 		this.bento = new Bento();
-
-		this.vfl = new VariableFileLoader();
-		this.fsel = new FSEntityLoader();
-
-		// Name & Version
-		if (this.cfg.name) this.bento.setProperty('APPLICATION_NAME', this.cfg.name);
-		if (this.cfg.version) this.bento.setProperty('APPLICATION_VERSION', this.cfg.version);
+		// Force Register Bento for `getBento();`. Force to prevent any strangeness
+		useBento(this.bento, true);
 	}
 
 	protected getCallerDirectory() {
@@ -124,9 +121,20 @@ export class Application {
 	 * **Don't forget to call `Application.verify();` after this**
 	 */
 	public async start() {
-		// add plugins
-		if (!this.bento.entities.hasEntity(this.vfl)) await this.bento.addPlugin(this.vfl);
-		if (!this.bento.entities.hasEntity(this.fsel)) await this.bento.addPlugin(this.fsel);
+		// add required plugins if needed
+		if (!this.bento.entities.hasEntity(VariableFileLoader)) {
+			const vfl = new VariableFileLoader();
+			await this.bento.addPlugin(vfl);
+		}
+
+		if (!this.bento.entities.hasEntity(FSEntityLoader)) {
+			const fsel = new FSEntityLoader();
+			await this.bento.addPlugin(fsel);
+		}
+
+		// Name & Version
+		if (this.cfg.name) this.bento.setProperty('APPLICATION_NAME', this.cfg.name);
+		if (this.cfg.version) this.bento.setProperty('APPLICATION_VERSION', this.cfg.version);
 
 		const throwDirectoryError = () => {
 			throw new IllegalStateError('Directory not defined and failed to infer via stack.');
@@ -180,11 +188,13 @@ export class Application {
 			}
 		}
 
-		await this.vfl.addFiles(defaults, true);
-		await this.vfl.addFiles(variables, false);
+		const vfl = this.bento.entities.getPlugin(VariableFileLoader);
+		await vfl.addFiles(defaults, true);
+		await vfl.addFiles(variables, false);
 
-		await this.fsel.addDirectories(plugins, EntityType.PLUGIN);
-		await this.fsel.addDirectories(components, EntityType.COMPONENT);
+		const fsel = this.bento.entities.getPlugin(FSEntityLoader);
+		await fsel.addDirectories(plugins, EntityType.PLUGIN);
+		await fsel.addDirectories(components, EntityType.COMPONENT);
 	}
 
 	/**
@@ -195,8 +205,11 @@ export class Application {
 	public async verify(): Promise<ApplicationState> {
 		const state = await this.bento.verify();
 
-		const entityFiles = Array.from(this.fsel.files);
-		const variableFiles = Array.from(this.vfl.files.keys());
+		const vfl = this.bento.entities.getPlugin(VariableFileLoader);
+		const variableFiles = Array.from(vfl.files.keys());
+
+		const fsel = this.bento.entities.getPlugin(FSEntityLoader);
+		const entityFiles = Array.from(fsel.files);
 
 		return { state, entityFiles, variableFiles };
 	}

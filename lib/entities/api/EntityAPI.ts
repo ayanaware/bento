@@ -116,7 +116,7 @@ export class EntityAPI {
 	 * @returns Entity
 	 */
 	public getEntity<T extends Entity>(reference: EntityReference<T>): T {
-		const name = this.bento.entities.resolveName(reference);
+		const name = this.bento.entities.resolveReference(reference);
 		const entity = this.bento.entities.getEntity<T>(name);
 		if (!entity) throw new APIError(this.entity, `Entity "${name}" does not exist`);
 
@@ -140,7 +140,7 @@ export class EntityAPI {
 	 * @returns Plugin
 	 */
 	public getPlugin<T extends Plugin>(reference: PluginReference<T>): T {
-		const name = this.bento.entities.resolveName(reference);
+		const name = this.bento.entities.resolveReference(reference);
 		const plugin = this.bento.entities.getPlugin<T>(name);
 		if (!plugin) throw new APIError(this.entity, `Plugin "${name}" does not exist`);
 
@@ -164,7 +164,7 @@ export class EntityAPI {
 	 * @returns Component
 	 */
 	public getComponent<T extends Component>(reference: ComponentReference<T>): T {
-		const name = this.bento.entities.resolveName(reference);
+		const name = this.bento.entities.resolveReference(reference);
 		const component = this.bento.entities.getComponent<T>(name);
 		if (!component) throw new APIError(this.entity, `Component "${name}" does not exist`);
 
@@ -238,7 +238,7 @@ export class EntityAPI {
 	public injectEntity(reference: EntityReference, injectName: string | symbol) {
 		if (this.entity.hasOwnProperty(injectName) && (this.entity as any)[injectName] != null) throw new APIError(this.entity, `Cannot inject entity, ${this.entity.name}.${injectName.toString()} is already defined`);
 
-		const name = this.bento.entities.resolveName(reference);
+		const name = this.bento.entities.resolveReference(reference);
 
 		if (this.hasPlugin(name)) this.injectPlugin(name, injectName);
 		else if (this.hasComponent(name)) this.injectComponent(name, injectName);
@@ -351,7 +351,7 @@ export class EntityAPI {
 	 */
 	// tslint:disable-next-line:max-params
 	public subscribe(reference: EntityReference, event: string, handler: (...args: Array<any>) => void, context?: any) {
-		const name = this.bento.entities.resolveName(reference);
+		const name = this.bento.entities.resolveReference(reference);
 		if (!name) throw new APIError(this.entity, `Unable to subscribe to non-existant entity`);
 
 		// prevent plugin subscribing to component events
@@ -390,7 +390,7 @@ export class EntityAPI {
 	 * @param id - subscription id provided by subscribe
 	 */
 	public unsubscribe(reference: EntityReference, id: number) {
-		const name = this.bento.entities.resolveName(reference);
+		const name = this.bento.entities.resolveReference(reference);
 		if (!name) throw new APIError(this.entity, 'Unable to unsubscribe from non-existant entity');
 
 		// Check if the component events exists
@@ -416,7 +416,7 @@ export class EntityAPI {
 	 */
 	public unsubscribeAll(reference?: EntityReference) {
 		if (reference != null) {
-			const name = this.bento.entities.resolveName(reference);
+			const name = this.bento.entities.resolveReference(reference);
 			if (!name) throw new APIError(this.entity, `Unable to ubsubscribeAll to non-existant entity`);
 
 			if (!this.bento.entities.hasEvents(name)) return;

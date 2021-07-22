@@ -45,14 +45,37 @@ export class Bento {
 	// ENTITY Aliases
 
 	/**
+	 * Alias for Bento.entities.getEntity()
+	 * @param reference EntityReference
+	 *
+	 * @see EntityManager#getEntity
+	 * @returns See Bento.entities.getEntity()
+	 */
+	public async getEntity<T extends Entity>(reference: EntityReference<T>) {
+		return this.entities.getEntity<T>(reference);
+	}
+
+	/**
 	 * Alias for Bento.entities.addEntity()
 	 * @param entity Entity
 	 *
 	 * @see EntityManager#addEntity
 	 * @returns See Bento.entities.addEntity()
 	 */
-	public async addEntity(entity: Entity) {
+	public async addEntity(entity: Entity | Function) {
 		return this.entities.addEntity(entity);
+	}
+
+	/**
+	 * Alias for Bento.entities.replaceEntity()
+	 * @param reference EntityReference
+	 * @param entity Entity
+	 * 
+	 * @see EntityManager#replaceEntity
+	 * @returns See Bento.entities.replaceEntity()
+	 */
+	public async replaceEntity(reference: EntityReference, entity: Entity | Function) {
+		return this.entities.replaceEntity(reference, entity);
 	}
 
 	/**
@@ -66,18 +89,18 @@ export class Bento {
 		return this.entities.removeEntity(reference);
 	}
 
-	/**
-	 * Alias for Bento.entities.getEntity()
-	 * @param reference EntityReference
-	 *
-	 * @see EntityManager#getEntity
-	 * @returns See Bento.entities.getEntity()
-	 */
-	public async getEntity<T extends Entity>(reference: EntityReference<T>) {
-		return this.entities.getEntity<T>(reference);
-	}
-
 	// PLUGINS Aliases
+
+	/**
+	 * Alias for Bento.entities.getPlugin()
+	 * @param reference PluginReference
+	 *
+	 * @see EntityManager#getPlugin
+	 * @returns See Bento.entities.getPlugin()
+	 */
+	public async getPlugin<T extends Plugin>(reference: PluginReference<T>) {
+		return this.entities.getPlugin<T>(reference);
+	}
 
 	/**
 	 * Alias for Bento.entities.addPlugins()
@@ -86,7 +109,7 @@ export class Bento {
 	 * @see EntityManager#addPlugins
 	 * @returns See Bento.entities.addPlugins()
 	 */
-	public async addPlugins(plugins: Array<Plugin>) {
+	public async addPlugins(plugins: Array<Plugin | Function>) {
 		return this.entities.addPlugins(plugins);
 	}
 
@@ -97,8 +120,20 @@ export class Bento {
 	 * @see EntityManager#addPlugin
 	 * @returns See Bento.entities.addPlugin()
 	 */
-	public async addPlugin(plugin: Plugin) {
+	public async addPlugin(plugin: Plugin | Function) {
 		return this.entities.addPlugin(plugin);
+	}
+
+	/**
+	 * 
+	 * @param reference PluginReference
+	 * @param plugin Plugin
+	 * 
+	 * @see EntityManager#replacePlugin
+	 * @returns See Bento.entities.replacePlugin()
+	 */
+	public async replacePlugin(reference: PluginReference, plugin: Plugin | Function) {
+		return this.entities.replacePlugin(reference, plugin);
 	}
 
 	/**
@@ -112,18 +147,18 @@ export class Bento {
 		return this.entities.removePlugin(reference);
 	}
 
-	/**
-	 * Alias for Bento.entities.getPlugin()
-	 * @param reference PluginReference
-	 *
-	 * @see EntityManager#getPlugin
-	 * @returns See Bento.entities.getPlugin()
-	 */
-	public async getPlugin<T extends Plugin>(reference: PluginReference<T>) {
-		return this.entities.getPlugin<T>(reference);
-	}
-
 	// COMPONENTS Aliases
+
+	/**
+	 * Alias for Bento.entities.getComponent()
+	 * @param reference ComponentReference
+	 *
+	 * @see EntityManager#getComponent
+	 * @returns See Bento.entities.getComponent()
+	 */
+	public async getComponent<T extends Component>(reference: ComponentReference<T>) {
+		return this.entities.getComponent<T>(reference);
+	}
 
 	/**
 	 * Alias for Bento.entities.addComponent()
@@ -137,6 +172,18 @@ export class Bento {
 	}
 
 	/**
+	 * 
+	 * @param reference ComponentReference
+	 * @param component Plugin
+	 * 
+	 * @see EntityManager#replaceComponent
+	 * @returns See Bento.entities.replaceComponent()
+	 */
+	public async replaceComponent(reference: ComponentReference, component: Component | Function) {
+		return this.entities.replaceComponent(reference, component);
+	}
+
+	/**
 	 * Alias for Bento.entities.removeComponent()
 	 * @param reference ComponentReference
 	 *
@@ -145,17 +192,6 @@ export class Bento {
 	 */
 	public async removeComponent(reference: ComponentReference) {
 		return this.entities.removeComponent(reference);
-	}
-
-	/**
-	 * Alias for Bento.entities.getComponent()
-	 * @param reference ComponentReference
-	 *
-	 * @see EntityManager#getComponent
-	 * @returns See Bento.entities.getComponent()
-	 */
-	public async getComponent<T extends Component>(reference: ComponentReference<T>) {
-		return this.entities.getComponent<T>(reference);
 	}
 
 	// PROPERTIES Aliases
@@ -169,18 +205,6 @@ export class Bento {
 	 */
 	public hasProperty(name: string) {
 		return this.properties.hasProperty(name);
-	}
-
-	/**
-	 * Alias for Bento.properties.setProperty()
-	 * @param name Property name
-	 * @param value Property value
-	 *
-	 * @see PropertyManager#setProperty
-	 * @returns See Bento.properties.setProperty()
-	 */
-	public setProperty(name: string, value: any) {
-		this.properties.setProperty(name, value);
 	}
 
 	/**
@@ -203,6 +227,18 @@ export class Bento {
 	 */
 	public setProperties(properties: { [key: string]: any }) {
 		this.properties.setProperties(properties);
+	}
+
+	/**
+	 * Alias for Bento.properties.setProperty()
+	 * @param name Property name
+	 * @param value Property value
+	 *
+	 * @see PropertyManager#setProperty
+	 * @returns See Bento.properties.setProperty()
+	 */
+	public setProperty(name: string, value: any) {
+		this.properties.setProperty(name, value);
 	}
 
 	// VARIABLES Aliases

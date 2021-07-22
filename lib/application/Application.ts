@@ -5,10 +5,10 @@ import { IllegalStateError } from '@ayanaware/errors';
 
 import { Bento } from '../Bento';
 import { EntityType } from '../entities';
+import { useApplication, useBento } from '../Globals';
 import { FSEntityLoader, VariableFileLoader } from '../plugins';
 
 import { ApplicationConfig, ApplicationState } from './interfaces';
-import { useApplication, useBento } from '../Globals';
 
 /** @ignore */
 const CALLER_LINE_REGEX = /(?:at (?:.+?\()|at )(.+?):[0-9]+:[0-9]+/;
@@ -64,6 +64,10 @@ export class Application {
 		this.bento = new Bento();
 		// Force Register Bento for `getBento();`. Force to prevent any strangeness
 		useBento(this.bento, true);
+
+		// Name & Version
+		if (this.cfg.name) this.bento.setProperty('APPLICATION_NAME', this.cfg.name);
+		if (this.cfg.version) this.bento.setProperty('APPLICATION_VERSION', this.cfg.version);
 	}
 
 	protected getCallerDirectory() {
@@ -131,10 +135,6 @@ export class Application {
 			const fsel = new FSEntityLoader();
 			await this.bento.addPlugin(fsel);
 		}
-
-		// Name & Version
-		if (this.cfg.name) this.bento.setProperty('APPLICATION_NAME', this.cfg.name);
-		if (this.cfg.version) this.bento.setProperty('APPLICATION_VERSION', this.cfg.version);
 
 		const throwDirectoryError = () => {
 			throw new IllegalStateError('Directory not defined and failed to infer via stack.');

@@ -1,4 +1,4 @@
-export type ContainedType<T> = { new(...args: Array<any>) : T };
+export type ContainedType<T> = { new(...args: Array<any>) : T } | Function;
 
 /**
  * This is a IOC Container for internal Bento use

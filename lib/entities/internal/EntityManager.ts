@@ -1,7 +1,9 @@
 import { IllegalArgumentError, IllegalStateError, ProcessingError } from '@ayanaware/errors';
 
 import { Bento } from '../../Bento';
+import { ContainedType } from '../../Container';
 import { EntityRegistrationError } from '../../errors';
+import { isClass } from '../../util/isClass';
 import {
 	getChildOfDecoratorInjection,
 	getInjections,
@@ -9,11 +11,14 @@ import {
 	getSubscriptions,
 	getVariables,
 } from '../../decorators/internal';
+
 import { PluginAPI } from '../api/PluginAPI';
 import { ComponentAPI } from '../api/ComponentAPI';
+
 import { Component } from '../interfaces/Component';
 import { Entity, EntityType } from '../interfaces/Entity';
 import { Plugin } from '../interfaces/Plugin';
+
 import { ComponentReference } from '../types/ComponentReference';
 import { EntityReference } from '../types/EntityReference';
 import { PluginReference } from '../types/PluginReference';
@@ -37,27 +42,49 @@ export interface PendingEntityInfo {
 export class EntityManager {
 	private readonly bento: Bento;
 
+	private readonly events: Map<string, EntityEvents> = new Map();
+
 	private readonly entities: Map<string, Entity> = new Map();
 	private readonly pending: Map<string, Entity> = new Map();
 
-	private readonly events: Map<string, EntityEvents> = new Map();
-
-	private readonly references: ReferenceManager<Entity> = new ReferenceManager();
+	private readonly references: ReferenceManager<Entity | ContainedType<Entity>> = new ReferenceManager();
 
 	public constructor(bento: Bento) {
 		this.bento = bento;
 	}
 
+	public resolveReference(reference: EntityReference, error?: boolean) {
+		return this.references.resolve(reference, error);
+	}
+
 	/**
-	 * Delegate for the resolveName function
+	 * Check if EntityEvents exists
 	 * @param reference EntityReference
-	 * @param error Throw Error on Failure
 	 *
-	 * @see ReferenceManager#resolveName
-	 * @returns Entity Name or null
+	 * @returns boolean
 	 */
-	public resolveName(reference: EntityReference, error: boolean = false): string {
-		return this.references.resolveName(reference, error);
+	public hasEvents(reference: EntityReference) {
+		const name = this.references.resolve(reference);
+
+		return this.events.has(name);
+	}
+
+	/**
+	 * Get EntityEvents or create it
+	 * @param reference EntityReference
+	 *
+	 * @returns EntityEvents
+	 */
+	public getEvents(reference: EntityReference) {
+		const name = this.references.resolve(reference, true);
+		if (!this.hasEvents(name)) {
+			const events = new EntityEvents(name, this.bento.options);
+			this.events.set(name, events);
+
+			return events;
+		}
+
+		return this.events.get(name);
 	}
 
 	/**
@@ -80,7 +107,7 @@ export class EntityManager {
 	 * @returns boolean
 	 */
 	public hasEntity(reference: EntityReference): boolean {
-		const name = this.resolveName(reference);
+		const name = this.references.resolve(reference);
 
 		return this.getEntities().has(name);
 	}
@@ -92,9 +119,163 @@ export class EntityManager {
 	 * @returns Entity or null
 	 */
 	public getEntity<T extends Entity>(reference: EntityReference<T>): T {
-		const name = this.resolveName(reference);
+		const name = this.references.resolve(reference);
 
 		return (this.getEntities().get(name) || null) as T;
+	}
+
+	/**
+	 * Add a Entity to Bento
+	 * @param entity - Entity
+	 *
+	 * @returns Entity name
+	 */
+	public async addEntity(entity: Entity | ContainedType<Entity>): Promise<string> {
+		if (typeof entity === 'function' && isClass(entity)) entity = new (entity as new () => Entity)();
+
+		if (entity == null || typeof entity !== 'object') throw new IllegalArgumentError('Entity must be a object');
+
+		if (typeof entity.name !== 'string') throw new IllegalArgumentError('Entity name must be a string');
+		if (!entity.name) throw new EntityRegistrationError(entity, 'Entity must specify a name');
+
+		if (typeof entity.type !== 'string') throw new IllegalArgumentError('Entity type must be a string');
+		if (!entity.type) throw new EntityRegistrationError(entity, 'Entity type must be specificed');
+
+		if (this.hasEntity(entity.name)) {
+			const oldEntity = this.getEntity(entity.name);
+			if (!oldEntity.replaceable) throw new IllegalArgumentError(`Entity name "${entity.name}" is already in use, and is not replaceable`);
+
+			return this.replaceEntity(oldEntity, entity);
+		}
+
+		await this.prepareEntity(entity);
+
+		return this.loadEntity(entity);
+	}
+
+	/**
+	 * Replace entity and rewrite references and name behind the scenes.
+	 * 
+	 * This allows for the following code to work:
+	 * ```ts
+	 * class Old { name = 'old'; replaceable = true }
+	 * class New { name = 'new' }
+	 * 
+	 * await bento.replaceEntity(Old, new New());
+	 * 
+	 * bento.getEntity(Old); // Would actually return Instance of the New class
+	 * ```
+	 * 
+	 * @param reference EntityReference
+	 * @param entity Entity
+	 */
+	public async replaceEntity(reference: EntityReference, entity: Entity | Function): Promise<string> {
+		const oldEntity = this.getEntity(reference);
+		if (!oldEntity) throw new IllegalArgumentError('Entity to replace does not exist');
+
+		// Handle uninstantiated Entity
+		if (typeof entity === 'function' && isClass(entity)) entity = new (entity as new () => Entity)();
+
+		if (entity == null || typeof entity !== 'object') throw new IllegalArgumentError('Entity must be a object');
+
+		if (typeof entity.name !== 'string') throw new IllegalArgumentError('Entity name must be a string');
+		if (!entity.name) throw new EntityRegistrationError(entity, 'Entity must specify a name');
+
+		if (typeof entity.type !== 'string') throw new IllegalArgumentError('Entity type must be a string');
+		if (!entity.type) throw new EntityRegistrationError(entity, 'Entity type must be specificed');
+
+		if (!oldEntity.replaceable) throw new IllegalArgumentError(`Entity name "${entity.name}" is not marked as replaceable`);
+
+		await this.prepareEntity(entity);
+		
+		// Remove old Entity from Bento
+		let removed = await this.removeEntity(oldEntity.name);
+		removed = removed.filter(e => e.name !== oldEntity.name);
+
+		// Continue to track constructor
+		// Allowing Bento to still resolve the name of old entities
+		this.references.add(oldEntity, entity.name);
+
+		// Rewrite if needed, for string users
+		if (oldEntity.name !== entity.name)
+			this.references.addRewrite(oldEntity, entity.name);
+
+		// Load the new Entity
+		const name = await this.loadEntity(entity);
+
+		// Restore Dependents
+		for (const item of removed) await this.addEntity(item);
+
+		return name;
+	}
+
+	/**
+	 * Remove a Entity from Bento
+	 * @param reference - Name of Entity
+	 */
+	public async removeEntity(reference: EntityReference): Promise<Array<Entity>> {
+		const name = this.references.resolve(reference);
+		const entity = this.getEntity(name);
+		if (!entity) throw new IllegalStateError(`Entity "${name}" is not currently loaded.`);
+
+		let removed: Array<Entity> = [];
+		// if we have any dependents lets unload them first
+		const dependents = this.getEntityDependents(entity);
+		for (const dependent of dependents) {
+			const alsoRemoved = await this.removeEntity(dependent.name);
+			removed = [...removed, ...alsoRemoved];
+		}
+
+		// onPreComponentUnload
+		if (entity.type === EntityType.COMPONENT) {
+			await this.handlePluginHook(PluginHook.onPreComponentUnload, entity as Component);
+		}
+
+		// call unMount
+		if (entity.onUnload) {
+			try {
+				await entity.onUnload();
+			} catch (e) {
+				// Ignore
+			}
+		}
+
+		removed.push(entity);
+
+		// if we were a child, inform parent of our unloading
+		if (entity.parent) {
+			entity.parent = this.references.resolve(entity.parent);
+
+			if (this.hasEntity(entity.parent)) {
+				const parent = this.getEntity(entity.parent);
+
+				if (parent.onChildUnload) {
+					try {
+						await parent.onChildUnload(entity);
+					} catch (e) {
+						// Ignore
+					}
+				}
+			}
+		}
+
+		// remove all event subscriptions
+		entity.api.unsubscribeAll();
+
+		// remove reference
+		this.references.remove(entity);
+
+		// delete entity
+		if (this.hasEntity(entity.name)) {
+			this.entities.delete(entity.name);
+		}
+
+		// onPostComponentUnload
+		if (entity.type === EntityType.COMPONENT) {
+			await this.handlePluginHook(PluginHook.onPostComponentUnload, entity as Component);
+		}
+
+		return removed;
 	}
 
 	/**
@@ -104,21 +285,9 @@ export class EntityManager {
 	 * @returns boolean
 	 */
 	public hasPlugin(reference: PluginReference): boolean {
-		const name = this.resolveName(reference);
+		const name = this.references.resolve(reference);
 
 		return this.getEntities<Plugin>(EntityType.PLUGIN).has(name);
-	}
-
-	/**
-	 * Get Plugin
-	 * @param reference PluginReference
-	 *
-	 * @returns Plugin or null
-	 */
-	public getPlugin<T extends Plugin>(reference: PluginReference<T>): T {
-		const name = this.resolveName(reference);
-
-		return (this.getEntities<Plugin>(EntityType.PLUGIN).get(name) || null) as T;
 	}
 
 	/**
@@ -131,27 +300,75 @@ export class EntityManager {
 	}
 
 	/**
+	 * Get Plugin
+	 * @param reference PluginReference
+	 *
+	 * @returns Plugin or null
+	 */
+	public getPlugin<T extends Plugin>(reference: PluginReference<T>): T {
+		const name = this.references.resolve(reference);
+
+		return (this.getEntities<Plugin>(EntityType.PLUGIN).get(name) || null) as T;
+	}
+
+	/**
+	 * Adds plugins in order of array
+	 * @param plugins - array of plugins
+	 *
+	 * @returns Array of loaded plugin names
+	 */
+	public async addPlugins(plugins: Array<Plugin | Function>) {
+		if (!Array.isArray(plugins)) throw new IllegalArgumentError('addPlugins only accepts an array.');
+
+		const results = [];
+		for (const plugin of plugins) {
+			const name = await this.addPlugin(plugin);
+			results.push(name);
+		}
+
+		return results;
+	}
+
+	public async addPlugin(plugin: Plugin | Function): Promise<string> {
+		if (typeof plugin === 'function' && isClass(plugin)) plugin = new (plugin as new () => Plugin)();
+
+		Object.defineProperty(plugin, 'type', {
+			configurable: true,
+			writable: false,
+			enumerable: true,
+			value: EntityType.PLUGIN,
+		});
+
+		return this.addEntity(plugin);
+	}
+
+	public async replacePlugin(reference: PluginReference, plugin: Plugin | Function) {
+		if (typeof plugin === 'function' && isClass(plugin)) plugin = new (plugin as new () => Plugin)();
+
+		Object.defineProperty(plugin, 'type', {
+			configurable: true,
+			writable: false,
+			enumerable: true,
+			value: EntityType.PLUGIN,
+		});
+
+		return this.replaceEntity(reference, plugin);
+	}
+
+	public async removePlugin(plugin: PluginReference) {
+		return this.removeEntity(plugin);
+	}
+
+	/**
 	 * Check if Component exists
 	 * @param reference ComponentReference
 	 *
 	 * @returns boolean
 	 */
 	public hasComponent(reference: ComponentReference): boolean {
-		const name = this.resolveName(reference);
+		const name = this.references.resolve(reference);
 
 		return this.getEntities<Component>(EntityType.COMPONENT).has(name);
-	}
-
-	/**
-	 * Get Component
-	 * @param reference ComponentReference
-	 *
-	 * @returns Component or null
-	 */
-	public getComponent<T extends Component>(reference: ComponentReference<T>): T {
-		const name = this.resolveName(reference);
-
-		return (this.getEntities<Component>(EntityType.COMPONENT).get(name) || null) as T;
 	}
 
 	/**
@@ -161,6 +378,85 @@ export class EntityManager {
 	 */
 	public getComponents(): Map<string, Component> {
 		return this.getEntities<Component>(EntityType.COMPONENT);
+	}
+
+	/**
+	 * Adds components in order of array
+	 * @param components - array of plugins
+	 *
+	 * @returns Array of loaded plugin names
+	 */
+	public async addComponents(components: Array<Component | Function>) {
+		if (!Array.isArray(components)) throw new IllegalArgumentError('addComponents only accepts an array');
+
+		const results = [];
+		for (const component of components) {
+			const name = await this.addComponent(component);
+			results.push(name);
+		}
+
+		return results;
+	}
+
+	/**
+	 * Get Component
+	 * @param reference ComponentReference
+	 *
+	 * @returns Component or null
+	 */
+	public getComponent<T extends Component>(reference: ComponentReference<T>): T {
+		const name = this.references.resolve(reference);
+
+		return (this.getEntities<Component>(EntityType.COMPONENT).get(name) || null) as T;
+	}
+
+	/**
+	 * Add Component
+	 * @param component Component
+	 * 
+	 * @returns Component Name
+	 */
+	public async addComponent(component: Component | Function): Promise<string> {
+		if (typeof component === 'function' && isClass(component)) component = new (component as new () => Component)();
+
+		Object.defineProperty(component, 'type', {
+			configurable: true,
+			writable: false,
+			enumerable: true,
+			value: EntityType.COMPONENT,
+		});
+
+		return this.addEntity(component);
+	}
+
+	/**
+	 * Replace Component
+	 * @param reference ComponentReference
+	 * @param component Component
+	 * 
+	 * @returns Component Name
+	 */
+	public async replaceComponent(reference: ComponentReference, component: Component | Function) {
+		if (typeof component === 'function' && isClass(component)) component = new (component as new () => Component)();
+
+		Object.defineProperty(component, 'type', {
+			configurable: true,
+			writable: false,
+			enumerable: true,
+			value: EntityType.COMPONENT,
+		});
+
+		return this.replaceEntity(reference, component);
+	}
+
+	/**
+	 * Remove Component
+	 * @param reference ComponentReference
+	 * 
+	 * @returns Removed Entities
+	 */
+	public async removeComponent(reference: ComponentReference) {
+		return this.removeEntity(reference);
 	}
 
 	/**
@@ -185,53 +481,26 @@ export class EntityManager {
 	}
 
 	/**
-	 * Check if EntityEvents exists
-	 * @param reference EntityReference
+	 * Get all dependents of a entity
+	 * @param entity - EntityReference
 	 *
-	 * @returns boolean
+	 * @returns Array of Entities
 	 */
-	public hasEvents(reference: EntityReference) {
-		const name = this.resolveName(reference);
+	public getEntityDependents<T extends Entity>(entity: EntityReference): Array<T> {
+		const name = this.references.resolve(entity);
+		if (!this.hasEntity(name)) throw new IllegalStateError(`Entity "${name}" does not exist`);
 
-		return this.events.has(name);
-	}
-
-	/**
-	 * Get EntityEvents or create it
-	 * @param reference EntityReference
-	 *
-	 * @returns EntityEvents
-	 */
-	public getEvents(reference: EntityReference) {
-		const name = this.resolveName(reference, true);
-		if (!this.hasEvents(name)) {
-			const events = new EntityEvents(name, this.bento.options);
-			this.events.set(name, events);
-
-			return events;
-		}
-
-		return this.events.get(name);
-	}
-
-	/**
-	 * Get all children of parent Entity
-	 * @param parent - EntityReference
-	 *
-	 * @returns Array of child Entities
-	 */
-	public getEntityChildren<T extends Entity>(parent: EntityReference): Array<T> {
-		const name = this.resolveName(parent);
-		if (!this.hasEntity(name)) throw new IllegalStateError(`Parent "${name}" is not loaded`);
-
-		const children: Array<T> = [];
+		const dependents: Array<T> = [];
 		for (const entity of this.getEntities().values()) {
-			if (entity.parent != null && name === this.resolveName(entity.parent)) {
-				children.push(entity as T);
+			for (const dependency of entity.dependencies) {
+				if (name === this.references.resolve(dependency))
+					dependents.push(entity as T);
+				else if (entity.parent && name === this.references.resolve(entity.parent))
+					dependents.push(entity as T);
 			}
 		}
 
-		return children;
+		return dependents;
 	}
 
 	/**
@@ -248,7 +517,7 @@ export class EntityManager {
 		if (entityOrReference.dependencies == null || !Array.isArray(entityOrReference.dependencies)) throw new IllegalArgumentError(`Entity dependencies must be an array`);
 
 		return entityOrReference.dependencies.reduce((a: Array<any>, d: any) => {
-			const name = this.resolveName(d);
+			const name = this.references.resolve(d);
 
 			// name did not resolve
 			if (!name) a.push(d);
@@ -274,7 +543,7 @@ export class EntityManager {
 
 			this.pending.delete(entity.name);
 			try {
-				await this.loadEntity(entity);
+				await this.handleLifecycle(entity);
 				loaded++;
 			} catch (e) {
 				this.pending.set(entity.name, entity);
@@ -351,146 +620,11 @@ export class EntityManager {
 		}
 	}
 
-	public async addComponent(component: Component): Promise<string> {
-		Object.defineProperty(component, 'type', {
-			configurable: true,
-			writable: false,
-			enumerable: true,
-			value: EntityType.COMPONENT,
-		});
-
-		return this.addEntity(component);
-	}
-
-	public async removeComponent(component: ComponentReference) {
-		return this.removeEntity(component);
-	}
-
-	/**
-	 * Adds plugins in order of array
-	 * @param plugins - array of plugins
-	 *
-	 * @returns Array of loaded plugin names
-	 */
-	public async addPlugins(plugins: Array<Plugin>) {
-		if (!Array.isArray(plugins)) throw new IllegalArgumentError('addPlugins only accepts an array.');
-
-		const results = [];
-		for (const plugin of plugins) {
-			const name = await this.addPlugin(plugin);
-			results.push(name);
-		}
-
-		return results;
-	}
-
-	public async addPlugin(plugin: Plugin): Promise<string> {
-		Object.defineProperty(plugin, 'type', {
-			configurable: true,
-			writable: false,
-			enumerable: true,
-			value: EntityType.PLUGIN,
-		});
-
-		return this.addEntity(plugin);
-	}
-
-	public async removePlugin(plugin: PluginReference) {
-		return this.removeEntity(plugin);
-	}
-
-	/**
-	 * Add a Entity to Bento
-	 * @param entity - Entity
-	 *
-	 * @returns Entity name
-	 */
-	public async addEntity(entity: Entity): Promise<string> {
-		if (entity == null || typeof entity !== 'object') throw new IllegalArgumentError('Entity must be a object');
-
-		if (typeof entity.name !== 'string') throw new IllegalArgumentError('Entity name must be a string');
-		if (!entity.name) throw new EntityRegistrationError(entity, 'Entity must specify a name');
-
-		if (typeof entity.type !== 'string') throw new IllegalArgumentError('Entity type must be a string');
-		if (!entity.type) throw new EntityRegistrationError(entity, 'Entity type must be specificed');
-
-		if (this.hasEntity(entity.name)) throw new IllegalArgumentError(`Entity name "${entity.name}" is already in use`);
-
-		return this.prepareEntity(entity);
-	}
-
-	/**
-	 * Remove a Entity from Bento
-	 * @param reference - Name of Entity
-	 */
-	public async removeEntity(reference: EntityReference) {
-		const name = this.resolveName(reference);
-		const entity = this.getEntity(name);
-		if (!entity) throw new IllegalStateError(`Entity "${name}" is not currently loaded.`);
-
-		// if we have any children lets unload them first
-		const children = this.getEntityChildren(entity);
-		if (children.length > 0) {
-			for (const child of children) {
-				await this.removeEntity(child.name);
-			}
-		}
-
-		// onPreComponentUnload
-		if (entity.type === EntityType.COMPONENT) {
-			await this.handlePluginHook(PluginHook.onPreComponentUnload, entity as Component);
-		}
-
-		// call unMount
-		if (entity.onUnload) {
-			try {
-				await entity.onUnload();
-			} catch (e) {
-				// Ignore
-			}
-		}
-
-		// if we were a child, inform parent of our unloading
-		if (entity.parent) {
-			entity.parent = this.resolveName(entity.parent);
-
-			if (this.hasEntity(entity.parent)) {
-				const parent = this.getEntity(entity.parent);
-
-				if (parent.onChildUnload) {
-					try {
-						await parent.onChildUnload(entity);
-					} catch (e) {
-						// Ignore
-					}
-				}
-			}
-		}
-
-		// remove all event subscriptions
-		entity.api.unsubscribeAll();
-
-		// remove reference
-		this.references.removeReference(entity);
-
-		// delete entity
-		if (this.hasEntity(entity.name)) {
-			this.entities.delete(entity.name);
-		}
-
-		// onPostComponentUnload
-		if (entity.type === EntityType.COMPONENT) {
-			await this.handlePluginHook(PluginHook.onPostComponentUnload, entity as Component);
-		}
-	}
-
 	/**
 	 * Enforces Bento API and prepares entity for loading
 	 * @param entity - Entity
-	 *
-	 * @returns Entity Name
 	 */
-	private async prepareEntity(entity: Entity): Promise<string> {
+	private async prepareEntity(entity: Entity): Promise<void> {
 		// take control and redefine entity name
 		Object.defineProperty(entity, 'name', {
 			configurable: true,
@@ -506,7 +640,7 @@ export class EntityManager {
 		}
 
 		// if entity has constructor track it
-		this.references.addReference(entity);
+		this.references.add(entity);
 
 		this.prepareDecorators(entity);
 
@@ -516,15 +650,23 @@ export class EntityManager {
 		// remove any duplicates or self from dependencies
 		entity.dependencies = entity.dependencies.reduce((a, d) => {
 			// prevent any dependencies to self
-			if (this.resolveName(d) === entity.name) return a;
+			if (this.references.resolve(d) === entity.name) return a;
 
 			// ensure zero duplicates
-			if (!Array.prototype.includes.call(a, d)) a.push(d);
+			const name = this.references.resolve(d);
+			if (!Array.prototype.includes.call(a, name)) a.push(name);
 
 			return a;
 		}, []);
+	}
 
-		// Create and inject api
+	/**
+	 * Load Entity into Bento or deffer for dependencies
+	 * @param entity Entity
+	 * @returns Entity Name
+	 */
+	private async loadEntity(entity: Entity): Promise<string> {
+		// Create API instance
 		const api = entity.type === EntityType.PLUGIN ? new PluginAPI(this.bento, entity as Plugin) : new ComponentAPI(this.bento, entity as Component);
 		Object.defineProperty(entity, 'api', {
 			configurable: true,
@@ -536,20 +678,35 @@ export class EntityManager {
 		// determine dependencies
 		const missing = this.getMissingDependencies(entity);
 		if (missing.length === 0) {
-			// All dependencies are already loaded, go ahead and load the entity
-			await this.loadEntity(entity);
+			// All dependencies are already loaded, handle lifecycle events
+			await this.handleLifecycle(entity);
 
-			// loaded successfuly, if any pending entities, attempt to handle them now
+			// if any pending entities, attempt to handle them now
 			if (this.pending.size > 0) await this.handlePendingEntities();
 		} else {
-			// not able to load this entity yet :c
+			// not able to handle lifecycle yet :c
 			this.pending.set(entity.name, entity);
 		}
 
 		return entity.name;
 	}
 
-	private async loadEntity(entity: Entity) {
+	/**
+	 * Handle Entity Lifecycle Events
+	 * @param entity Entity
+	 */
+	private async handleLifecycle(entity: Entity) {
+		// handle parent
+		let parent = null;
+		if (entity.parent) {
+			entity.parent = this.references.resolve(entity.parent);
+			if (!this.hasEntity(entity.parent)) throw new IllegalStateError(`Child entity "${entity.name}" loaded prior to Parent entity "${entity.parent}"`); // aka, universe bork
+
+			parent = this.getEntity(entity.parent);
+		}
+
+		this.handleDecorators(entity);
+
 		// if we are a plugin verify we are not depending on a component
 		if (entity.type === EntityType.PLUGIN) {
 			for (const reference of entity.dependencies) {
@@ -558,17 +715,6 @@ export class EntityManager {
 				if (dependency.type === EntityType.COMPONENT) throw new EntityRegistrationError(entity, `Cannot depend on Component "${dependency.name}"`);
 			}
 		}
-
-		// handle parent
-		let parent = null;
-		if (entity.parent) {
-			entity.parent = this.resolveName(entity.parent);
-			if (!this.hasEntity(entity.parent)) throw new IllegalStateError(`Child entity "${entity.name}" loaded prior to Parent entity "${entity.parent}"`); // aka, universe bork
-
-			parent = this.getEntity(entity.parent);
-		}
-
-		this.handleDecorators(entity);
 
 		// onPreComponentLoad
 		if (entity.type === EntityType.COMPONENT) {

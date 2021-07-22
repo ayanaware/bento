@@ -12,6 +12,7 @@ export interface Entity {
 
 	name: string;
 	version?: string;
+	replaceable?: boolean;
 
 	dependencies?: Array<EntityReference<Entity>>;
 	parent?: EntityReference<Entity>;

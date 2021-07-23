@@ -19,9 +19,10 @@ export class ReferenceManager<T extends { name: string }> {
 	public resolve(reference: string | Function | T, error: boolean = false): string {
 		let name;
 		if (typeof reference === 'string') name = reference;
-		else if (typeof reference === 'function' && this.references.has(reference)) name = this.references.get(reference);
-		else if (typeof reference === 'object' && Object.prototype.hasOwnProperty.call(reference, 'name')) name = reference.name;
-		else return null;
+		else if (reference != null) {
+			if (typeof reference === 'function' && this.references.has(reference)) name = this.references.get(reference);
+			else if (typeof reference === 'object' && Object.prototype.hasOwnProperty.call(reference, 'name')) name = reference.name;
+		} else return null;
 
 		// Rewrites
 		while (this.rewrites.has(name) && name !== this.rewrites.get(name))

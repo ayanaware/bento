@@ -531,6 +531,27 @@ export class EntityManager {
 	}
 
 	/**
+	 * Ensures all entity dependencies resolve to a name, and no duplicates
+	 * @param entity Entity
+	 */
+	private convertDependencies(entity: Entity) {
+		// remove any duplicates or self from dependencies
+		entity.dependencies = entity.dependencies.reduce((a, d) => {
+			// prevent any dependencies to self
+			if (this.references.resolve(d) === entity.name) return a;
+
+
+			// Attempt to resolve name
+			const name = this.references.resolve(d);
+			if (!name) a.push(d);
+			// ensure zero duplicates
+			else if (!Array.prototype.includes.call(a, name)) a.push(name);
+
+			return a;
+		}, []);
+	}
+
+	/**
 	 * Handle pending entities
 	 *
 	 * @returns Promise
@@ -538,6 +559,9 @@ export class EntityManager {
 	private async handlePendingEntities(): Promise<void> {
 		let loaded = 0;
 		for (const entity of this.pending.values()) {
+			// convert depdendencies again, for any that were not loaded previously
+			this.convertDependencies(entity);
+
 			const missing = this.getMissingDependencies(entity);
 			if (missing.length > 0) continue;
 
@@ -647,17 +671,8 @@ export class EntityManager {
 		// Append parent to dependencies
 		if (entity.parent) entity.dependencies.push(entity.parent);
 
-		// remove any duplicates or self from dependencies
-		entity.dependencies = entity.dependencies.reduce((a, d) => {
-			// prevent any dependencies to self
-			if (this.references.resolve(d) === entity.name) return a;
-
-			// ensure zero duplicates
-			const name = this.references.resolve(d);
-			if (!Array.prototype.includes.call(a, name)) a.push(name);
-
-			return a;
-		}, []);
+		// convert dependencies
+		this.convertDependencies(entity);
 	}
 
 	/**

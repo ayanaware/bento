@@ -190,12 +190,42 @@ export class EntityAPI {
 	}
 
 	/**
+	 * Inject an entity into invoking entity
+	 * @param reference Entity name or reference
+	 * @param injectName Property name to inject to
+	 */
+	public injectEntity(reference: EntityReference, injectName: string | symbol) {
+		const name = this.bento.entities.resolveReference(reference);
+
+		if (this.hasPlugin(name)) this.injectPlugin(name, injectName);
+		else if (this.hasComponent(name)) this.injectComponent(name, injectName);
+		else throw new APIError(this.entity, 'Unable to inject non-existent entity');
+	}
+
+	/**
+	 * Inject plugin into invoking entity
+	 * @param reference Plugin name or reference
+	 * @param injectName property name to inject into
+	 */
+	public injectPlugin(reference: PluginReference, injectName: string | symbol) {
+		if (!this.hasPlugin(reference)) throw new APIError(this.entity, `Unable to inject non-existent plugin "${reference}"`);
+
+		Object.defineProperty(this.entity, injectName, {
+			configurable: true,
+			enumerable: true,
+			get: () => this.getPlugin(reference),
+			set: () => {
+				throw new IllegalAccessError(`Cannot write to injected plugin`);
+			},
+		});
+	}
+
+	/**
 	 * Inject component dependency into invoking entity
 	 * @param reference Component name or reference
 	 * @param injectName property name to inject into
 	 */
 	public injectComponent(reference: ComponentReference, injectName: string | symbol) {
-		if (this.entity.hasOwnProperty(injectName) && (this.entity as any)[injectName] != null) throw new APIError(this.entity, `Cannot inject component, ${this.entity.name}.${injectName.toString()} is already defined`);
 		if (!this.hasComponent(reference)) throw new APIError(this.entity, `Unable to inject non-existent component "${reference}"`);
 
 		// prevent inject of component into plugin
@@ -209,40 +239,6 @@ export class EntityAPI {
 				throw new IllegalAccessError(`Cannot write to injected component`);
 			},
 		});
-	}
-
-	/**
-	 * Inject plugin into invoking entity
-	 * @param reference Plugin name or reference
-	 * @param injectName property name to inject into
-	 */
-	public injectPlugin(reference: PluginReference, injectName: string | symbol) {
-		if (this.entity.hasOwnProperty(injectName) && (this.entity as any)[injectName] != null) throw new APIError(this.entity, `Cannot inject plugin, ${this.entity.name}.${injectName.toString()} is already defined`);
-		if (!this.hasPlugin(reference)) throw new APIError(this.entity, 'Unable to inject non-existent plugin');
-
-		Object.defineProperty(this.entity, injectName, {
-			configurable: true,
-			enumerable: true,
-			get: () => this.getPlugin(reference),
-			set: () => {
-				throw new IllegalAccessError(`Cannot write to injected plugin`);
-			},
-		});
-	}
-
-	/**
-	 * Inject an entity into invoking entity
-	 * @param reference Entity name or reference
-	 * @param injectName Property name to inject to
-	 */
-	public injectEntity(reference: EntityReference, injectName: string | symbol) {
-		if (this.entity.hasOwnProperty(injectName) && (this.entity as any)[injectName] != null) throw new APIError(this.entity, `Cannot inject entity, ${this.entity.name}.${injectName.toString()} is already defined`);
-
-		const name = this.bento.entities.resolveReference(reference);
-
-		if (this.hasPlugin(name)) this.injectPlugin(name, injectName);
-		else if (this.hasComponent(name)) this.injectComponent(name, injectName);
-		else throw new APIError(this.entity, 'Unable to inject non-existent entity');
 	}
 
 	/**

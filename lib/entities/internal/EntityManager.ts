@@ -222,8 +222,11 @@ export class EntityManager {
 		// if we have any dependents lets unload them first
 		const dependents = this.getEntityDependents(entity);
 		for (const dependent of dependents) {
-			const alsoRemoved = await this.removeEntity(dependent.name);
-			removed = [...removed, ...alsoRemoved];
+			// skip already removed entities
+			if (removed.find(d => d.name === dependent.name) != null) continue;
+
+			const also = await this.removeEntity(dependent.name);
+			removed = [...removed, ...also];
 		}
 
 		// onPreComponentUnload

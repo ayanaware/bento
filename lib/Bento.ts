@@ -1,45 +1,50 @@
 import { IllegalStateError } from '@ayanaware/errors';
 
-import {
-	Component, ComponentReference,
-	Entity, EntityReference, EntityType,
-	Plugin, PluginReference
-} from './entities';
-import { EntityManager } from './entities/internal';
-import { PropertyManager } from './properties/internal';
-import { VariableManager } from './variables/internal';
-
-import { BentoState, EventEmitterLike } from './interfaces';
-import { LiteEmitter } from './util';
-
-import { getInstance } from './Container';
 import { useBento } from './Globals';
+import { EntityManager } from './entities/EntityManager';
+import { Component } from './entities/interfaces/Component';
+import { Entity, EntityType } from './entities/interfaces/Entity';
+import { Plugin } from './entities/interfaces/Plugin';
+import { ComponentReference } from './entities/types/ComponentReference';
+import { EntityReference } from './entities/types/EntityReference';
+import { PluginReference } from './entities/types/PluginReference';
+import { BentoState } from './interfaces/BentoState';
+import { EventEmitterLike } from './interfaces/EventEmitterLike';
+import { PropertyManager } from './properties/PropertyManager';
+import { InstanceType } from './types/InstanceType';
+import { LiteEmitter } from './util/LiteEmitter';
+import { VariableManager } from './variables/VariableManager';
 
 export interface BentoOptions {
 	eventEmitter?(): EventEmitterLike;
 }
 
 export class Bento {
-	public readonly properties = getInstance(PropertyManager, this);
-	public readonly variables = getInstance(VariableManager, this);
-	public readonly entities = getInstance(EntityManager, this);
+	public readonly properties = new PropertyManager();
+	public readonly variables = new VariableManager();
+	public readonly entities = new EntityManager(this);
 
 	public readonly options: BentoOptions;
 
 	public readonly version: string;
 
 	public constructor(options?: BentoOptions) {
+		// ESLint Hates him, check out this one weird trick
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires, import/extensions
 		const { version } = require('../package.json');
-		this.version = version;
+		this.version = version as string;
 
-		this.options = {...{
-			eventEmitter: () => new LiteEmitter(),
-		} as BentoOptions, ...options};
+		this.options = {
+			...{
+				eventEmitter: () => new LiteEmitter(),
+			} as BentoOptions, ...options,
+		};
 
-		try{
+		try {
 			useBento(this);
-		} catch(e) {}
-		// We ignore this as somebody, somewhere, might want to run multiple Bento instances.
+		} catch (e) {
+			// We ignore this as somebody, somewhere, might want to run multiple Bento instances.
+		}
 	}
 
 	// ENTITY Aliases
@@ -51,7 +56,7 @@ export class Bento {
 	 * @see EntityManager#getEntity
 	 * @returns See Bento.entities.getEntity()
 	 */
-	public async getEntity<T extends Entity>(reference: EntityReference<T>) {
+	public getEntity<T extends Entity>(reference: EntityReference<T>): T {
 		return this.entities.getEntity<T>(reference);
 	}
 
@@ -62,7 +67,7 @@ export class Bento {
 	 * @see EntityManager#addEntity
 	 * @returns See Bento.entities.addEntity()
 	 */
-	public async addEntity(entity: Entity | Function) {
+	public async addEntity(entity: Entity | InstanceType<Entity>): Promise<string> {
 		return this.entities.addEntity(entity);
 	}
 
@@ -70,11 +75,11 @@ export class Bento {
 	 * Alias for Bento.entities.replaceEntity()
 	 * @param reference EntityReference
 	 * @param entity Entity
-	 * 
+	 *
 	 * @see EntityManager#replaceEntity
 	 * @returns See Bento.entities.replaceEntity()
 	 */
-	public async replaceEntity(reference: EntityReference, entity: Entity | Function) {
+	public async replaceEntity(reference: EntityReference, entity: Entity | InstanceType<Entity>): Promise<string> {
 		return this.entities.replaceEntity(reference, entity);
 	}
 
@@ -85,7 +90,7 @@ export class Bento {
 	 * @see EntityManager#removeEntity
 	 * @returns See Bento.entities.removeEntity()
 	 */
-	public async removeEntity(reference: EntityReference) {
+	public async removeEntity(reference: EntityReference): Promise<Array<Entity>> {
 		return this.entities.removeEntity(reference);
 	}
 
@@ -98,7 +103,7 @@ export class Bento {
 	 * @see EntityManager#getPlugin
 	 * @returns See Bento.entities.getPlugin()
 	 */
-	public async getPlugin<T extends Plugin>(reference: PluginReference<T>) {
+	public getPlugin<T extends Plugin>(reference: PluginReference<T>): T {
 		return this.entities.getPlugin<T>(reference);
 	}
 
@@ -109,7 +114,7 @@ export class Bento {
 	 * @see EntityManager#addPlugins
 	 * @returns See Bento.entities.addPlugins()
 	 */
-	public async addPlugins(plugins: Array<Plugin | Function>) {
+	public async addPlugins(plugins: Array<Plugin | InstanceType<Plugin>>): Promise<Array<string>> {
 		return this.entities.addPlugins(plugins);
 	}
 
@@ -120,19 +125,19 @@ export class Bento {
 	 * @see EntityManager#addPlugin
 	 * @returns See Bento.entities.addPlugin()
 	 */
-	public async addPlugin(plugin: Plugin | Function) {
+	public async addPlugin(plugin: Plugin | InstanceType<Plugin>): Promise<string> {
 		return this.entities.addPlugin(plugin);
 	}
 
 	/**
-	 * 
+	 *
 	 * @param reference PluginReference
 	 * @param plugin Plugin
-	 * 
+	 *
 	 * @see EntityManager#replacePlugin
 	 * @returns See Bento.entities.replacePlugin()
 	 */
-	public async replacePlugin(reference: PluginReference, plugin: Plugin | Function) {
+	public async replacePlugin(reference: PluginReference, plugin: Plugin | InstanceType<Plugin>): Promise<string> {
 		return this.entities.replacePlugin(reference, plugin);
 	}
 
@@ -143,7 +148,7 @@ export class Bento {
 	 * @see EntityManager#removePlugin
 	 * @returns See Bento.entities.removePlugin()
 	 */
-	public async removePlugin(reference: PluginReference) {
+	public async removePlugin(reference: PluginReference): Promise<Array<Entity>> {
 		return this.entities.removePlugin(reference);
 	}
 
@@ -156,7 +161,7 @@ export class Bento {
 	 * @see EntityManager#getComponent
 	 * @returns See Bento.entities.getComponent()
 	 */
-	public async getComponent<T extends Component>(reference: ComponentReference<T>) {
+	public getComponent<T extends Component>(reference: ComponentReference<T>): T {
 		return this.entities.getComponent<T>(reference);
 	}
 
@@ -167,19 +172,19 @@ export class Bento {
 	 * @see EntityManager#addComponent
 	 * @returns See Bento.entities.addComponent()
 	 */
-	public async addComponent(component: Component) {
+	public async addComponent(component: Component): Promise<string> {
 		return this.entities.addComponent(component);
 	}
 
 	/**
-	 * 
+	 *
 	 * @param reference ComponentReference
 	 * @param component Plugin
-	 * 
+	 *
 	 * @see EntityManager#replaceComponent
 	 * @returns See Bento.entities.replaceComponent()
 	 */
-	public async replaceComponent(reference: ComponentReference, component: Component | Function) {
+	public async replaceComponent(reference: ComponentReference, component: Component | InstanceType<Component>): Promise<string> {
 		return this.entities.replaceComponent(reference, component);
 	}
 
@@ -188,9 +193,8 @@ export class Bento {
 	 * @param reference ComponentReference
 	 *
 	 * @see EntityManager#removeComponent
-	 * @returns See Bento.entities.removeComponent()
 	 */
-	public async removeComponent(reference: ComponentReference) {
+	public async removeComponent(reference: ComponentReference): Promise<Array<Entity>> {
 		return this.entities.removeComponent(reference);
 	}
 
@@ -203,7 +207,7 @@ export class Bento {
 	 * @see PropertyManager#hasProperty
 	 * @returns See Bento.properties.hasProperty()
 	 */
-	public hasProperty(name: string) {
+	public hasProperty(name: string): boolean {
 		return this.properties.hasProperty(name);
 	}
 
@@ -214,8 +218,8 @@ export class Bento {
 	 * @see PropertyManager#getProperty
 	 * @returns See Bento.properties.getProperty()
 	 */
-	public getProperty(name: string) {
-		return this.properties.getProperty(name);
+	public getProperty<T extends unknown>(name: string): T {
+		return this.properties.getProperty<T>(name);
 	}
 
 	/**
@@ -225,7 +229,7 @@ export class Bento {
 	 * @see PropertyManager#setProperties
 	 * @returns See Bento.properties.setProperties()
 	 */
-	public setProperties(properties: { [key: string]: any }) {
+	public setProperties(properties: { [key: string]: any }): void {
 		this.properties.setProperties(properties);
 	}
 
@@ -237,8 +241,8 @@ export class Bento {
 	 * @see PropertyManager#setProperty
 	 * @returns See Bento.properties.setProperty()
 	 */
-	public setProperty(name: string, value: any) {
-		this.properties.setProperty(name, value);
+	public setProperty<T>(name: string, value: T): void {
+		this.properties.setProperty<T>(name, value);
 	}
 
 	// VARIABLES Aliases
@@ -250,7 +254,7 @@ export class Bento {
 	 * @see VariableManager#hasVariable
 	 * @returns See Bento.variables.hasVariable()
 	 */
-	public hasVariable(name: string) {
+	public hasVariable(name: string): boolean {
 		return this.variables.hasVariable(name);
 	}
 
@@ -261,8 +265,8 @@ export class Bento {
 	 * @see VariableManager#getVariable
 	 * @returns See Bento.variables.getVariable()
 	 */
-	public getVariable(name: string) {
-		return this.variables.getVariable(name);
+	public getVariable<T extends unknown>(name: string): T {
+		return this.variables.getVariable<T>(name);
 	}
 
 	/**
@@ -273,8 +277,8 @@ export class Bento {
 	 * @see VariableManager#setVariable
 	 * @returns See Bento.variables.setVariable()
 	 */
-	public setVariable(name: string, value: any) {
-		this.variables.setVariable(name, value);
+	public setVariable<T>(name: string, value: T): void {
+		this.variables.setVariable<T>(name, value);
 	}
 
 	/**
@@ -284,7 +288,7 @@ export class Bento {
 	 * @see VariableManager#deleteVariable
 	 * @returns See Bento.variables.deleteVariable()
 	 */
-	public deleteVariable(name: string) {
+	public deleteVariable(name: string): void {
 		this.variables.deleteVariable(name);
 	}
 
@@ -295,6 +299,7 @@ export class Bento {
 	 *
 	 * @returns Application state Object
 	 */
+	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(): Promise<BentoState> {
 		// check for any pending entities
 		const pending = this.entities.getPendingEntities();

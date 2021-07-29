@@ -1,5 +1,4 @@
 import { Component, ComponentAPI, Subscribe } from '@ayanaware/bento';
-
 import { Logger } from '@ayanaware/logger';
 
 import { Clock } from './Clock';

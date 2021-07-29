@@ -1,6 +1,10 @@
 import { IllegalArgumentError, ProcessingError } from '@ayanaware/errors';
 
-import { Entity, EntityType, Plugin, PluginAPI } from '../../entities';
+import { PluginAPI } from '../../entities/api/PluginAPI';
+import { Component } from '../../entities/interfaces/Component';
+import { Entity, EntityType } from '../../entities/interfaces/Entity';
+import { Plugin } from '../../entities/interfaces/Plugin';
+import { InstanceType } from '../../types/InstanceType';
 
 export class EntityLoader implements Plugin {
 	public name = 'EntityLoader';
@@ -13,16 +17,16 @@ export class EntityLoader implements Plugin {
 
 	private readonly pending: Set<Entity> = new Set();
 
-	public async onLoad() {
+	public async onLoad(): Promise<void> {
 		return this.handlePending();
 	}
 
-	public async onUnload() {
+	public async onUnload(): Promise<void> {
 		// unload entities we manage
 		for (const name of this.entities) await this.api.bento.removeEntity(name);
 	}
 
-	protected async handlePending() {
+	protected async handlePending(): Promise<void> {
 		if (this.pending.size < 1) return;
 
 		for (const entity of this.pending) {
@@ -40,7 +44,7 @@ export class EntityLoader implements Plugin {
 	 * @param v Value
 	 * @returns boolean
 	 */
-	protected isEntitylike(v: any) {
+	protected isEntitylike(v: unknown): boolean {
 		return v != null && (typeof v === 'function' || typeof v === 'object');
 	}
 
@@ -51,7 +55,8 @@ export class EntityLoader implements Plugin {
 	 * @param v Value
 	 * @returns boolean
 	 */
-	protected isClasslike(v: any) {
+	// eslint-disable-next-line @typescript-eslint/ban-types
+	protected isClasslike(v: unknown): boolean {
 		return typeof v === 'function' && typeof v.prototype === 'object';
 	}
 
@@ -62,7 +67,8 @@ export class EntityLoader implements Plugin {
 	 * @param v Value
 	 * @returns boolean
 	 */
-	protected isFunctionlike(v: any) {
+	// eslint-disable-next-line @typescript-eslint/ban-types
+	protected isFunctionlike(v: unknown): boolean {
 		return typeof v === 'function' && typeof v.prototype === 'undefined';
 	}
 
@@ -74,19 +80,20 @@ export class EntityLoader implements Plugin {
 	 * @throws ProcessingError If no Entity found or fails to instantiate
 	 * @returns EntityInstance
 	 */
-	protected instantiate<T extends Entity = Entity>(entity: any): T {
-		let instance: T = entity;
+	protected instantiate<T extends Entity = Entity>(entity: Entity | InstanceType<T>): T {
+		let instance: T;
 
 		// instance Classlike or Functionlike
 		try {
-			if (this.isClasslike(entity)) instance = new entity();
-			else if (this.isFunctionlike(entity)) instance = entity();
+			if (this.isClasslike(entity)) instance = new (entity as InstanceType<T>)();
+			else if (this.isFunctionlike(entity)) instance = (entity as () => T)();
+			else instance = entity as T;
 		} catch (e) {
 			throw new ProcessingError('instantiate(): Failed to instantiate').setCause(e);
 		}
 
 		// check for `name`
-		if (typeof instance.name !== 'string') throw new ProcessingError(`instantiate(): Instance does not have the name property`);
+		if (typeof instance.name !== 'string') throw new ProcessingError('instantiate(): Instance does not have the name property');
 
 		return instance;
 	}
@@ -97,8 +104,8 @@ export class EntityLoader implements Plugin {
 	 * @param entities Class or Object Array
 	 * @param type EntityType
 	 */
-	public async addEntities(entities: Array<object | Function>, type: EntityType): Promise<Array<void>> {
-		const promises = entities.map(entity => this.addEntity(entity, type));
+	public async addEntities(entities: Array<Entity | InstanceType<Entity>>, type: EntityType): Promise<Array<void>> {
+		const promises = entities.map(async entity => this.addEntity(entity, type));
 
 		return Promise.all(promises);
 	}
@@ -109,8 +116,8 @@ export class EntityLoader implements Plugin {
 	 * @param entity Class or Object
 	 * @param type EntityType
 	 */
-	public async addEntity(entity: object | Function, type: EntityType): Promise<void> {
-		if (!this.isEntitylike(entity)) throw new IllegalArgumentError(`addEntity(): Value not Entitylike`);
+	public async addEntity(entity: Entity | InstanceType<Entity>, type: EntityType): Promise<void> {
+		if (!this.isEntitylike(entity)) throw new IllegalArgumentError('addEntity(): Value not Entitylike');
 
 		const instance = this.instantiate(entity);
 		instance.type = type;
@@ -131,8 +138,8 @@ export class EntityLoader implements Plugin {
 	 *
 	 * @param plugins Class or Object Array
 	 */
-	public async addPlugins(plugins: Array<object | Function>): Promise<Array<void>> {
-		const promises = plugins.map(plugin => this.addPlugin(plugin));
+	public async addPlugins(plugins: Array<Plugin | InstanceType<Plugin>>): Promise<Array<void>> {
+		const promises = plugins.map(async plugin => this.addPlugin(plugin));
 
 		return Promise.all(promises);
 	}
@@ -143,7 +150,7 @@ export class EntityLoader implements Plugin {
 	 *
 	 * @returns Promise
 	 */
-	public async addPlugin(plugin: object | Function) {
+	public async addPlugin(plugin: Plugin | InstanceType<Plugin>): Promise<void> {
 		return this.addEntity(plugin, EntityType.PLUGIN);
 	}
 
@@ -152,8 +159,8 @@ export class EntityLoader implements Plugin {
 	 *
 	 * @param components Class or Object Array
 	 */
-	public async addComponents(components: Array<object | Function>): Promise<Array<void>> {
-		const promises = components.map(component => this.addComponent(component));
+	public async addComponents(components: Array<Component | InstanceType<Component>>): Promise<Array<void>> {
+		const promises = components.map(async component => this.addComponent(component));
 
 		return Promise.all(promises);
 	}
@@ -164,7 +171,7 @@ export class EntityLoader implements Plugin {
 	 *
 	 * @returns Promise
 	 */
-	public async addComponent(component: any) {
+	public async addComponent(component: Component | InstanceType<Component>): Promise<void> {
 		return this.addEntity(component, EntityType.COMPONENT);
 	}
 }

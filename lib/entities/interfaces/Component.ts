@@ -1,4 +1,4 @@
-import { ComponentAPI } from '../api/ComponentAPI';
+import type { ComponentAPI } from '../api/ComponentAPI';
 
 import { Entity, EntityType } from './Entity';
 

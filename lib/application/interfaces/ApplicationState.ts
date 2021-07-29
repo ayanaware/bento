@@ -1,4 +1,4 @@
-import { BentoState } from '../../interfaces';
+import { BentoState } from '../../interfaces/BentoState';
 
 export interface ApplicationState {
 	state: BentoState;

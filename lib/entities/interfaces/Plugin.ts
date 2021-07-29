@@ -1,7 +1,8 @@
-import { PluginAPI } from '../api/PluginAPI';
+import type { PluginAPI } from '../api/PluginAPI';
 
-import { Component } from './Component';
-import { Entity, EntityType } from './Entity';
+import type { Component } from './Component';
+import type { EntityType } from './Entity';
+import { Entity } from './Entity';
 
 export interface Plugin extends Entity {
 	type?: EntityType.PLUGIN;

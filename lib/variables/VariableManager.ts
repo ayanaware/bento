@@ -1,17 +1,10 @@
 import { IllegalArgumentError, IllegalStateError } from '@ayanaware/errors';
 
-import { Bento } from '../../Bento';
-import { ValidatorRegistrationError } from '../../errors';
+import { ValidatorRegistrationError } from '../errors/ValidatorRegistrationError';
 
 export class VariableManager {
-	private readonly bento: Bento;
-
-	private readonly variables: Map<string, any> = new Map();
+	private readonly variables: Map<string, unknown> = new Map();
 	private readonly validators: Map<string, (value: any, ...args: Array<any>) => boolean> = new Map();
-
-	public constructor(bento: Bento) {
-		this.bento = bento;
-	}
 
 	/**
 	 * Check if a given variable exists
@@ -19,7 +12,7 @@ export class VariableManager {
 	 *
 	 * @returns boolean
 	 */
-	public hasVariable(name: string) {
+	public hasVariable(name: string): boolean {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
 		if (this.variables.has(name)) return true;
 
@@ -47,12 +40,12 @@ export class VariableManager {
 	 *
 	 * @returns Object of Key/Value pairs
 	 */
-	public getVariables() {
-		return Array.from(this.variables.entries()).reduce((a, [k, v]) => {
+	public getVariables(): Record<string, unknown> {
+		return Array.from(this.variables.entries()).reduce((a: Record<string, unknown>, [k, v]) => {
 			a[k] = v;
 
 			return a;
-		}, {} as { [key: string]: any });
+		}, {});
 	}
 
 	/**
@@ -72,7 +65,7 @@ export class VariableManager {
 	 * Fully removes all traces of a variable from bento
 	 * @param name name of variable
 	 */
-	public deleteVariable(name: string) {
+	public deleteVariable(name: string): void {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Variable name must be a string');
 		if (this.variables.has(name)) this.variables.delete(name);
 	}
@@ -82,7 +75,7 @@ export class VariableManager {
 	 * @param name validator name
 	 * @param validator validator function
 	 */
-	public addValidator(name: string, validator: (value: any, ...args: Array<any>) => boolean) {
+	public addValidator(name: string, validator: (value: any, ...args: Array<any>) => boolean): void {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');
 		if (typeof validator !== 'function') throw new IllegalArgumentError('Validator must be a function');
 
@@ -93,7 +86,7 @@ export class VariableManager {
 	 * Remove validator from Bento
 	 * @param name validator name
 	 */
-	public removeValidator(name: string) {
+	public removeValidator(name: string): void {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');
 		if (!this.validators.has(name)) throw new IllegalStateError(`Validator "${name}" does not exist`);
 
@@ -108,7 +101,7 @@ export class VariableManager {
 	 *
 	 * @returns validator result
 	 */
-	public runValidator(name: string, value: any, ...args: Array<any>) {
+	public runValidator(name: string, value: unknown, ...args: Array<any>): boolean {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Validator name must be a string');
 		if (!this.validators.has(name)) throw new IllegalStateError(`Validator "${name}" does not exist`);
 

@@ -1,13 +1,14 @@
-import { Application } from './application';
-import { Bento } from './Bento';
-import {
-	Component, ComponentReference,
-	Entity, EntityReference,
-	Plugin, PluginReference
-} from './entities';
-import { EntityManager } from './entities/internal';
-import { PropertyManager } from './properties/internal';
-import { VariableManager } from './variables/internal';
+import type { Bento } from './Bento';
+import type { Application } from './application/Application';
+import { EntityManager } from './entities/EntityManager';
+import { Component } from './entities/interfaces/Component';
+import { Entity } from './entities/interfaces/Entity';
+import { Plugin } from './entities/interfaces/Plugin';
+import { ComponentReference } from './entities/types/ComponentReference';
+import { EntityReference } from './entities/types/EntityReference';
+import { PluginReference } from './entities/types/PluginReference';
+import { PropertyManager } from './properties/PropertyManager';
+import { VariableManager } from './variables/VariableManager';
 
 /**
  * Global Application Instance
@@ -38,9 +39,9 @@ let bento: Bento;
 
 /**
  * Define Bento instance `getBento()` returns
- * 
+ *
  * This function will mostly be called internally by Bento in it's constructor
- * 
+ *
  * @param bento Bento instance
  * @param force Force override. Only use if you know what you're doing.
  */
@@ -77,8 +78,8 @@ export function getProperty<T>(name: string): T {
 	return getPropertyManager().getProperty<T>(name);
 }
 
-export function setProperty(name: string, value: any) {
-	return getPropertyManager().setProperty(name, value);
+export function setProperty<T>(name: string, value: T): T {
+	return getPropertyManager().setProperty<T>(name, value);
 }
 
 // VARIABLES
@@ -111,14 +112,14 @@ export function getEntityManager(): EntityManager {
 	return getBento().entities;
 }
 
-export async function getEntity<T extends Entity>(reference: EntityReference<T>): Promise<T> {
+export function getEntity<T extends Entity>(reference: EntityReference<T>): T {
 	return getEntityManager().getEntity<T>(reference);
 }
 
-export async function getPlugin<T extends Plugin>(reference: PluginReference<T>): Promise<T> {
+export function getPlugin<T extends Plugin>(reference: PluginReference<T>): T {
 	return getEntityManager().getPlugin<T>(reference);
 }
 
-export async function getComponent<T extends Component>(reference: ComponentReference<T>): Promise<T> {
+export function getComponent<T extends Component>(reference: ComponentReference<T>): T {
 	return getEntityManager().getComponent<T>(reference);
 }

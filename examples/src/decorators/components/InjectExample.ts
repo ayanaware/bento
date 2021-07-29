@@ -1,8 +1,8 @@
 import { Component, ComponentAPI, Inject } from '@ayanaware/bento';
+import { Logger } from '@ayanaware/logger';
 
 import { SubscribeExample } from './SubscribeExample';
 
-import { Logger } from '@ayanaware/logger';
 const log = Logger.get('InjectExample');
 
 export class InjectExample {
@@ -11,7 +11,7 @@ export class InjectExample {
 
 	public dependencies: Array<Component> = [];
 
-	@Inject(SubscribeExample) private subscribeExample: SubscribeExample
+	@Inject(SubscribeExample) private readonly subscribeExample: SubscribeExample;
 
 	public async onLoad() {
 		log.info(`importantValue = ${this.subscribeExample.importantValue}`);

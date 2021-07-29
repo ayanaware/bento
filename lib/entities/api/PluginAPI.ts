@@ -1,8 +1,9 @@
-import { Bento } from '../../Bento';
+import type { Bento } from '../../Bento';
 import { Plugin } from '../interfaces/Plugin';
 
 import { EntityAPI } from './EntityAPI';
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export class PluginAPI extends EntityAPI {
 	// Make bento public as this is a plugin api
 	public readonly bento: Bento;
@@ -18,7 +19,7 @@ export class PluginAPI extends EntityAPI {
 	 *
 	 * @returns bento instance
 	 */
-	public getBento() {
+	public getBento(): Bento {
 		return this.bento;
 	}
 }

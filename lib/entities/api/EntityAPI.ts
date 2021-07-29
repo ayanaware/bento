@@ -1,21 +1,20 @@
-import { IllegalAccessError, IllegalArgumentError, IllegalStateError } from '@ayanaware/errors';
+import { IllegalAccessError, IllegalArgumentError } from '@ayanaware/errors';
 
-import { Bento } from '../../Bento';
-import { APIError } from '../../errors';
-import { EventEmitterLike } from '../../interfaces';
-import { VariableDefinition } from '../../variables';
-
+import type { Bento } from '../../Bento';
+import { ApiError } from '../../errors/ApiError';
+import { EventEmitterLike } from '../../interfaces/EventEmitterLike';
+import { VariableDefinition } from '../../variables/interfaces/VariableDefinition';
+import type { Component } from '../interfaces/Component';
 import { Entity, EntityType } from '../interfaces/Entity';
-import { Plugin } from '../interfaces/Plugin';
-import { Component } from '../interfaces/Component';
-
+import type { Plugin } from '../interfaces/Plugin';
+import { ComponentReference } from '../types/ComponentReference';
 import { EntityReference } from '../types/EntityReference';
 import { PluginReference } from '../types/PluginReference';
-import { ComponentReference } from '../types/ComponentReference';
 
 /**
  * Shared functions for ComponentAPI and PluginAPI
  */
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export class EntityAPI {
 	protected readonly bento: Bento;
 
@@ -39,7 +38,7 @@ export class EntityAPI {
 	 * Get the semantic version string of the bento instance attached to this component api
 	 * @returns Semantic version string (https://semver.org)
 	 */
-	public getBentoVersion() {
+	public getBentoVersion(): string {
 		return this.bento.version;
 	}
 
@@ -49,7 +48,7 @@ export class EntityAPI {
 	 *
 	 * @returns boolean
 	 */
-	public hasProperty(name: string) {
+	public hasProperty(name: string): boolean {
 		return this.bento.properties.hasProperty(name);
 	}
 
@@ -69,7 +68,7 @@ export class EntityAPI {
 	 *
 	 * @returns boolean
 	 */
-	public hasVariable(name: string) {
+	public hasVariable(name: string): boolean {
 		return this.bento.variables.hasVariable(name);
 	}
 
@@ -88,12 +87,12 @@ export class EntityAPI {
 		}
 
 		// validate definition
-		if (!definition.name) throw new APIError(this.entity, 'VariableDefinition must define a name');
+		if (!definition.name) throw new ApiError(this.entity, 'VariableDefinition must define a name');
 
 		const value = this.bento.variables.getVariable<T>(definition.name, definition.default);
 
 		// if undefined. then is a required variable that is not in bento
-		if (value === undefined) throw new APIError(this.entity, `No value available for "${definition.name}" variable`);
+		if (value === undefined) throw new ApiError(this.entity, `No value available for "${definition.name}" variable`);
 
 		return value;
 	}
@@ -104,10 +103,9 @@ export class EntityAPI {
 	 *
 	 * @returns boolean
 	 */
-	public hasEntity(reference: EntityReference) {
+	public hasEntity(reference: EntityReference): boolean {
 		return this.bento.entities.hasEntity(reference);
 	}
-
 
 	/**
 	 * Get Entity
@@ -118,7 +116,7 @@ export class EntityAPI {
 	public getEntity<T extends Entity>(reference: EntityReference<T>): T {
 		const name = this.bento.entities.resolveReference(reference);
 		const entity = this.bento.entities.getEntity<T>(name);
-		if (!entity) throw new APIError(this.entity, `Entity "${name}" does not exist`);
+		if (!entity) throw new ApiError(this.entity, `Entity "${name}" does not exist`);
 
 		return entity;
 	}
@@ -129,7 +127,7 @@ export class EntityAPI {
 	 *
 	 * @returns boolean
 	 */
-	public hasPlugin(reference: PluginReference) {
+	public hasPlugin(reference: PluginReference): boolean {
 		return this.bento.entities.hasPlugin(reference);
 	}
 
@@ -142,7 +140,7 @@ export class EntityAPI {
 	public getPlugin<T extends Plugin>(reference: PluginReference<T>): T {
 		const name = this.bento.entities.resolveReference(reference);
 		const plugin = this.bento.entities.getPlugin<T>(name);
-		if (!plugin) throw new APIError(this.entity, `Plugin "${name}" does not exist`);
+		if (!plugin) throw new ApiError(this.entity, `Plugin "${name}" does not exist`);
 
 		return plugin;
 	}
@@ -153,7 +151,7 @@ export class EntityAPI {
 	 *
 	 * @returns boolean
 	 */
-	public hasComponent(reference: ComponentReference) {
+	public hasComponent(reference: ComponentReference): boolean {
 		return this.bento.entities.hasComponent(reference);
 	}
 
@@ -166,7 +164,7 @@ export class EntityAPI {
 	public getComponent<T extends Component>(reference: ComponentReference<T>): T {
 		const name = this.bento.entities.resolveReference(reference);
 		const component = this.bento.entities.getComponent<T>(name);
-		if (!component) throw new APIError(this.entity, `Component "${name}" does not exist`);
+		if (!component) throw new ApiError(this.entity, `Component "${name}" does not exist`);
 
 		return component;
 	}
@@ -176,16 +174,15 @@ export class EntityAPI {
 	 * @param reference EntityReference
 	 *
 	 * @throws APIError if this.entity is plugin and reference is component
-	 * @returns void
 	 */
-	protected checkPDC(reference: EntityReference) {
+	protected checkPdc(reference: EntityReference): boolean {
 		if (this.entity.type !== EntityType.PLUGIN) return;
 
 		const entity = this.bento.entities.getEntity(reference);
 		if (!entity) return;
 
 		if (entity.type === EntityType.COMPONENT) {
-			throw new APIError(this.entity, `Plugin cannot depend on ${entity.name}(component)`);
+			throw new ApiError(this.entity, `Plugin cannot depend on ${entity.name}(component)`);
 		}
 	}
 
@@ -194,12 +191,12 @@ export class EntityAPI {
 	 * @param reference Entity name or reference
 	 * @param injectName Property name to inject to
 	 */
-	public injectEntity(reference: EntityReference, injectName: string | symbol) {
+	public injectEntity(reference: EntityReference, injectName: string | symbol): void {
 		const name = this.bento.entities.resolveReference(reference);
 
 		if (this.hasPlugin(name)) this.injectPlugin(name, injectName);
 		else if (this.hasComponent(name)) this.injectComponent(name, injectName);
-		else throw new APIError(this.entity, 'Unable to inject non-existent entity');
+		else throw new ApiError(this.entity, 'Unable to inject non-existent entity');
 	}
 
 	/**
@@ -207,15 +204,15 @@ export class EntityAPI {
 	 * @param reference Plugin name or reference
 	 * @param injectName property name to inject into
 	 */
-	public injectPlugin(reference: PluginReference, injectName: string | symbol) {
-		if (!this.hasPlugin(reference)) throw new APIError(this.entity, `Unable to inject non-existent plugin "${reference}"`);
+	public injectPlugin(reference: PluginReference, injectName: string | symbol): void {
+		if (!this.hasPlugin(reference)) throw new ApiError(this.entity, `Unable to inject non-existent plugin "${reference}"`);
 
 		Object.defineProperty(this.entity, injectName, {
 			configurable: true,
 			enumerable: true,
-			get: () => this.getPlugin(reference),
+			get: () => this.getPlugin<Plugin>(reference),
 			set: () => {
-				throw new IllegalAccessError(`Cannot write to injected plugin`);
+				throw new IllegalAccessError('Cannot write to injected plugin');
 			},
 		});
 	}
@@ -225,45 +222,20 @@ export class EntityAPI {
 	 * @param reference Component name or reference
 	 * @param injectName property name to inject into
 	 */
-	public injectComponent(reference: ComponentReference, injectName: string | symbol) {
-		if (!this.hasComponent(reference)) throw new APIError(this.entity, `Unable to inject non-existent component "${reference}"`);
+	public injectComponent(reference: ComponentReference, injectName: string | symbol): void {
+		if (!this.hasComponent(reference)) throw new ApiError(this.entity, `Unable to inject non-existent component "${reference}"`);
 
 		// prevent inject of component into plugin
-		this.checkPDC(reference);
+		this.checkPdc(reference);
 
 		Object.defineProperty(this.entity, injectName, {
 			configurable: true,
 			enumerable: true,
-			get: () => this.getComponent(reference),
+			get: () => this.getComponent<Component>(reference),
 			set: () => {
-				throw new IllegalAccessError(`Cannot write to injected component`);
+				throw new IllegalAccessError('Cannot write to injected component');
 			},
 		});
-	}
-
-	/**
-	 * Invokes a plugins loadComponents method. Allowing for easy loading of peer/children components
-	 * @param reference Plugin name or reference
-	 * @param args Arguments to be passed to Plugin.loadComponents() method
-	 *
-	 * @returns Plugin.loadComponents() result
-	 * 
-	 * @deprecated This is now an anti-pattern. Use FSEntityLoader to load all components from bootstrap file
-	 */
-	public async loadComponents(reference: PluginReference, ...args: Array<any>) {
-		if (reference == null) throw new APIError(this.entity, 'Pluginreference must be defined');
-
-		// verify that the plugin exists in bento
-		let plugin = null;
-		try {
-			plugin = this.getPlugin<any>(reference);
-		} catch (e) {
-			throw new IllegalStateError(`Failed to find requested plugin`).setCause(e);
-		}
-
-		if (typeof plugin.loadComponents !== 'function') throw new APIError(this.entity, `Plugin ${plugin.name}.loadComponents() method does not exist`);
-
-		return plugin.loadComponents(...args);
 	}
 
 	/**
@@ -271,12 +243,12 @@ export class EntityAPI {
 	 * @param definition Variable definition
 	 * @param injectName property name to inject into
 	 */
-	public injectVariable(definition: VariableDefinition, injectName?: string | symbol) {
-		if (!definition.name) throw new APIError(this.entity, 'VariableDefinition must have a name');
+	public injectVariable(definition: VariableDefinition, injectName?: string | symbol): void {
+		if (!definition.name) throw new ApiError(this.entity, 'VariableDefinition must have a name');
 
 		// if variable not in bento, and no default defined. Throw an error
 		if (!this.hasVariable(definition.name) && definition.default === undefined) {
-			throw new APIError(this.entity, `Cannot inject non-existant variable "${definition.name}"`);
+			throw new ApiError(this.entity, `Cannot inject non-existant variable "${definition.name}"`);
 		}
 
 		const property = injectName || definition.name;
@@ -285,9 +257,9 @@ export class EntityAPI {
 		Object.defineProperty(this.entity, property, {
 			configurable: true,
 			enumerable: false,
-			get: () => this.getVariable(definition),
+			get: () => this.getVariable<unknown>(definition),
 			set: () => {
-				throw new IllegalAccessError(`Cannot write to injected variable`);
+				throw new IllegalAccessError('Cannot write to injected variable');
 			},
 		});
 	}
@@ -297,7 +269,7 @@ export class EntityAPI {
 	 * @param eventName Name of event
 	 * @param args Ordered Array of args to emit
 	 */
-	public emit(eventName: string, ...args: Array<any>) {
+	public emit(eventName: string, ...args: Array<any>): void {
 		const emitter = this.bento.entities.getEvents(this.entity.name);
 		emitter.emit(eventName, ...args);
 	}
@@ -307,7 +279,7 @@ export class EntityAPI {
 	 * @param eventName Name of event
 	 * @param args Ordered Array of args to emit
 	 */
-	public emitSubject(eventName: string, ...args: Array<any>) {
+	public emitSubject(eventName: string, ...args: Array<any>): void {
 		const emitter = this.bento.entities.getEvents(this.entity.name);
 		emitter.emitSubject(eventName, ...args);
 	}
@@ -321,8 +293,8 @@ export class EntityAPI {
 	 *
 	 * @throws IllegalArgumentError if fromEmitter is not an EventEmitter or events is not an array
 	 */
-	public forwardEvents(fromEmitter: EventEmitterLike, events: Array<string>) {
-		if (events != null && !Array.isArray(events)) throw new APIError(this.entity, 'Events is not an array');
+	public forwardEvents(fromEmitter: EventEmitterLike, events: Array<string>): void {
+		if (events != null && !Array.isArray(events)) throw new ApiError(this.entity, 'Events is not an array');
 
 		const emitter = this.bento.entities.getEvents(this.entity.name);
 		events.forEach(event => {
@@ -346,12 +318,12 @@ export class EntityAPI {
 	 * @returns Subscription ID
 	 */
 	// tslint:disable-next-line:max-params
-	public subscribe(reference: EntityReference, event: string, handler: (...args: Array<any>) => void, context?: any) {
+	public subscribe(reference: EntityReference, event: string, handler: (...args: Array<any>) => void, context?: unknown): number {
 		const name = this.bento.entities.resolveReference(reference);
-		if (!name) throw new APIError(this.entity, `Unable to subscribe to non-existant entity`);
+		if (!name) throw new ApiError(this.entity, 'Unable to subscribe to non-existant entity');
 
 		// prevent plugin subscribing to component events
-		this.checkPDC(reference);
+		this.checkPdc(reference);
 
 		// Get the namespace
 		const events = this.bento.entities.getEvents(name);
@@ -376,7 +348,7 @@ export class EntityAPI {
 	 *
 	 * @returns Subscription ID
 	 */
-	public subscribeEvent(reference: EntityReference, event: string, handler: (...args: Array<any>) => void, context?: any) {
+	public subscribeEvent(reference: EntityReference, event: string, handler: (...args: Array<any>) => void, context?: unknown): number {
 		return this.subscribe(reference, event, handler, context);
 	}
 
@@ -385,9 +357,9 @@ export class EntityAPI {
 	 * @param reference - Component Reference / Name
 	 * @param id - subscription id provided by subscribe
 	 */
-	public unsubscribe(reference: EntityReference, id: number) {
+	public unsubscribe(reference: EntityReference, id: number): void {
 		const name = this.bento.entities.resolveReference(reference);
-		if (!name) throw new APIError(this.entity, 'Unable to unsubscribe from non-existant entity');
+		if (!name) throw new ApiError(this.entity, 'Unable to unsubscribe from non-existant entity');
 
 		// Check if the component events exists
 		const events = this.bento.entities.getEvents(name);
@@ -410,10 +382,10 @@ export class EntityAPI {
 	 *
 	 * @param reference - Optional. A namespace where all events should be unsubscribed
 	 */
-	public unsubscribeAll(reference?: EntityReference) {
+	public unsubscribeAll(reference?: EntityReference): void {
 		if (reference != null) {
 			const name = this.bento.entities.resolveReference(reference);
-			if (!name) throw new APIError(this.entity, `Unable to ubsubscribeAll to non-existant entity`);
+			if (!name) throw new ApiError(this.entity, 'Unable to ubsubscribeAll to non-existant entity');
 
 			if (!this.bento.entities.hasEvents(name)) return;
 			const events = this.bento.entities.getEvents(name);
@@ -423,8 +395,8 @@ export class EntityAPI {
 			if (subscriptions == null) return;
 
 			// Unsubscribe from all events
-			for (const subID of subscriptions) {
-				events.unsubscribe(subID);
+			for (const subId of subscriptions) {
+				events.unsubscribe(subId);
 			}
 
 			// Remove array

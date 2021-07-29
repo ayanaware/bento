@@ -61,10 +61,10 @@ export class LiteEmitter {
 			try {
 				handler(...args);
 			}	catch (e) {
-				if (name === 'error') throw new LiteEmitterError(`Caught Error in "error" handler function`).setCause(e);
+				if (name === 'error') throw new LiteEmitterError('Caught Error in "error" handler function').setCause(e);
 
 				// emit as an error
-				this.emit('error', new LiteEmitterError(`Caught Error in handler function`).setCause(e));
+				this.emit('error', new LiteEmitterError('Caught Error in handler function').setCause(e));
 			}
 		}
 	}

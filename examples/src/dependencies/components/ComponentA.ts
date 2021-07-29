@@ -1,5 +1,4 @@
 import { Component, ComponentAPI } from '@ayanaware/bento';
-
 import { Logger } from '@ayanaware/logger';
 const log = Logger.get('ComponentA');
 

@@ -1,4 +1,4 @@
-import { Entity } from '../entities';
+import { Entity } from '../entities/interfaces/Entity';
 
 import { EntityError } from './EntityError';
 

@@ -1,8 +1,8 @@
 
 import { IllegalArgumentError, ProcessingError } from '@ayanaware/errors';
 
-import { BentoOptions } from '../../Bento';
-import { EventEmitterLike } from '../../interfaces';
+import type { BentoOptions } from '../Bento';
+import { EventEmitterLike } from '../interfaces/EventEmitterLike';
 
 export type EntityEventHandler = (...args: Array<any>) => void;
 export interface EntityEventSubscription {
@@ -37,7 +37,7 @@ export class EntityEvents {
 	 * @param name Event name
 	 * @param args Event args
 	 */
-	public emit(name: string, ...args: Array<any>) {
+	public emit(name: string, ...args: Array<any>): void {
 		this.emitter.emit(name, ...args);
 	}
 
@@ -46,7 +46,7 @@ export class EntityEvents {
 	 * @param name Event name
 	 * @param args Event args
 	 */
-	public emitSubject(name: string, ...args: Array<any>) {
+	public emitSubject(name: string, ...args: Array<any>): void {
 		this.subject.set(name, args);
 		this.emit(name, ...args);
 	}
@@ -55,11 +55,11 @@ export class EntityEvents {
 	 * Purges subject data for event
 	 * @param name Event name
 	 */
-	public purgeSubject(name: string) {
+	public purgeSubject(name: string): void {
 		this.subject.delete(name);
 	}
 
-	public subscribe(name: string, handler: EntityEventHandler, context?: any): number {
+	public subscribe(name: string, handler: EntityEventHandler, context?: unknown): number {
 		const id = this.subCount++;
 
 		// rewrap handler, if context provided
@@ -81,7 +81,7 @@ export class EntityEvents {
 		return id;
 	}
 
-	public unsubscribe(id?: number) {
+	public unsubscribe(id?: number): void {
 		if (typeof id !== 'undefined') {
 			if (typeof id !== 'number') throw new IllegalArgumentError('If given an argument, it must be number');
 			const subscription = this.subscriptions.get(id);

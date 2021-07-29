@@ -55,5 +55,5 @@ class Example2 {
 
 	await bento.verify();
 	console.log(bento);
-})();
+})().catch(e => console.log(e));
 

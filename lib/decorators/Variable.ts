@@ -1,26 +1,26 @@
-import { VariableDefinition } from '../variables';
-import { MetadataKeys } from './internal';
+import { VariableDefinition } from '../variables/interfaces/VariableDefinition';
 
-export interface VariableInjection {
+const VARIABLE_KEY = '@ayanaware/bento:Variable';
+
+export interface Variables {
 	key: string | symbol;
 	definition: VariableDefinition;
 }
 
-export function getVariables(target: any) {
-	const variables: Array<VariableInjection> = Reflect.getMetadata(MetadataKeys.VARIABLE, target.constructor) || [];
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function getVariables(target: Function): Array<Variables> {
+	const variables: Array<Variables> = Reflect.getMetadata(VARIABLE_KEY, target) as Array<Variables>;
 	if (!Array.isArray(variables)) return [];
 
 	return variables;
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export function Variable(definition: VariableDefinition): PropertyDecorator {
 	return (target: any, propertyKey: string | symbol) => {
-		if (target.proptotype === undefined) target = target.constructor;
-
-		const variables: Array<VariableInjection> = Reflect.getMetadata(MetadataKeys.VARIABLE, target) || [];
-
+		const variables = Reflect.getMetadata(VARIABLE_KEY, target) as Array<Variables> || [];
 		variables.push({ key: propertyKey, definition });
 
-		Reflect.defineMetadata(MetadataKeys.VARIABLE, variables, target);
+		Reflect.defineMetadata(VARIABLE_KEY, variables, target);
 	};
 }

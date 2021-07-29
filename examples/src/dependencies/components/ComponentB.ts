@@ -1,8 +1,8 @@
 import { Component, ComponentAPI } from '@ayanaware/bento';
+import { Logger } from '@ayanaware/logger';
 
 import { ComponentA } from './ComponentA';
 
-import { Logger } from '@ayanaware/logger';
 const log = Logger.get('ComponentB');
 
 export class ComponentB implements Component {

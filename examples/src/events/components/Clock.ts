@@ -1,7 +1,6 @@
-import { Component, ComponentAPI } from '@ayanaware/bento';
-
 import { EventEmitter } from 'events';
 
+import { Component, ComponentAPI } from '@ayanaware/bento';
 import { Logger } from '@ayanaware/logger';
 const log = Logger.get('Clock');
 

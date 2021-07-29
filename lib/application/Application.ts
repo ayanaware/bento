@@ -4,11 +4,13 @@ import * as path from 'path';
 import { IllegalStateError } from '@ayanaware/errors';
 
 import { Bento } from '../Bento';
-import { EntityType } from '../entities';
 import { useApplication, useBento } from '../Globals';
-import { FSEntityLoader, VariableFileLoader } from '../plugins';
+import { EntityType } from '../entities/interfaces/Entity';
+import { VariableFileLoader } from '../plugins/cfg/VariableFileLoader';
+import { FSEntityLoader } from '../plugins/loaders/FSEntityLoader';
 
-import { ApplicationConfig, ApplicationState } from './interfaces';
+import { ApplicationConfig } from './interfaces/ApplicationConfig';
+import { ApplicationState } from './interfaces/ApplicationState';
 
 /** @ignore */
 const CALLER_LINE_REGEX = /(?:at (?:.+?\()|at )(.+?):[0-9]+:[0-9]+/;
@@ -49,7 +51,8 @@ export class Application {
 	 * If you need a custom relative path / working directory you can pass it via
 	 * the 2nd argument. ex: `new Application({}, __dirname);`
 	 *
-	 * **The above is only relevant if you are using the defaults, if you specify paths in config they must be absolute and won't be prefixed**
+	 * **The above is only relevant if you are using the defaults, if you specify paths in
+	 * config they must be absolute and won't be prefixed**
 	 *
 	 * @param cfg ApplicationConfig
 	 * @param directory Working directory
@@ -70,7 +73,7 @@ export class Application {
 		if (this.cfg.version) this.bento.setProperty('APPLICATION_VERSION', this.cfg.version);
 	}
 
-	protected getCallerDirectory() {
+	protected getCallerDirectory(): string {
 		let callerFile: string = null;
 		try {
 			const capture: { stack?: string } = {};
@@ -107,7 +110,7 @@ export class Application {
 		return callerFile.slice(0, lastIndex);
 	}
 
-	protected async exists(location: string | Array<string>) {
+	protected async exists(location: string | Array<string>): Promise<boolean> {
 		if (Array.isArray(location)) location = path.resolve(...location);
 
 		try {
@@ -124,16 +127,16 @@ export class Application {
 	 *
 	 * **Don't forget to call `Application.verify();` after this**
 	 */
-	public async start() {
+	public async start(): Promise<void> {
 		// add required plugins if needed
 		if (!this.bento.entities.hasEntity(VariableFileLoader)) {
-			const vfl = new VariableFileLoader();
-			await this.bento.addPlugin(vfl);
+			const newVfl = new VariableFileLoader();
+			await this.bento.addPlugin(newVfl);
 		}
 
 		if (!this.bento.entities.hasEntity(FSEntityLoader)) {
-			const fsel = new FSEntityLoader();
-			await this.bento.addPlugin(fsel);
+			const newFsel = new FSEntityLoader();
+			await this.bento.addPlugin(newFsel);
 		}
 
 		const throwDirectoryError = () => {

@@ -32,7 +32,7 @@ export class Bento {
 		// ESLint Hates him, check out this one weird trick
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires, import/extensions
 		const { version } = require('../package.json');
-		this.version = version as string;
+		this.version = (version as string) || 'Error';
 
 		this.options = {
 			...{
@@ -101,7 +101,7 @@ export class Bento {
 	 * @param reference PluginReference
 	 *
 	 * @see EntityManager#getPlugin
-	 * @returns See Bento.entities.getPlugin()
+	 * @returns {Plugin}
 	 */
 	public getPlugin<T extends Plugin>(reference: PluginReference<T>): T {
 		return this.entities.getPlugin<T>(reference);

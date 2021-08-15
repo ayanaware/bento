@@ -1,6 +1,6 @@
 import { GenericError } from '@ayanaware/errors';
 
-export class LiteEmitterError extends GenericError {}
+export class LiteEmitterError extends GenericError { }
 
 export type LiteEmitterHandler = (...args: Array<any>) => void;
 
@@ -16,7 +16,7 @@ export class LiteEmitter {
 	 * @param name name of event
 	 * @param fn handler function
 	 */
-	public addListener(name: string, fn: LiteEmitterHandler) {
+	public addListener(name: string, fn: LiteEmitterHandler): void {
 		// create new set if required
 		if (!this.handlers.has(name)) this.handlers.set(name, new Set());
 
@@ -31,7 +31,7 @@ export class LiteEmitter {
 	 * @param name name of event
 	 * @param fn optional handler to detach
 	 */
-	public removeListener(name: string, fn?: LiteEmitterHandler) {
+	public removeListener(name: string, fn?: LiteEmitterHandler): void {
 		const handlers = this.handlers.get(name);
 		if (!handlers) return;
 
@@ -53,18 +53,18 @@ export class LiteEmitter {
 	 * @param name name of event
 	 * @param args event arguments
 	 */
-	public emit(name: string, ...args: Array<any>) {
+	public emit(name: string, ...args: Array<any>): void {
 		const handlers = this.handlers.get(name);
 		if (!handlers) return;
 
 		for (const handler of handlers) {
 			try {
 				handler(...args);
-			}	catch (e) {
-				if (name === 'error') throw new LiteEmitterError(`Caught Error in "error" handler function`).setCause(e);
+			} catch (e) {
+				if (name === 'error') throw new LiteEmitterError('Caught Error in "error" handler function').setCause(e);
 
 				// emit as an error
-				this.emit('error', new LiteEmitterError(`Caught Error in handler function`).setCause(e));
+				this.emit('error', new LiteEmitterError('Caught Error in handler function').setCause(e));
 			}
 		}
 	}

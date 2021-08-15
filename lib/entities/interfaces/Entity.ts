@@ -1,5 +1,5 @@
-import { EntityAPI } from '../api/EntityAPI';
-import { EntityReference } from '../types/EntityReference';
+import type { EntityAPI } from '../api/EntityAPI';
+import type { EntityReference } from '../types/EntityReference';
 
 export enum EntityType {
 	PLUGIN = 'plugin',

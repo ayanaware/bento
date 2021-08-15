@@ -1,5 +1,6 @@
-import { EntityReference } from '../entities';
-import { MetadataKeys } from './internal';
+import { EntityReference } from '../entities/types/EntityReference';
+
+const SUBSCRIBE_KEY = '@ayanaware/bento:Subscribe';
 
 export interface Subscriptions {
 	reference: EntityReference;
@@ -7,21 +8,20 @@ export interface Subscriptions {
 	handler: (...args: Array<any>) => any;
 }
 
-export function getSubscriptions(target: any): Array<Subscriptions> {
-	const subscriptions: Array<Subscriptions> = Reflect.getMetadata(MetadataKeys.SUBSCRIBE, target.constructor) || [];
+// eslint-disable-next-line @typescript-eslint/ban-types
+export function getSubscriptions(target: Function): Array<Subscriptions> {
+	const subscriptions = Reflect.getMetadata(SUBSCRIBE_KEY, target) as Array<Subscriptions>;
 	if (!Array.isArray(subscriptions)) return [];
 
 	return subscriptions;
 }
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export function Subscribe(reference: EntityReference, event: string): MethodDecorator {
 	return (target: any, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<any>) => {
-		if (target.prototype === undefined) target = target.constructor;
+		const subscriptions = Reflect.getMetadata(SUBSCRIBE_KEY, target) as Array<Subscriptions> || [];
+		subscriptions.push({ reference, event, handler: descriptor.value as (...args: Array<any>) => any });
 
-		const subscriptions: Array<Subscriptions> = Reflect.getMetadata(MetadataKeys.SUBSCRIBE, target) || [];
-
-		subscriptions.push({ reference, event, handler: descriptor.value });
-
-		Reflect.defineMetadata(MetadataKeys.SUBSCRIBE, subscriptions, target);
+		Reflect.defineMetadata(SUBSCRIBE_KEY, subscriptions, target);
 	};
 }

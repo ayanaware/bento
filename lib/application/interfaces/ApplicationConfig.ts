@@ -10,7 +10,7 @@ export interface ApplicationConfig {
 	variables?: Array<Array<string>>;
 
 	/** Plugin Directories */
-	plugins?: Array<Array<string>>; 
+	plugins?: Array<Array<string>>;
 	/** Component Directories */
 	components?: Array<Array<string>>;
 }

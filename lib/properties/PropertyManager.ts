@@ -1,7 +1,7 @@
 import { IllegalArgumentError } from '@ayanaware/errors';
 
 export class PropertyManager {
-	private readonly properties: Map<string, any> = new Map();
+	private readonly properties: Map<string, unknown> = new Map();
 
 	/**
 	 * Checks if a given property exists in bento
@@ -9,7 +9,7 @@ export class PropertyManager {
 	 *
 	 * @returns boolean
 	 */
-	public hasProperty(name: string) {
+	public hasProperty(name: string): boolean {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Property name must be a string');
 
 		return this.properties.has(name);
@@ -21,10 +21,10 @@ export class PropertyManager {
 	 *
 	 * @returns Property value
 	 */
-	public getProperty<T>(name: string, def?: T): T {
+	public getProperty<T>(name: string): T {
 		if (typeof name !== 'string') throw new IllegalArgumentError('Property name must be a string');
 
-		return this.properties.get(name);
+		return this.properties.get(name) as T;
 	}
 
 	/**

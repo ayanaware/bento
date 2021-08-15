@@ -16,17 +16,19 @@ export class ReferenceManager<T extends { name: string }> {
 	 *
 	 * @returns Entity Name or null
 	 */
-	public resolve(reference: string | Function | T, error: boolean = false): string {
+	public resolve(reference: string | T, error: boolean = false): string {
 		let name;
-		if (typeof reference === 'string') name = reference;
-		else if (reference != null) {
+		if (typeof reference === 'string') {
+			name = reference;
+		} else if (reference != null) {
 			if (typeof reference === 'function' && this.references.has(reference)) name = this.references.get(reference);
 			else if (typeof reference === 'object' && Object.prototype.hasOwnProperty.call(reference, 'name')) name = reference.name;
 		}
 
 		// Rewrites
-		while (this.rewrites.has(name) && name !== this.rewrites.get(name))
+		while (this.rewrites.has(name) && name !== this.rewrites.get(name)) {
 			name = this.rewrites.get(name);
+		}
 
 		if (!name && error) throw new IllegalStateError('Reference is not registered, or does not have a name');
 
@@ -39,7 +41,7 @@ export class ReferenceManager<T extends { name: string }> {
 	 *
 	 * @param entity The entity to be registered
 	 */
-	public add(entity: Function | T, name?: string) {
+	public add(entity: T, name?: string): void {
 		if (entity.constructor != null && entity.constructor !== Object) {
 			this.references.set(entity.constructor, name || entity.name);
 		}
@@ -51,7 +53,7 @@ export class ReferenceManager<T extends { name: string }> {
 	 *
 	 * @param entity The entity to be removed
 	 */
-	public remove(entity: Function | T) {
+	public remove(entity: T): void {
 		const name = this.references.get(entity.constructor);
 		this.references.delete(entity.constructor);
 
@@ -59,22 +61,15 @@ export class ReferenceManager<T extends { name: string }> {
 		// TODO: Walk rewrites, to prevent a multi rewrite from staying
 	}
 
-	public addRewrite(entity: string | Function | T, rewrite: string) {
+	public addRewrite(entity: string | T, rewrite: string): void {
 		const name = this.resolve(entity);
-		if (!name) return false;
-
-		this.rewrites.set(name, rewrite);
+		if (name) this.rewrites.set(name, rewrite);
 
 		// TODO: Proactivly update old rewrites, ie hello => world, world => new. We should go back and update hello => new
-
-		return true;
 	}
 
-	public removeRewrite(entity: string | Function | T) {
+	public removeRewrite(entity: string | T): void {
 		const name = this.resolve(entity);
-		if (!name) return false;
-
-		this.rewrites.delete(name);
-		return true;
+		if (name) this.rewrites.delete(name);
 	}
 }

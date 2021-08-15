@@ -1,0 +1,21 @@
+{
+	"extends": [
+		"plugin:@ayanaware/typescript"
+	],
+	"env": {
+		"es2020": true
+	},
+	"ignorePatterns": [
+		"node_modules/",
+		"dist/",
+		"build/",
+		"examples/"
+	],
+	"rules": {
+		"padded-blocks": [
+			"error",
+			"never"
+		],
+		"@typescript-eslint/explicit-module-boundary-types": "warn"
+	}
+}

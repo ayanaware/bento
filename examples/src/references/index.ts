@@ -1,5 +1,4 @@
 import { Bento, FSEntityLoader } from '@ayanaware/bento';
-
 import { Logger } from '@ayanaware/logger';
 const log = Logger.get(null);
 

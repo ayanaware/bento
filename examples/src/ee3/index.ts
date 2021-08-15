@@ -1,8 +1,8 @@
 import { Bento } from '@ayanaware/bento';
+import { Logger } from '@ayanaware/logger';
 
 import { EventEmitter } from 'eventemitter3';
 
-import { Logger } from '@ayanaware/logger';
 const log = Logger.get();
 
 // create bento instance
@@ -12,7 +12,7 @@ const bento = new Bento({
 
 // Anonymous async function so we can use await
 (async () => {
-	log.info(`Bento is now using ee3 instead of the native events.EventEmitter`);
+	log.info('Bento is now using ee3 instead of the native events.EventEmitter');
 
 	await bento.verify();
 })().catch(e => {

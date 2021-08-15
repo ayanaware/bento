@@ -1,5 +1,4 @@
 import { Bento, ComponentAPI, Variable, VariableLoader } from '@ayanaware/bento';
-
 import { Logger } from '@ayanaware/logger';
 const log = Logger.get(null);
 
@@ -14,7 +13,7 @@ const bento = new Bento();
 	// using variable loader plugin to map an ENV variable to a bento variable
 	log.info('Mapping env variable "FOO" to bento variable "FOO"');
 	const vl = new VariableLoader();
-	vl.addVariable('FOO', 'Try running this example with `FOO=mystring` appended to the front')
+	vl.addVariable('FOO', 'Try running this example with `FOO=mystring` appended to the front');
 
 	// load variable loader plugin into bento
 	await bento.addPlugin(vl);
@@ -29,7 +28,7 @@ const bento = new Bento();
 
 		// You can either use a decorator to define the variable
 		@Variable({ name: 'hello' }) // name is the name of the bento variable
-		private hello: string;
+		private readonly hello: string;
 
 		async onLoad() {
 			log2.info(`Decorator defined variable "hello" = "${this.hello}"`);

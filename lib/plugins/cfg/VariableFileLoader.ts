@@ -3,12 +3,12 @@ import * as path from 'path';
 import { promisify } from 'util';
 
 import { ProcessingError } from '@ayanaware/errors';
+import { Logger } from '@ayanaware/logger-api';
 
-import { PluginAPI } from '../../entities';
+import { PluginAPI } from '../../entities/api/PluginAPI';
 
 import { VariableLoader } from './VariableLoader';
 
-import { Logger } from '@ayanaware/logger-api';
 const log = Logger.get();
 
 const accessAsync = promisify(fs.access);
@@ -27,7 +27,17 @@ export class VariableFileLoader extends VariableLoader {
 	public name = 'VariableFileLoader';
 	public api!: PluginAPI;
 
+	/**
+	 * Registered files and Variables they loaded
+	 */
+	public readonly files: Map<string, Set<string>> = new Map();
+
 	private readonly watching: boolean;
+
+	/**
+	 * Registered fs Watchers
+	 */
+	private readonly watchers: Map<string, fs.FSWatcher> = new Map();
 
 	/**
 	 * @param watching Enable file watching? (Automatic hot-loading of variables in files)
@@ -39,23 +49,13 @@ export class VariableFileLoader extends VariableLoader {
 	}
 
 	/**
-	 * Registered files and Variables they loaded
-	 */
-	public readonly files: Map<string, Set<string>> = new Map();
-
-	/**
-	 * Registered fs Watchers
-	 */
-	private readonly watchers: Map<string, fs.FSWatcher> = new Map();
-
-	/**
 	 * Add Multiple Variable Files
 	 * @param files Array of File Locations
 	 * @param defaults Defaults Mode
 	 *
 	 * @returns Array<Path>
 	 */
-	public async addFiles(files: Array<Array<string>>, defaults: boolean) {
+	public async addFiles(files: Array<Array<string>>, defaults: boolean): Promise<Array<string>> {
 		const results: Array<string> = [];
 		for (const file of files) {
 			const location = await this.addFile(file, defaults);
@@ -73,7 +73,7 @@ export class VariableFileLoader extends VariableLoader {
 	 * @throws ProcessingError If `fs.access` check fails and `defaults` is true
 	 * @returns Path
 	 */
-	public async addFile(location: Array<string>, defaults: boolean = false) {
+	public async addFile(location: Array<string>, defaults: boolean = false): Promise<string> {
 		const abs = path.resolve(...location);
 		try {
 			await accessAsync(abs, fs.constants.F_OK);
@@ -99,7 +99,7 @@ export class VariableFileLoader extends VariableLoader {
 	 * @param location File Location
 	 * @param purge Purge Variables that this file Added
 	 */
-	public async removeFile(location: Array<string>, purge: boolean) {
+	public removeFile(location: Array<string>, purge: boolean): void {
 		const abs = path.resolve(...location);
 		if (!this.files.has(abs)) return;
 
@@ -160,17 +160,17 @@ export class VariableFileLoader extends VariableLoader {
 	 *
 	 * @returns Key/Value Pairings Object
 	 */
-	public async parseFileContents(data: Buffer): Promise<{[key: string]: any}> {
+	public parseFileContents(data: Buffer): { [key: string]: unknown } {
 		try {
-			return JSON.parse(data.toString());
+			return JSON.parse(data.toString()) as Record<string, unknown>;
 		} catch (e) {
 			throw new ProcessingError('Failed to parse JSON').setCause(e);
 		}
 	}
 
-	protected async processFile(location: string, defaults: boolean) {
+	protected async processFile(location: string, defaults: boolean): Promise<void> {
 		const data = await this.getFileContents(location);
-		const pairings = await this.parseFileContents(data);
+		const pairings = this.parseFileContents(data);
 
 		// file/variable ownership
 		if (!this.files.has(location)) this.files.set(location, new Set());

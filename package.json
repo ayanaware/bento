@@ -14,8 +14,8 @@
 		"start": "node build/index.js",
 		"build": "rm -rf build/ && tsc",
 		"prepublishOnly": "rm -rf build && tsc",
-		"lint": "eslint --ext \".ts\" --ignore-path .gitignore .",
-		"lint:fix": "eslint --ext \".ts\" --fix --ignore-path .gitignore .",
+		"lint": "eslint --ext \".ts\" --ignore-path .gitignore lib/",
+		"lint:fix": "eslint --ext \".ts\" --fix --ignore-path .gitignore lib/",
 		"test": "ayc clean build && mocha",
 		"test:coverage": "ayc clean build && nyc mocha"
 	},

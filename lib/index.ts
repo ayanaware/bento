@@ -39,4 +39,6 @@ export * from './plugins/cfg/VariableLoader';
 export * from './plugins/loaders/EntityLoader';
 export * from './plugins/loaders/FSEntityLoader';
 
+export * from './types/InstanceType';
+
 export * from './variables/interfaces/VariableDefinition';

@@ -20,6 +20,9 @@ export function Parent(reference: EntityReference): PropertyDecorator {
 	return (target: any, propertyKey: string | symbol) => {
 		if (!reference) throw new Error('ChildOf(): EntityReference not provided');
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+		if (target.prototype === undefined) target = target.constructor;
+
 		Reflect.defineMetadata(PARENT_KEY, { reference, propertyKey }, target);
 	};
 }

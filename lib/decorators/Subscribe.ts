@@ -19,6 +19,9 @@ export function getSubscriptions(target: Function): Array<Subscriptions> {
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export function Subscribe(reference: EntityReference, event: string): MethodDecorator {
 	return (target: any, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<any>) => {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+		if (target.prototype === undefined) target = target.constructor;
+
 		const subscriptions = Reflect.getMetadata(SUBSCRIBE_KEY, target) as Array<Subscriptions> || [];
 		subscriptions.push({ reference, event, handler: descriptor.value as (...args: Array<any>) => any });
 

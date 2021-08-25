@@ -18,6 +18,9 @@ export function getVariables(target: Function): Array<Variables> {
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export function Variable(definition: VariableDefinition): PropertyDecorator {
 	return (target: any, propertyKey: string | symbol) => {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+		if (target.prototype === undefined) target = target.constructor;
+
 		const variables = Reflect.getMetadata(VARIABLE_KEY, target) as Array<Variables> || [];
 		variables.push({ key: propertyKey, definition });
 

@@ -30,8 +30,10 @@ export function Inject(reference?: EntityReference): PropertyDecorator {
 
 			// TODO: verify valid
 		}
-
 		if (!reference) throw new IllegalArgumentError('Inject(): Reference not provided and cannot be inferred from Typescript');
+
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+		if (target.prototype === undefined) target = target.constructor;
 
 		const injections = Reflect.getMetadata(INJECT_KEY, target) as Array<Injections> || [];
 		injections.push({ key: propertyKey, reference });

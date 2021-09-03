@@ -6,6 +6,7 @@ import { getInjections } from '../decorators/Inject';
 import { getParent } from '../decorators/Parent';
 import { getSubscriptions } from '../decorators/Subscribe';
 import { getVariables } from '../decorators/Variable';
+import { EntityError } from '../errors/EntityError';
 import { EntityRegistrationError } from '../errors/EntityRegistrationError';
 import { InstanceType } from '../types/InstanceType';
 import { isClass } from '../util/isClass';
@@ -231,11 +232,11 @@ export class EntityManager {
 			await this.handlePluginHook(PluginHook.PRE_COMPONENT_UNLOAD, entity as Component);
 		}
 
-		// call unMount
-		if (entity.onUnload) {
+		// call onUnload
+		if (typeof entity.onUnload === 'function') {
 			try {
 				await entity.onUnload();
-			} catch (e) {
+			} catch {
 				// Ignore
 			}
 		}
@@ -249,7 +250,7 @@ export class EntityManager {
 			if (this.hasEntity(entity.parent)) {
 				const parent = this.getEntity(entity.parent);
 
-				if (parent.onChildUnload) {
+				if (typeof parent.onChildUnload === 'function') {
 					try {
 						await parent.onChildUnload(entity);
 					} catch (e) {
@@ -457,6 +458,30 @@ export class EntityManager {
 	 */
 	public async removeComponent(reference: ComponentReference): Promise<Array<Entity>> {
 		return this.removeEntity(reference);
+	}
+
+	/**
+	 * Verify loaded entites & call their onVerify() hook
+	 * @returns Map of string/Entity pairs
+	 */
+	public async verify(): Promise<Map<string, Entity>> {
+		const pending = this.getPendingEntities();
+		if (pending.length > 0) {
+			throw new IllegalStateError(`One or more entities are still in a pending state: '${pending.map(p => p.name).join('\', \'')}'`);
+		}
+
+		const entities = this.getEntities();
+		for (const [name, entity] of entities.entries()) {
+			if (typeof entity.onVerify !== 'function') continue;
+
+			try {
+				await entity.onVerify();
+			} catch (e) {
+				throw new EntityError(`Entity "${name}".onVerify() threw error`).setCause(e as Error);
+			}
+		}
+
+		return entities;
 	}
 
 	/**
@@ -724,20 +749,20 @@ export class EntityManager {
 		this.entities.set(entity.name, entity);
 
 		// Call onLoad if present
-		if (entity.onLoad) {
+		if (typeof entity.onLoad === 'function') {
 			try {
 				await entity.onLoad(entity.api);
 			} catch (e) {
-				throw new EntityRegistrationError(entity, `${entity.name}.onLoad() threw error`).setCause(e);
+				throw new EntityRegistrationError(entity, `${entity.name}.onLoad() threw error`).setCause(e as Error);
 			}
 		}
 
 		// if we just loaded a child entity, lets inform the parent
-		if (parent != null && parent.onChildLoad) {
+		if (parent != null && typeof parent.onChildLoad === 'function') {
 			try {
 				await parent.onChildLoad(entity);
 			} catch (e) {
-				throw new EntityRegistrationError(parent, `Failed to load child entity "${entity.name}"`).setCause(e);
+				throw new EntityRegistrationError(parent, `Failed to load child entity "${entity.name}"`).setCause(e as Error);
 			}
 		}
 
@@ -754,12 +779,12 @@ export class EntityManager {
 	 */
 	private async handlePluginHook(hookName: PluginHook, component: Component) {
 		for (const plugin of this.getEntities<Plugin>(EntityType.PLUGIN).values()) {
-			if (!plugin[hookName]) continue;
+			if (typeof plugin[hookName] !== 'function') continue;
 
 			try {
 				await plugin[hookName](component);
 			} catch (e) {
-				throw new ProcessingError(`Plugin "${plugin.name}" ${hookName} hook threw an error`).setCause(e);
+				throw new ProcessingError(`Plugin "${plugin.name}" ${hookName} hook threw an error`).setCause(e as Error);
 			}
 		}
 	}

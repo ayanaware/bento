@@ -15,7 +15,6 @@ export function getVariables(target: Function): Array<Variables> {
 	return variables;
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export function Variable(definition: VariableDefinition): PropertyDecorator {
 	return (target: any, propertyKey: string | symbol) => {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access

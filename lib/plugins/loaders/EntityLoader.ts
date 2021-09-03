@@ -55,7 +55,6 @@ export class EntityLoader implements Plugin {
 	 * @param v Value
 	 * @returns boolean
 	 */
-	// eslint-disable-next-line @typescript-eslint/ban-types
 	protected isClasslike(v: unknown): boolean {
 		return typeof v === 'function' && typeof v.prototype === 'object';
 	}
@@ -67,7 +66,6 @@ export class EntityLoader implements Plugin {
 	 * @param v Value
 	 * @returns boolean
 	 */
-	// eslint-disable-next-line @typescript-eslint/ban-types
 	protected isFunctionlike(v: unknown): boolean {
 		return typeof v === 'function' && typeof v.prototype === 'undefined';
 	}
@@ -89,7 +87,7 @@ export class EntityLoader implements Plugin {
 			else if (this.isFunctionlike(entity)) instance = (entity as () => T)();
 			else instance = entity as T;
 		} catch (e) {
-			throw new ProcessingError('instantiate(): Failed to instantiate').setCause(e);
+			throw new ProcessingError('instantiate(): Failed to instantiate').setCause(e as Error);
 		}
 
 		// check for `name`

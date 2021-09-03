@@ -14,7 +14,6 @@ import { PluginReference } from '../types/PluginReference';
 /**
  * Shared functions for ComponentAPI and PluginAPI
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export class EntityAPI {
 	protected readonly bento: Bento;
 

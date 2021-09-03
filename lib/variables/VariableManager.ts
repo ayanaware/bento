@@ -110,7 +110,7 @@ export class VariableManager {
 		try {
 			return validator.call(undefined, value, args);
 		} catch (e) {
-			throw new ValidatorRegistrationError(name, `Validator "${name}" failed to execute`).setCause(e);
+			throw new ValidatorRegistrationError(name, `Validator "${name}" failed to execute`).setCause(e as Error);
 		}
 	}
 }

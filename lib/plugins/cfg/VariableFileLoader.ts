@@ -79,7 +79,7 @@ export class VariableFileLoader extends VariableLoader {
 			await accessAsync(abs, fs.constants.F_OK);
 		} catch (e) {
 			// defaults files are "required", so bubble error
-			if (defaults) throw new ProcessingError(`addFile(): Defaults file "${abs}" access check failed`).setCause(e);
+			if (defaults) throw new ProcessingError(`addFile(): Defaults file "${abs}" access check failed`).setCause(e as Error);
 
 			log.warn(`addFile(): Ignoring File "${abs}", access check failed`);
 
@@ -150,7 +150,7 @@ export class VariableFileLoader extends VariableLoader {
 
 			return readFileAsync(location);
 		} catch (e) {
-			throw new ProcessingError(`getFileContents(): Failed for "${location}"`).setCause(e);
+			throw new ProcessingError(`getFileContents(): Failed for "${location}"`).setCause(e as Error);
 		}
 	}
 
@@ -164,7 +164,7 @@ export class VariableFileLoader extends VariableLoader {
 		try {
 			return JSON.parse(data.toString()) as Record<string, unknown>;
 		} catch (e) {
-			throw new ProcessingError('Failed to parse JSON').setCause(e);
+			throw new ProcessingError('Failed to parse JSON').setCause(e as Error);
 		}
 	}
 

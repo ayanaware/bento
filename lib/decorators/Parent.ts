@@ -15,7 +15,6 @@ export function getParent(target: Function): ParentInjection {
 	return parent;
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export function Parent(reference: EntityReference): PropertyDecorator {
 	return (target: any, propertyKey: string | symbol) => {
 		if (!reference) throw new Error('ChildOf(): EntityReference not provided');

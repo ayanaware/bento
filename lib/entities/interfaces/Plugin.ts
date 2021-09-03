@@ -8,38 +8,35 @@ export interface Plugin extends Entity {
 	type?: EntityType.PLUGIN;
 	api?: PluginAPI;
 
-	/**
-	 * Plugin Lifecycle Hook, Plugin Entrypoint
-	 * @param api Plugin API
-	 */
-	onLoad?(api?: PluginAPI): Promise<void>;
+	/** Lifecycle: Called right before Component is fully loaded */
+	onLoad?(api?: PluginAPI): Promise<unknown>;
 
 	/**
 	 * Plugin Lifecycle Hook, Plugin unload
 	 */
-	onUnload?(): Promise<void>;
+	onUnload?(): Promise<unknown>;
 
 	/**
 	 * Component Lifecycle Hook, Called prior to component onLoad
 	 * @param component Component
 	 */
-	onPreComponentLoad?(component: Component): Promise<void>;
+	onPreComponentLoad?(component: Component): Promise<unknown>;
 
 	/**
 	 * Component Lifecycle Hook, Called prior to the component onUnload
 	 * @param component Component
 	 */
-	onPreComponentUnload?(component: Component): Promise<void>;
+	onPreComponentUnload?(component: Component): Promise<unknown>;
 
 	/**
 	 * Component Lifecycle Hook, Called after component onLoad
 	 * @param component Component
 	 */
-	onPostComponentLoad?(component: Component): Promise<void>;
+	onPostComponentLoad?(component: Component): Promise<unknown>;
 
 	/**
 	 * Component Lifecycle Hook, Called after component onUnload
 	 * @param component Component
 	 */
-	onPostComponentUnload?(component: Component): Promise<void>;
+	onPostComponentUnload?(component: Component): Promise<unknown>;
 }

@@ -20,7 +20,6 @@ const log = Logger.get();
  * FSEntityLoader is a recursive entity loader for Bento.
  * Be sure to carefully read function documentation for potential gotchas
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export class FSEntityLoader extends EntityLoader {
 	public name = 'FSEntityLoader';
 	public api!: PluginAPI;
@@ -102,9 +101,7 @@ export class FSEntityLoader extends EntityLoader {
 				const content = await fs.readFile(dts, { encoding: 'utf8' });
 				if (/@ayanaware\/bento/mi.exec(content)) return true;
 			}
-		} catch (e) {
-			// NO OP
-		}
+		} catch { /* NO-OP */ }
 
 		return false;
 	}
@@ -131,7 +128,7 @@ export class FSEntityLoader extends EntityLoader {
 		try {
 			nodeModule = require(file);
 		} catch (e) {
-			throw new EntityLoadError(file, `addFile(): Failed to require "${file}"`).setCause(e);
+			throw new EntityLoadError(file, `addFile(): Failed to require "${file}"`).setCause(e as Error);
 		}
 
 		const entity = this.findEntity(nodeModule);

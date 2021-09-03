@@ -6,5 +6,6 @@ export interface Component extends Entity {
 	type?: EntityType.COMPONENT;
 	api?: ComponentAPI;
 
-	onLoad?(api?: ComponentAPI): Promise<void>;
+	/** Lifecycle: Called right before Component is fully loaded */
+	onLoad?(api?: ComponentAPI): Promise<unknown>;
 }

@@ -17,7 +17,6 @@ export function getInjections(target: Function): Array<Injections> {
 	return injections;
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export function Inject(reference?: EntityReference): PropertyDecorator {
 	return (target: any, propertyKey: string | symbol, parameterIndex?: number) => {
 		if (typeof parameterIndex === 'number' && propertyKey != null) {

@@ -1,5 +1,6 @@
+import { EntityType } from '../entities/interfaces/Entity';
+
 export interface BentoState {
-	components: Array<string>;
-	plugins: Array<string>;
+	entities: Array<{ type: EntityType, name: string }>;
 	variables: Array<string>;
 }

@@ -16,7 +16,6 @@ export function getSubscriptions(target: Function): Array<Subscriptions> {
 	return subscriptions;
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export function Subscribe(reference: EntityReference, event: string): MethodDecorator {
 	return (target: any, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<any>) => {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access

@@ -1,9 +1,7 @@
-import { IllegalStateError } from '@ayanaware/errors';
-
 import { useBento } from './Globals';
 import { EntityManager } from './entities/EntityManager';
 import { Component } from './entities/interfaces/Component';
-import { Entity, EntityType } from './entities/interfaces/Entity';
+import { Entity } from './entities/interfaces/Entity';
 import { Plugin } from './entities/interfaces/Plugin';
 import { ComponentReference } from './entities/types/ComponentReference';
 import { EntityReference } from './entities/types/EntityReference';
@@ -29,10 +27,14 @@ export class Bento {
 	public readonly version: string;
 
 	public constructor(options?: BentoOptions) {
-		// ESLint Hates him, check out this one weird trick
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires, import/extensions
-		const { version } = require('../package.json');
-		this.version = (version as string) || 'Error';
+		try {
+			// ESLint Hates him, check out this one weird trick
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-var-requires, import/extensions
+			const { version } = require('../package.json');
+			this.version = version as string || 'Error';
+		} catch {
+			this.version = 'Error';
+		}
 
 		this.options = {
 			...{
@@ -42,7 +44,7 @@ export class Bento {
 
 		try {
 			useBento(this);
-		} catch (e) {
+		} catch {
 			// We ignore this as somebody, somewhere, might want to run multiple Bento instances.
 		}
 	}
@@ -294,28 +296,21 @@ export class Bento {
 
 	/**
 	 * Verifies the state of your Application, Will throw an error at anything
-	 * "weird" looking. For example if any components are pending when this is
-	 * called it will throw
+	 * "weird" looking. For example if any entities are pending.
+	 *
+	 * Also indirectly calls .onVerify() lifecycle event. Bento expects this to be called
+	 * and may introduce a auto-kill in the future if it is not.
 	 *
 	 * @returns Application state Object
 	 */
-	// eslint-disable-next-line @typescript-eslint/require-await
 	public async verify(): Promise<BentoState> {
-		// check for any pending entities
-		const pending = this.entities.getPendingEntities();
-		if (pending.length > 0) {
-			throw new IllegalStateError(`One or more entities are still in a pending state: '${pending.map(p => p.name).join('\', \'')}'`);
+		const state: BentoState = { entities: [], variables: [] };
+
+		// verify entities
+		const entities = await this.entities.verify();
+		for (const entity of entities.values()) {
+			state.entities.push({ type: entity.type, name: entity.name });
 		}
-
-		const state: BentoState = { components: [], plugins: [], variables: [] };
-
-		// add component names
-		const components = this.entities.getEntities(EntityType.COMPONENT);
-		components.forEach(c => state.components.push(c.name));
-
-		// add plugin names
-		const plugins = this.entities.getEntities(EntityType.PLUGIN);
-		plugins.forEach(p => state.plugins.push(p.name));
 
 		// add variable names
 		const variables = this.variables.getVariables();

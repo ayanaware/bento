@@ -31,13 +31,11 @@ export class VariableLoader implements Plugin {
 	private readonly pending: Map<string, any> = new Map();
 
 	// TODO: Fix this rule
-	// eslint-disable-next-line @typescript-eslint/require-await
 	public async onLoad(): Promise<void> {
 		this.handlePending();
 	}
 
 	// TODO: Fix this rule
-	// eslint-disable-next-line @typescript-eslint/require-await
 	public async onUnload(): Promise<void> {
 		// remove variables we loaded
 		for (const key of this.variables.keys()) this.api.bento.deleteVariable(key);

@@ -70,7 +70,7 @@ export class EntityEvents {
 			try {
 				handler.call(context, this.subject.get(name));
 			} catch (e) {
-				throw new ProcessingError(`Failed to call subject handler for "${name}"`).setCause(e);
+				throw new ProcessingError(`Failed to call subject handler for "${name}"`).setCause(e as Error);
 			}
 		}
 

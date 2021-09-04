@@ -175,21 +175,23 @@ export class VariableFileLoader extends VariableLoader {
 		// file/variable ownership
 		if (!this.files.has(location)) this.files.set(location, new Set());
 
-		for (const [key, value] of Object.entries(pairings)) {
+		for (const [key, fileValue] of Object.entries(pairings)) {
 			// register variable
 			this.variables.add(key);
 			this.files.get(location).add(key);
 
 			// add default if eligable
-			if (defaults && value != null) {
-				this.defaults.set(key, value);
+			if (defaults && fileValue !== undefined) this.defaults.set(key, fileValue);
 
-				this.processVariable(key);
-				continue;
-			}
+			// process value
+			let value = fileValue;
 
-			// process variable. overriding values and defaults
-			this.processVariable(key, pairings[key]);
+			// env override & defaults
+			const override = this.getVariableValue(key);
+			if (override !== undefined) value = override;
+			if (value === undefined && this.defaults.has(key)) value = this.defaults.get(key);
+
+			this.loadVariable(key, value);
 		}
 	}
 }

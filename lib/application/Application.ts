@@ -3,7 +3,7 @@ import * as path from 'path';
 
 import { IllegalStateError } from '@ayanaware/errors';
 
-import { Bento } from '../Bento';
+import { Bento, BentoOptions } from '../Bento';
 import { useApplication, useBento } from '../Globals';
 import { EntityType } from '../entities/interfaces/Entity';
 import { VariableFileLoader } from '../plugins/cfg/VariableFileLoader';
@@ -56,15 +56,16 @@ export class Application {
 	 *
 	 * @param cfg ApplicationConfig
 	 * @param directory Working directory
+	 * @param options Bento Options
 	 */
-	public constructor(cfg?: ApplicationConfig, directory?: string) {
+	public constructor(cfg?: ApplicationConfig, directory?: string, options?: BentoOptions) {
 		this.cfg = cfg || {};
 		this.directory = directory || this.getCallerDirectory();
 
 		// Register Application for `getApplication();`
 		useApplication(this);
 
-		this.bento = new Bento();
+		this.bento = new Bento(options);
 		// Force Register Bento for `getBento();`. Force to prevent any strangeness
 		useBento(this.bento, true);
 

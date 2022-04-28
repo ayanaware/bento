@@ -35,13 +35,13 @@
 	},
 	"keywords": [
 		"bento",
+		"framework",
+		"application",
+		"backend",
 		"api",
 		"app",
-		"application",
 		"ayana",
-		"backend",
 		"component",
-		"framework",
 		"plugin"
 	],
 	"license": "MIT"

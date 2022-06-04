@@ -3,6 +3,7 @@
 
 import { promises as fs } from 'fs';
 import * as path from 'path';
+import { pathToFileURL } from 'url';
 
 import { IllegalStateError, ProcessingError } from '@ayanaware/errors';
 import { Logger } from '@ayanaware/logger-api';
@@ -15,6 +16,16 @@ import { InstanceType } from '../../types/InstanceType';
 import { EntityLoader } from './EntityLoader';
 
 const log = Logger.get();
+
+/**
+ * We have to do this because TS automatically converts
+ * import(file) to Promise.resolve().then(() => require(file))
+ * which doesn't work with ESM.
+ *
+ * This can be removed once https://github.com/microsoft/TypeScript/issues/43329 is solved.
+ */
+// eslint-disable-next-line @typescript-eslint/no-implied-eval
+const importDynamic = new Function('modulePath', 'return import(modulePath)');
 
 /**
  * FSEntityLoader is a recursive entity loader for Bento.
@@ -34,6 +45,7 @@ export class FSEntityLoader extends EntityLoader {
 			if (this.isEntitylike(item.default)) {
 				object = item.default as Entity | InstanceType<Entity>;
 			} else {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 				for (const obj of Object.values(item)) {
 					if (this.isEntitylike(obj)) {
 						if (object != null) {
@@ -73,7 +85,7 @@ export class FSEntityLoader extends EntityLoader {
 	}
 
 	protected async checkFile(file: string): Promise<boolean> {
-		if (!(/\.(js|ts)$/i.exec(file))) return false;
+		if (!(/\.(js|mjs|cjs|ts)$/i.exec(file))) return false;
 		if (/\.d\.ts$/i.exec(file)) return false;
 
 		// .e.js and .e.ts are considerend entities
@@ -94,7 +106,7 @@ export class FSEntityLoader extends EntityLoader {
 
 		// Check .d.ts file
 		try {
-			const dts = file.replace(/\.js$/i, '.d.ts');
+			const dts = file.replace(/\.(js|mjs|cjs)$/i, '.d.ts');
 
 			const stat = await fs.stat(dts);
 			if (stat.isFile()) {
@@ -126,12 +138,13 @@ export class FSEntityLoader extends EntityLoader {
 
 		let nodeModule: unknown;
 		try {
-			nodeModule = require(file);
+			nodeModule = await importDynamic(pathToFileURL(file));
 		} catch (e) {
 			throw new EntityLoadError(file, `addFile(): Failed to require "${file}"`).setCause(e as Error);
 		}
 
-		const entity = this.findEntity(nodeModule);
+		// Get the first index of the imported object:
+		const entity = this.findEntity(Object.values(nodeModule)[0]);
 		if (!entity) {
 			log.warn(`addFile(): Could not find entity in "${file}"`);
 			return;

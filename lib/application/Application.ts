@@ -13,7 +13,7 @@ import { ApplicationConfig } from './interfaces/ApplicationConfig';
 import { ApplicationState } from './interfaces/ApplicationState';
 
 /** @ignore */
-const CALLER_LINE_REGEX = /(?:at (?:.+?\()|at )(.+?):[0-9]+:[0-9]+/;
+const CALLER_LINE_REGEX = /(?:at (?:.+?\()|at )(?:file:\/\/\/)*(.+?):[0-9]+:[0-9]+/;
 
 /**
  * See constructor for more information
@@ -105,8 +105,12 @@ export class Application {
 		/* This should never happen but it's handled just in case */
 		if (callerFile == null) return null;
 
-		const lastIndex = callerFile.lastIndexOf(path.sep);
-		if (lastIndex < 0) return null;
+		let lastIndex = callerFile.lastIndexOf(path.sep);
+		if (lastIndex < 0) {
+			// Stacktraces in ESM always use `/`, so this is a fix for Windows users:
+			lastIndex = callerFile.lastIndexOf('/');
+			if (lastIndex < 0) return null;
+		}
 
 		return callerFile.slice(0, lastIndex);
 	}

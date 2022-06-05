@@ -40,25 +40,23 @@ export class FSEntityLoader extends EntityLoader {
 	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	protected findEntity(item: any): Entity | InstanceType<Entity> {
 		let object: Entity | InstanceType<Entity> = null;
-		if (item.__esModule) {
-			// ESModule
-			if (this.isEntitylike(item.default)) {
-				object = item.default as Entity | InstanceType<Entity>;
-			} else {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-				for (const obj of Object.values(item)) {
-					if (this.isEntitylike(obj)) {
-						if (object != null) {
-							throw new ProcessingError('findEntity(): ESModule defines multiple exports and no default');
-						}
 
-						object = obj as Entity | InstanceType<Entity>;
+		// import always seems to return an object
+		// default is ESM default or CJS module.exports
+
+		if (this.isEntitylike(item.default)) { // ES Module default export
+			object = item.default as Entity | InstanceType<Entity>;
+		} else { // ESModule named export, look for first Entitylike
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			for (const obj of Object.values(item)) {
+				if (this.isEntitylike(obj)) {
+					if (object != null) {
+						throw new ProcessingError('findEntity(): ESModule defines multiple exports and no default');
 					}
+
+					object = obj as Entity | InstanceType<Entity>;
 				}
 			}
-		} else {
-			// CommonJS module.exports
-			if (this.isEntitylike(item)) object = item as Entity | InstanceType<Entity>;
 		}
 
 		return object;
@@ -144,7 +142,7 @@ export class FSEntityLoader extends EntityLoader {
 		}
 
 		// Get the first index of the imported object:
-		const entity = this.findEntity(Object.values(nodeModule)[0]);
+		const entity = this.findEntity(nodeModule);
 		if (!entity) {
 			log.warn(`addFile(): Could not find entity in "${file}"`);
 			return;

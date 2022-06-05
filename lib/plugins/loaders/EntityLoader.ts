@@ -45,7 +45,7 @@ export class EntityLoader implements Plugin {
 	 * @returns boolean
 	 */
 	protected isEntitylike(v: unknown): boolean {
-		return v != null && (typeof v === 'function' || typeof v === 'object');
+		return this.isClasslike(v) || this.isFunctionlike(v);
 	}
 
 	/**

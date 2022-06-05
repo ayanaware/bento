@@ -44,9 +44,13 @@ export class FSEntityLoader extends EntityLoader {
 		// import always seems to return an object
 		// default is ESM default or CJS module.exports
 
-		if (this.isEntitylike(item.default)) { // ES Module default export
-			object = item.default as Entity | InstanceType<Entity>;
-		} else { // ESModule named export, look for first Entitylike
+		// handle default.default export
+		let itemDefault: unknown = item.default;
+		if (typeof item.default === 'object' && item.default.default) itemDefault = item.default.default;
+
+		if (this.isEntitylike(itemDefault)) { // default export
+			object = itemDefault as Entity | InstanceType<Entity>;
+		} else { // named export, look for EntityLike
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 			for (const obj of Object.values(item)) {
 				if (this.isEntitylike(obj)) {

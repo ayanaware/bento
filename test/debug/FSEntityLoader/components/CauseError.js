@@ -1,5 +1,6 @@
 'use strict';
 
+// @fs-entity
 class CauseError {
 	constructor() {
 		this.name = 'CauseError';

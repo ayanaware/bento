@@ -2,6 +2,7 @@
 
 const Parent = require('../Parent');
 
+// @fs-entity
 class Child {
 	constructor() {
 		this.name = 'Child';
